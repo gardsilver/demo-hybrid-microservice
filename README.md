@@ -62,3 +62,4 @@ GRPC_PORT=3001
 ## **Health Check Monitor**.
 Реализован **Health Check Monitor**, включающий в себя методы: `liveness-probe`, `readiness-probe` и `our-metrics`.
 
+[email](mailto:gardsilver@list.ru)

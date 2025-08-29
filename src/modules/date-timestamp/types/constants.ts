@@ -1,0 +1,42 @@
+export const MILLISECONDS_IN_SECOND = 1000;
+export const DATE_DAY_FORMAT = 'DD';
+export const DATE_MONTH_FORMAT = 'MM';
+export const DATE_YEAR_FORMAT = 'YYYY';
+export const TIME_HOUR_FORMAT = 'HH';
+export const TIME_MINUTE_FORMAT = 'mm';
+export const TIME_SECOND_FORMAT = 'ss';
+export const TIME_MILLISECOND_FORMAT = 'SSS';
+export const DATE_FORMAT = `${DATE_DAY_FORMAT}.${DATE_MONTH_FORMAT}.${DATE_YEAR_FORMAT}`;
+export const DATE_WORLD_STANDARD_FORMAT = `${DATE_YEAR_FORMAT}-${DATE_MONTH_FORMAT}-${DATE_DAY_FORMAT}`;
+export const TIME_FORMAT = `${TIME_HOUR_FORMAT}:${TIME_MINUTE_FORMAT}:${TIME_SECOND_FORMAT}`;
+export const DATE_TIME_FORMAT = `${DATE_FORMAT} ${TIME_FORMAT}`;
+export const DATE_TIME_WITHOUT_SECOND_FORMAT = `${DATE_FORMAT} ${TIME_HOUR_FORMAT}:${TIME_MINUTE_FORMAT}`;
+export const DATE_TIME_WORLD_STANDARD_FORMAT = `${DATE_WORLD_STANDARD_FORMAT} ${TIME_FORMAT}`;
+export const DATE_TIME_WORLD_STANDARD_WITHOUT_SECOND_FORMAT = `${DATE_WORLD_STANDARD_FORMAT} ${TIME_HOUR_FORMAT}:${TIME_MINUTE_FORMAT}`;
+export const DATE_BASE_WITHOUT_SECOND_FORMAT = `${DATE_WORLD_STANDARD_FORMAT}[T]${TIME_HOUR_FORMAT}:${TIME_MINUTE_FORMAT}Z`;
+export const DATE_BASE_FORMAT = `${DATE_WORLD_STANDARD_FORMAT}[T]${TIME_FORMAT}Z`;
+
+export const STRING_REGEX_DAY = '(0[1-9]|1\\d|2\\d|3[0-1])';
+export const STRING_REGEX_MONTH = '(0[1-9]|1[0-2])';
+export const STRING_REGEX_YEAR = '(19\\d{2}|[2-9]\\d{3})';
+export const STRING_REGEX_TIMEZONE_FORMAT =
+  '(Z|[+-](0\\d|1[0-2]):[0-5]\\d|[+-]([0-6]\\d{2}|7[0-2]\\d)|[+-](0\\d|1[0-2])|[+-]([1-9]|1[0-2]))';
+export const STRING_REGEX_DATE_FORMAT = `${STRING_REGEX_DAY}.${STRING_REGEX_MONTH}.${STRING_REGEX_YEAR}`;
+export const STRING_REGEX_DATE_WORLD_STANDARD_FORMAT = `${STRING_REGEX_YEAR}-${STRING_REGEX_MONTH}-${STRING_REGEX_DAY}`;
+export const STRING_REGEX_TIME_FORMAT = '([0-1]\\d|2[0-3]):([0-5]\\d)(:([0-5]\\d)(\\.(\\d|[1-9]\\d{1,2})){0,1}){0,1}';
+
+export const REGEXP_WITH_TIMEZONE_OFFSET = new RegExp(
+  `(:([0-5]\\d)(\\.(\\d|[1-9]\\d{1,2})){0,1})${STRING_REGEX_TIMEZONE_FORMAT}$`,
+);
+export const REGEXP_CORRECT_DATE_TIME = new RegExp(
+  `^(${STRING_REGEX_DATE_FORMAT}|${STRING_REGEX_DATE_WORLD_STANDARD_FORMAT})(([\\sT]${STRING_REGEX_TIME_FORMAT})(${STRING_REGEX_TIMEZONE_FORMAT}){0,1}){0,1}$`,
+);
+
+export enum DateTimestampErrorMessages {
+  dateTimeNotSet = 'Not set date time',
+  dateTimeUndefined = 'Unknown format date time',
+  invalidDate = 'Invalid date',
+}
+
+export const UTC_OFFSET = 0; // +00:00/-00:00, 0
+export const MOSCOW_OFFSET = 180; // +03:00, +03

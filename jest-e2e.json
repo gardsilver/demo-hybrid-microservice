@@ -1,0 +1,14 @@
+{
+  "rootDir": ".",
+  "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/src/$1",
+      "^tests/(.*)$": "<rootDir>/tests/$1",
+      "^protos/compiled/(.*)$": "<rootDir>/protos/compiled/$1"
+  },
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "testEnvironment": "node",
+  "testRegex": "\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  }
+}

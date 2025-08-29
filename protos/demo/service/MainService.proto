@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package demo.service;
+
+option java_multiple_files = true;
+
+service MainService {
+  rpc main (MainRequest) returns (MainResponse) {};
+}
+
+message MainRequest {
+    string query = 1;
+}
+
+message Body {
+    optional string status = 1;
+    optional string message = 2;
+}
+
+message MainResponse {
+    optional Body data = 1;
+}

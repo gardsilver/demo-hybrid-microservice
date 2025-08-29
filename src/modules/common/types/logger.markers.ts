@@ -1,0 +1,15 @@
+export enum LoggerMarkers {
+  REQUEST = 'request',
+  RESPONSE = 'response',
+  SUCCESS = 'success',
+  BAD = 'bad',
+  RETRY = 'retry',
+  ERROR = 'error',
+  FAILED = 'failed',
+  INTERNAL = 'internal',
+  EXTERNAL = 'external',
+  UNKNOWN = 'unknown',
+  DB = 'DB',
+  GRPC = 'gRPC',
+  HTTP = 'HTTP',
+}

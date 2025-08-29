@@ -33,7 +33,8 @@
 Микросервисная архитектура подразумевает движение **вперед**, поэтому откат миграций не предусмотрен.
 Так же стоит учитывать длительность выполнения новых миграций, общая длительность применения которых не должна превышать 30 сек (точное значение  длительности будет зависеть от настройки **Kubernetes** или его аналога).
 
-## `DataBaseErrorFormatter` лог-форматер `BaseError` и `ValidationErrorItem` (**@see** `sequelize`): `IObjectFormatter<BaseError | ValidationErrorItem>`
+## `DataBaseErrorFormatter` 
+Лог-форматер `BaseError` и `ValidationErrorItem` (**@see** `sequelize`): `IObjectFormatter<BaseError | ValidationErrorItem>`
 
 ## Метрики
 Данный модуль содержит стандартные бизнес-метрики длительности выполнения запросов к **DB** .

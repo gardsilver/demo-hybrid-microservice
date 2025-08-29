@@ -18,7 +18,7 @@
 |Дата| `DATE_WORLD_STANDARD_FORMAT = 'YYYY-MM-DD'`<br>  `DATE_FORMAT = 'DD.MM.YYYY'`  | `'2025-12-31'` <br> `'31.12.2025'`| Возможный диапазон указания года: `[1900, 9999]` |
 |Время|`TIME_FORMAT = 'HH:mm:ss'`<br> `'HH:mm'`<br> `'HH:mm:ss.SSS'` |`'23:12:45'`<br> `'23:12'`<br> `'23:12:45.657'`|-|
 |OFFSET| `Z` <br> `+00:00` <br>`+000`<br> `+00` <br> `+0` | - <br> `'+03:00'` (`'+HH:mm'`) <br> `'+180'` (`'+sss'`:  `'+180'='+03:00'='+03'`)<br> `'+0'`|При использовании формата `+0` не рекомендуется  указывать число отличное от `'0'`. Не является корректным. <br> Например: `'01.01.2024 10:00:17+7'` будет приведено к виду `'2024-01-01T07:00:17+00:00'`|
-|Дата и время <br> (Возможно комбинировать указанные выше форматы в произвольном виде. В качестве разделителя даты и времени допускается использование `'T'` или `' '`) | `DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss'`<br> `DATE_TIME_WITHOUT_SECOND_FORMAT = 'DD.MM.YYYY HH:mm'`<br>  `DATE_TIME_WORLD_STANDARD_FORMAT = 'YYYY-MM-DD HH:mm:ss'`<br> `DATE_TIME_WORLD_STANDARD_WITHOUT_SECOND_FORMAT = 'YYYY-MM-DD HH:mm'`<br>  `DATE_BASE_WITHOUT_SECOND_FORMAT = 'YYYY-MM-DD[T]HH:mmZ'`<br> `DATE_BASE_FORMAT = 'YYYY-MM-DD[T]HH:mm:ssZ'` <br> `'YYYY-MM-DD[T]HH:mm:ss.SSSZ'`| `'01.12.2025 23:12:45'` <br> `'01.12.2025 23:12'` <br> `'2025-12-31 23:12:45'` <br>`'2025-12-31 23:12'` <br>`'2025-12-31T23:12+03'` <br> `'2025-12-31T23:12:45+03'`<br> `'2025-12-31T23:12:45.657+03'`|  |
+|Дата и время <br> (Возможно комбинировать указанные выше форматы в произвольном виде. В качестве разделителя даты и времени допускается использование `'T'` или `' '`) | `DATE_TIME_FORMAT = 'DD.MM.YYYY HH:mm:ss'`<br> `DATE_TIME_WITHOUT_SECOND_FORMAT = 'DD.MM.YYYY HH:mm'`<br>  `DATE_TIME_WORLD_STANDARD_FORMAT = 'YYYY-MM-DD HH:mm:ss'`<br> `DATE_TIME_WORLD_STANDARD_WITHOUT_SECOND_FORMAT = 'YYYY-MM-DD HH:mm'`<br>  `DATE_BASE_WITHOUT_SECOND_FORMAT = 'YYYY-MM-DD[T]HH:mmZ'`<br> `DATE_BASE_FORMAT = 'YYYY-MM-DD[T]HH:mm:ssZ'` <br> `DATE_BASE_FORMAT_WITH_MILLISECONDS = 'YYYY-MM-DD[T]HH:mm:ss.SSSZ'`| `'01.12.2025 23:12:45'` <br> `'01.12.2025 23:12'` <br> `'2025-12-31 23:12:45'` <br>`'2025-12-31 23:12'` <br>`'2025-12-31T23:12+03'` <br> `'2025-12-31T23:12:45+03'`<br> `'2025-12-31T23:12:45.657+03'`|  |
 
 ##  `DateTimestamp` 
  - `isValid()` Вернет `false`,если были переданы не корректные данные для установки нового значения даты времени.
@@ -45,5 +45,5 @@
  
 ## Utils
  * `delay` - выполняет приостановку выполнения кода на указанное количество миллисекунд.
- * `promisesTimeOut` - выбросит исключение `TimeoutError`, если длительность выполнения переданных `Promise` превысит заданный интервал в миллисекундах.
+ * `promisesTimeout` - выбросит исключение `TimeoutError`, если длительность выполнения переданных `Promise` превысит заданный интервал в миллисекундах.
  

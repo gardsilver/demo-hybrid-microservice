@@ -68,7 +68,8 @@ import { HTTP_HEADERS_RESPONSE_BUILDER_DI, IHttpHeadersResponseBuilder } from 's
   });
 ```
 
-## `HttpExceptionFormatter` лог-форматер ошибки `HttpException` (**@see** `@nestjs/common`): `IObjectFormatter<HttpException>`
+## `HttpExceptionFormatter` 
+Лог-форматер ошибки `HttpException` (**@see** `@nestjs/common`): `IObjectFormatter<HttpException>`
 
 ## `HttpAuthGuard`
 Проверка авторизации входящих **HTTP**-запросов. Можно подключать как в классе/методе, так и глобально.

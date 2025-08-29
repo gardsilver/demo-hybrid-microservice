@@ -57,7 +57,7 @@ export class MyService {
 }
 ```
 
-##### 2.1. Через вызов методы `runWithContext`/`runWithContextAsync`
+##### 2.1. Через вызов методов `runWithContext`/`runWithContextAsync`
 ```typescript
    MyAsyncContext.instance.runWithContextAsync(
       async () => { return service.asyncOtherMethod('Hello World!') },

@@ -32,4 +32,5 @@ const headers = GrpcHeadersHelper.normalize(metadata.getMap());
  - `GrpcProtoPathHelper.existPaths` - проверяет существование соответствующих путей в файловой системе.
  - `GrpcMetadataHelper.joinBase` - локальные пути расширяет до полного пути.
 
-## `MetadataObjectFormatter` лог-форматер `Metadata` (**@see** `@grpc/grpc-js`): `IObjectFormatter<Metadata>`
+## `MetadataObjectFormatter` 
+Лог-форматер `Metadata` (**@see** `@grpc/grpc-js`): `IObjectFormatter<Metadata>`

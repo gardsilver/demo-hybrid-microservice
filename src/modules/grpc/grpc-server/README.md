@@ -76,7 +76,8 @@ import { GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI, IGrpcMetadataResponseBuilder 
 
 ```
 
-## `RpcExceptionFormatter` лог-форматер ошибки `RpcException` (**@see** `@nestjs/microservices`): `IObjectFormatter<RpcException>`
+## `RpcExceptionFormatter` 
+Лог-форматер ошибки `RpcException` (**@see** `@nestjs/microservices`): `IObjectFormatter<RpcException>`
 
 ## `GrpcAuthGuard`
 

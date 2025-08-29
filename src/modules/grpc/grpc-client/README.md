@@ -63,12 +63,14 @@ import { GRPC_CLIENT_PROXY_DI, GRPC_CLIENT_DI } from './types/tokens';
 })
 export class AppModule {}
 ```
+
 `GrpcClientBuilder.buildGrpcOptions` позволяет получить `GrpcOptions` (**@see** `@nestjs/microservices`), необходимые для создания `ClientGrpcProxy`. Может быть полезно для настройки `GRPCHealthIndicator` (**@see** `@nestjs/terminus`).
 
-## `GrpcServiceErrorFormatter` лог-форматер ошибки `ServiceError` (**@see** `@grpc/grpc-js`): `IObjectFormatter<ServiceError>`
+## `GrpcServiceErrorFormatter` 
+Лог-форматер ошибки `ServiceError` (**@see** `@grpc/grpc-js`): `IObjectFormatter<ServiceError>`
 
-## `GrpcClientErrorFormatter` лог-форматер ошибки `GrpcClientError`: `IObjectFormatter<GrpcClientError>`
-
+## `GrpcClientErrorFormatter`
+Лог-форматер ошибки `GrpcClientError`: `IObjectFormatter<GrpcClientError>`
 
 ## Метрики
 | Метрика| Метки |Описание|

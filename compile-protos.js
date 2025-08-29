@@ -28,9 +28,7 @@ const COMPILE_PARAMS = [
     '--ts_proto_opt=lowerCaseServiceMethods=true',
     '--ts_proto_opt=forceLong=long',
     '--ts_proto_opt=useDate=true',
- 
-];
-
+ ];
 
 function cleareCompiledDir() {
     fs.rmSync(path.join(__dirname, DIST_DIR), {
@@ -57,22 +55,16 @@ async function compileProtos() {
         const comand =  `protoc --plugin=protoc-gen-ts_proto=${pluginPath}` +
         ` --ts_proto_out ${DIST_DIR}  ${COMPILE_PARAMS.join(' ')}  ${includeDirs}  ${PROTO_TO_COMPILE.join(' ')}`;
         
-        const file = fs.openSync('log.log', 'a');
-        fs.appendFileSync(file, comand + '\n', 'utf8')
-
         exec (
             comand,
             (error) => {
                 if (error) {
-                    fs.appendFileSync(file, error.message + '\n', 'utf8')
-
                     reject(error);
                     return;
                 }
                 resolve();
             }
         );
-
     });
 }
 

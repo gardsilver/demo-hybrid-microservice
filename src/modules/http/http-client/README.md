@@ -25,9 +25,11 @@
 Обрабатывает `AxiosError` и приводит их к `HttpClientError` для дальнейшей обработки (**@see** `HttpClientResponseHandler`).
 Ошибки **Not Found** будут восприниматься как успешный ответ и возвращаться **null**. Так же при необходимости будет осуществлять повторную отправку запроса.
 
-## `AxiosErrorFormatter` лог-форматер ошибки `AxiosError` (**@see** `axios`): `IObjectFormatter<AxiosError>`
+## `AxiosErrorFormatter`
+Лог-форматер ошибки `AxiosError` (**@see** `axios`): `IObjectFormatter<AxiosError>`
 
-## `HttpClientErrorFormatter` лог-форматер ошибки `HttpClientError`: `IObjectFormatter<HttpClientError>`
+## `HttpClientErrorFormatter` 
+Лог-форматер ошибки `HttpClientError`: `IObjectFormatter<HttpClientError>`
 
 ## Метрики
 | Метрика| Метки |Описание|

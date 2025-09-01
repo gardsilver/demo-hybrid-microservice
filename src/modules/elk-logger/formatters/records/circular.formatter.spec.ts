@@ -15,9 +15,7 @@ describe(CircularFormatter.name, () => {
 
   beforeAll(async () => {
     configService = new MockConfigService() as undefined as ConfigService;
-
     loggerConfig = new ElkLoggerConfig(configService, [], []);
-
     formatter = new CircularFormatter(loggerConfig);
   });
 

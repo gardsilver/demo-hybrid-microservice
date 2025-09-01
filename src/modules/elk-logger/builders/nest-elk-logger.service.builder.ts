@@ -47,7 +47,7 @@ export class NestElkLoggerServiceBuilder {
     const pruneConfig = new PruneConfig(options.configService, elkLoggerConfig);
     const formattersFactory = new FormattersFactory(
       new CircularFormatter(elkLoggerConfig),
-      ObjectFormatterBuilder.build(options?.formattersOptions),
+      ObjectFormatterBuilder.build(elkLoggerConfig, options?.formattersOptions),
       new PruneFormatter(pruneConfig),
       new SortFieldsFormatter(elkLoggerConfig),
       new PruneEncoder(pruneConfig),

@@ -1,11 +1,22 @@
+import { ConfigService } from '@nestjs/config';
+import { MockConfigService } from 'tests/nestjs';
 import { MockObjectFormatter } from 'tests/modules/elk-logger';
+import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { ExceptionObjectFormatter } from '../formatters/objects/exception.object-formatter';
 import { ObjectFormatter } from '../formatters/records/object.formatter';
 import { ObjectFormatterBuilder } from './object-formatter.builder';
 
 describe(ObjectFormatterBuilder.name, () => {
+  let configService: ConfigService;
+  let loggerConfig: ElkLoggerConfig;
+
+  beforeEach(async () => {
+    configService = new MockConfigService() as undefined as ConfigService;
+    loggerConfig = new ElkLoggerConfig(configService, [], []);
+  });
+
   it('build default', async () => {
-    const formatter = ObjectFormatterBuilder.build();
+    const formatter = ObjectFormatterBuilder.build(loggerConfig);
 
     expect(formatter instanceof ObjectFormatter).toBeTruthy();
     expect(formatter['objectFormatters']?.length).toBe(1);
@@ -15,7 +26,7 @@ describe(ObjectFormatterBuilder.name, () => {
   });
 
   it('build custom', async () => {
-    const formatter = ObjectFormatterBuilder.build({
+    const formatter = ObjectFormatterBuilder.build(loggerConfig, {
       exceptionFormatters: [new MockObjectFormatter('error')],
       objectFormatters: [new MockObjectFormatter('object')],
     });

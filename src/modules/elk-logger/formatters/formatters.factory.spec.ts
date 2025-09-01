@@ -54,8 +54,9 @@ describe(FormattersFactory.name, () => {
         CircularFormatter,
         {
           provide: ObjectFormatter,
-          useFactory: () => {
-            return ObjectFormatterBuilder.build();
+          inject: [ElkLoggerConfig],
+          useFactory: (loggerConfig: ElkLoggerConfig) => {
+            return ObjectFormatterBuilder.build(loggerConfig);
           },
         },
         PruneFormatter,

@@ -1,25 +1,39 @@
+import { ConfigService } from '@nestjs/config';
+import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockObjectFormatter } from 'tests/modules/elk-logger';
-import { ObjectFormatter } from './object.formatter';
+import { MockConfigService } from 'tests/nestjs';
 import { ILogRecord } from '../../types/elk-logger.types';
+import { ElkLoggerConfig } from '../../services/elk-logger.config';
+import { ObjectFormatter } from './object.formatter';
 
 describe(ObjectFormatter.name, () => {
+  let configService: ConfigService;
+  let loggerConfig: ElkLoggerConfig;
   let formatter: ObjectFormatter;
 
   beforeEach(async () => {
-    formatter = new ObjectFormatter([new MockObjectFormatter()]);
+    configService = new MockConfigService() as undefined as ConfigService;
+    loggerConfig = new ElkLoggerConfig(configService, [], []);
+    formatter = new ObjectFormatter(loggerConfig, [new MockObjectFormatter()]);
     jest.clearAllMocks();
   });
 
   it('transform', async () => {
+    const current = new DateTimestamp();
+    const now = new Date();
+
     const logRecord: ILogRecord = {
       businessData: {
         status: 'ok',
         error: new Error('test'),
       },
       payload: {
+        current,
+        now,
         details: {
           message: 'message',
-          array: ['success', 123, { data: {} }],
+          now,
+          array: ['success', 123, { data: {} }, current],
         },
       },
     } as undefined as ILogRecord;
@@ -43,9 +57,12 @@ describe(ObjectFormatter.name, () => {
         },
       },
       payload: {
+        current,
+        now,
         details: {
           message: 'message',
-          array: ['success', 123, { data: {} }],
+          now,
+          array: ['success', 123, { data: {} }, current],
         },
       },
     });

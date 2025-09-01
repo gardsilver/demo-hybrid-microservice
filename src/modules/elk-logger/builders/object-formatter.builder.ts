@@ -1,12 +1,16 @@
 import { ExceptionObjectFormatter } from '../formatters/objects/exception.object-formatter';
 import { ObjectFormatter } from '../formatters/records/object.formatter';
+import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { IObjectFormatter } from '../types/elk-logger.types';
 
 export class ObjectFormatterBuilder {
-  public static build(options?: {
-    exceptionFormatters?: IObjectFormatter[];
-    objectFormatters?: IObjectFormatter[];
-  }): ObjectFormatter {
+  public static build(
+    elkLoggerConfig: ElkLoggerConfig,
+    options?: {
+      exceptionFormatters?: IObjectFormatter[];
+      objectFormatters?: IObjectFormatter[];
+    },
+  ): ObjectFormatter {
     const exceptionFormatters: IObjectFormatter[] = options?.exceptionFormatters?.length
       ? options.exceptionFormatters
       : [];
@@ -18,6 +22,6 @@ export class ObjectFormatterBuilder {
 
     exceptionObjectFormatter.setObjectFormatters(objectFormatters);
 
-    return new ObjectFormatter(objectFormatters);
+    return new ObjectFormatter(elkLoggerConfig, objectFormatters);
   }
 }

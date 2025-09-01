@@ -62,8 +62,9 @@ export class ElkLoggerModule {
       CircularFormatter,
       {
         provide: ObjectFormatter,
-        useFactory: () => {
-          return ObjectFormatterBuilder.build(options?.formattersOptions);
+        inject: [ElkLoggerConfig],
+        useFactory: (elkLoggerConfig: ElkLoggerConfig) => {
+          return ObjectFormatterBuilder.build(elkLoggerConfig, options?.formattersOptions);
         },
       },
       PruneFormatter,

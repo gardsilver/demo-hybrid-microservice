@@ -1,8 +1,12 @@
 import { IKeyValue } from 'src/modules/common';
 import { ILogRecord, ILogRecordFormatter, IObjectFormatter } from '../../types/elk-logger.types';
+import { ElkLoggerConfig } from '../../services/elk-logger.config';
 
 export class ObjectFormatter implements ILogRecordFormatter {
-  constructor(private readonly objectFormatters: IObjectFormatter[]) {}
+  constructor(
+    private readonly elkLoggerConfig: ElkLoggerConfig,
+    private readonly objectFormatters: IObjectFormatter[],
+  ) {}
 
   transform(from: ILogRecord): ILogRecord {
     const normalized = this.replaceKeyValue({
@@ -42,9 +46,11 @@ export class ObjectFormatter implements ILogRecordFormatter {
         return formatter.transform(value);
       }
 
-      if (Object.keys(value).length) {
-        return this.replaceKeyValue(value as IKeyValue);
+      if (this.elkLoggerConfig.isIgnoreObject(value)) {
+        return value;
       }
+
+      return this.replaceKeyValue(value as IKeyValue);
     }
 
     return value;

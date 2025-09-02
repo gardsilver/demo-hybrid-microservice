@@ -26,22 +26,43 @@ export class GrpcMicroserviceBuilder {
       throw Error(`Не корректный формат url (${options.url})`);
     }
 
+    const grpcServices = options.services?.length ? options.services : [''];
+    const grpcHealthImpl = GrpcMicroserviceBuilder.createHealthImplementation(grpcServices);
+
     app.connectMicroservice<MicroserviceOptions>(
       GrpcMicroserviceBuilder.createGrpcOptions({
         url,
-        services: options.services?.length ? options.services : [''],
+        services: grpcServices,
         package: options.package,
         protoPath,
         includeDirs,
+        grpcHealthImpl,
       }),
       {
         inheritAppConfig: true,
       },
     );
+
+    return {
+      grpcServices,
+      grpcHealthImpl,
+    };
+  }
+
+  private static createHealthImplementation(grpcServices: string[]): HealthImplementation {
+    const initialStatusMap = {};
+
+    grpcServices.forEach((service) => {
+      initialStatusMap[service] = 'UNKNOWN';
+    });
+
+    return new HealthImplementation(initialStatusMap);
   }
 
   private static createGrpcOptions(
-    options: Omit<IGrpcMicroserviceBuilderOptions & { protoPath: string[] }, 'baseDir'>,
+    options: Omit<IGrpcMicroserviceBuilderOptions & { protoPath: string[] }, 'baseDir'> & {
+      grpcHealthImpl: HealthImplementation;
+    },
   ): GrpcOptions {
     return {
       transport: Transport.GRPC,
@@ -53,18 +74,10 @@ export class GrpcMicroserviceBuilder {
           includeDirs: options.includeDirs,
         },
         onLoadPackageDefinition(pkg, server) {
-          const initialStatusMap = {};
+          options.grpcHealthImpl.addToServer(server);
 
           options.services.forEach((service) => {
-            initialStatusMap[service] = 'UNKNOWN';
-          });
-
-          const health = new HealthImplementation(initialStatusMap);
-
-          health.addToServer(server);
-
-          options.services.forEach((service) => {
-            health.setStatus(service, 'SERVING');
+            options.grpcHealthImpl.setStatus(service, 'SERVING');
           });
 
           new ReflectionService(pkg).addToServer(server);

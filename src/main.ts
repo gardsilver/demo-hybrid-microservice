@@ -35,6 +35,7 @@ import {
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
 import { GLOBAL_ROUTE_PREFIX, AppConfig } from 'src/core/app';
 import { MainModule } from 'src/main.module';
+import { HealthStatusService } from 'src/health';
 
 async function bootstrap(): Promise<void> {
   const initConfigService = new ConfigService();
@@ -115,7 +116,7 @@ async function bootstrap(): Promise<void> {
 
   SwaggerModule.setup('/', app, documentation, customOption);
 
-  GrpcMicroserviceBuilder.setup(app, {
+  const { grpcServices, grpcHealthImpl } = GrpcMicroserviceBuilder.setup(app, {
     url: `http://${appConfig.getGrpcHost()}:${appConfig.getGrpcPort()}`,
     services: [MAIN_SERVICE_NAME],
     package: ['demo.service'],
@@ -124,6 +125,8 @@ async function bootstrap(): Promise<void> {
     includeDirs: [],
     normalizeUrl: true,
   });
+
+  app.get(HealthStatusService).addGrpcHealthImplementation(grpcHealthImpl, grpcServices);
 
   app.enableShutdownHooks();
 

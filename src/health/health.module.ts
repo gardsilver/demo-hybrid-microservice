@@ -6,6 +6,7 @@ import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
 import { HealthController } from './controllers/health.controller';
+import { HealthStatusService } from './services/health-status.service';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { HealthController } from './controllers/health.controller';
     DatabaseModule,
     GracefulShutdownModule,
   ],
+  providers: [HealthStatusService],
+  exports: [HealthStatusService],
   controllers: [HealthController],
 })
 export class HealthModule {}

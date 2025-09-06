@@ -2,7 +2,7 @@ import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
-import { responseFactory } from 'tests/express';
+import { responseFactory } from 'tests/express-js';
 import { HttpResponseHelper } from './http.response.helper';
 
 describe(HttpResponseHelper.name, () => {

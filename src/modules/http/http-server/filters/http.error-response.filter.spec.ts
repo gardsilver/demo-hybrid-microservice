@@ -12,7 +12,7 @@ import {
   IHttpHeadersToAsyncContextAdapter,
 } from 'src/modules/http/http-common';
 import { MockConfigService } from 'tests/nestjs';
-import { requestFactory, responseFactory } from 'tests/express';
+import { requestFactory, responseFactory } from 'tests/express-js';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpErrorResponseFilter } from './http.error-response.filter';

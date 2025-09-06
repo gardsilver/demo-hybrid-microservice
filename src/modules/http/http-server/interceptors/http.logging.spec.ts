@@ -21,7 +21,7 @@ import {
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { MockConfigService } from 'tests/nestjs';
-import { requestFactory, responseFactory } from 'tests/express';
+import { requestFactory, responseFactory } from 'tests/express-js';
 import { HttpLogging } from './http.logging';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 import { HttpResponseHandler } from '../filters/http.response.handler';

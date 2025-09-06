@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { AccessRoles, AuthStatus } from 'src/modules/auth';
 import { COOKIE_HEADER_NAME, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { requestFactory } from 'tests/express';
+import { requestFactory } from 'tests/express-js';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from '../types/constants';
 import { HttpAuthInfo } from './http.auth-info';
 import { HttpCookies } from './http.cookies';

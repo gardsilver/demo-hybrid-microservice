@@ -5,7 +5,7 @@ import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { AccessRoles, AuthStatus, IAuthInfo } from 'src/modules/auth';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
-import { requestFactory } from 'tests/express';
+import { requestFactory } from 'tests/express-js';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from '../types/constants';
 import { HttpRequestHelper } from './http.request.helper';

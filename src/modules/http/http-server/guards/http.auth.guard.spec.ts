@@ -17,7 +17,7 @@ import {
   IHttpHeadersToAsyncContextAdapter,
 } from 'src/modules/http/http-common';
 import { MockConfigService } from 'tests/nestjs';
-import { requestFactory } from 'tests/express-js';
+import { requestFactory } from 'tests/express';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpAuthGuard } from './http.auth.guard';

@@ -4,7 +4,7 @@ import { HttpStatus } from '@nestjs/common';
 import { IHeaders, enumKeys } from 'src/modules/common';
 import { LogLevel } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
-import { requestFactory, responseFactory } from 'tests/express-js';
+import { requestFactory, responseFactory } from 'tests/express';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpLoggerHelper } from './http.logger.helper';
 

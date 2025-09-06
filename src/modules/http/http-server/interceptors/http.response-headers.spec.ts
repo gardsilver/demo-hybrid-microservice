@@ -11,7 +11,7 @@ import {
   HttpHeadersToAsyncContextAdapter,
   IHttpHeadersToAsyncContextAdapter,
 } from 'src/modules/http/http-common';
-import { requestFactory, responseFactory } from 'tests/express-js';
+import { requestFactory, responseFactory } from 'tests/express';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpHeadersResponseBuilder } from '../builders/http.headers-response.builder';
 import { HttpRequestHelper } from '../helpers/http.request.helper';

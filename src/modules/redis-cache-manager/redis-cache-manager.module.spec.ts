@@ -32,33 +32,8 @@ import { TestModule, TestService } from 'tests/src/test-module';
 import { RedisCacheManagerModule } from './redis-cache-manager.module';
 import { RedisCacheService } from './services/redis-cache.service';
 import { PrometheusModule } from '../prometheus';
-import { RedisCacheFormatter } from './types/types';
-
-const mockData = {
-  status: 'ok',
-};
-
-class MockCacheFormatter extends RedisCacheFormatter<object> {
-  public static type = 'type';
-
-  constructor(private readonly testService: TestService) {
-    super();
-  }
-
-  public type(): string {
-    return MockCacheFormatter.type;
-  }
-
-  public encode(): object {
-    return mockData;
-  }
-  public decode(): string {
-    return 'decode';
-  }
-}
 
 describe(RedisCacheManagerModule.name, () => {
-  let mockCacheFormatter: MockCacheFormatter;
   let redisCacheService: RedisCacheService;
 
   beforeEach(async () => {
@@ -70,14 +45,6 @@ describe(RedisCacheManagerModule.name, () => {
         RedisCacheManagerModule.forRoot({
           imports: [TestModule],
           providers: [TestService],
-          mapFormatters: {
-            inject: [TestService],
-            useFactory: (testService: TestService) => {
-              mockCacheFormatter = new MockCacheFormatter(testService);
-
-              return { [MockCacheFormatter.type]: mockCacheFormatter };
-            },
-          },
         }),
       ],
     })
@@ -90,8 +57,5 @@ describe(RedisCacheManagerModule.name, () => {
 
   it('init', async () => {
     expect(redisCacheService).toBeDefined();
-    expect(redisCacheService['mapFormatters']).toEqual({
-      type: mockCacheFormatter,
-    });
   });
 });

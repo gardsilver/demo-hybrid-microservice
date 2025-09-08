@@ -12,15 +12,11 @@ import {
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { IRedisCacheManagerModuleOptions } from './types/module.options';
-import {
-  REDIS_CACHE_MANAGER_KEYV_REDIS_OPTIONS_DI,
-  REDIS_CACHE_MANAGER_MAP_FORMATTERS_DI,
-  REDIS_CACHE_MANAGER_REDIS_CLIENT_OPTIONS_DI,
-} from './types/tokens';
+import { REDIS_CACHE_MANAGER_KEYV_REDIS_OPTIONS_DI, REDIS_CACHE_MANAGER_REDIS_CLIENT_OPTIONS_DI } from './types/tokens';
 import { RedisCacheManagerConfig } from './services/redis-cache-manager.config';
 import { defaultRedisReconnectStrategyBuilder } from './builders/default-redis.reconnect-strategy.builder';
 import { RedisCacheService } from './services/redis-cache.service';
-import { BaseRedisCacheFormatter } from './cache-formatters/base-redis.cache-formatter';
+import { JsonRedisCacheFormatter } from './cache-formatters/json-redis.cache-formatter';
 
 @Module({})
 export class RedisCacheManagerModule {
@@ -31,15 +27,7 @@ export class RedisCacheManagerModule {
       imports = imports.concat(options?.imports);
     }
 
-    let providers: Provider[] = [
-      ProviderBuilder.build(REDIS_CACHE_MANAGER_MAP_FORMATTERS_DI, {
-        providerType: options?.mapFormatters,
-        defaultType: { useValue: {} },
-      }),
-      RedisCacheManagerConfig,
-      BaseRedisCacheFormatter,
-      RedisCacheService,
-    ];
+    let providers: Provider[] = [RedisCacheManagerConfig, JsonRedisCacheFormatter, RedisCacheService];
 
     if (options?.providers?.length) {
       providers = providers.concat(options?.providers);

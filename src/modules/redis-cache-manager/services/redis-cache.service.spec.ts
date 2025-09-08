@@ -5,9 +5,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { MockConfigService } from 'tests/nestjs';
 import { RedisCacheManagerConfig } from './redis-cache-manager.config';
 import { RedisCacheService } from './redis-cache.service';
-import { BaseRedisCacheFormatter } from '../cache-formatters/base-redis.cache-formatter';
-import { REDIS_CACHE_MANAGER_MAP_FORMATTERS_DI } from '../types/tokens';
-import { RedisCacheFormatter } from '../types/types';
+import { JsonRedisCacheFormatter } from '../cache-formatters/json-redis.cache-formatter';
+import { IRedisCacheFormatter } from '../types/types';
 import { REDIS_CACHE_MANAGER_DEFAULT_OPTIONS } from '../types/constants';
 
 describe(RedisCacheService.name, () => {
@@ -15,14 +14,13 @@ describe(RedisCacheService.name, () => {
     status: 'ok',
   };
   const mockCacheFormatter = {
-    type: () => 'type',
     encode: () => data,
     decode: () => 'decode',
-  } as RedisCacheFormatter;
+  } as IRedisCacheFormatter;
 
   let redisCacheManagerConfig: RedisCacheManagerConfig;
   let cacheManager: Cache;
-  let cacheFormatter: BaseRedisCacheFormatter;
+  let cacheFormatter: JsonRedisCacheFormatter;
   let service: RedisCacheService;
 
   beforeEach(async () => {
@@ -43,18 +41,14 @@ describe(RedisCacheService.name, () => {
             clear: jest.fn(),
           },
         },
-        BaseRedisCacheFormatter,
-        {
-          provide: REDIS_CACHE_MANAGER_MAP_FORMATTERS_DI,
-          useValue: {},
-        },
+        JsonRedisCacheFormatter,
         RedisCacheService,
       ],
     }).compile();
 
     redisCacheManagerConfig = module.get(RedisCacheManagerConfig);
     cacheManager = module.get(CACHE_MANAGER);
-    cacheFormatter = module.get(BaseRedisCacheFormatter);
+    cacheFormatter = module.get(JsonRedisCacheFormatter);
     service = module.get(RedisCacheService);
   });
 
@@ -69,38 +63,22 @@ describe(RedisCacheService.name, () => {
     expect(service).toBeDefined();
   });
 
-  it('setCacheFormatter', async () => {
-    service.setCacheFormatter(mockCacheFormatter);
+  it('set', async () => {
+    await service.set('key', 'value');
+    await service.set('key', 'value', { formatter: false });
+    await service.set('key', 'value', { formatter: false, ttl: 100 });
+    await service.set('key', data);
+    await service.set('key', data, { formatter: mockCacheFormatter });
+    await service.set('key', data, { formatter: mockCacheFormatter, ttl: 100 });
+    await expect(service.set('key', data, { formatter: false })).rejects.toThrow(
+      new Error('RedisCacheService: value должно быть строкой.'),
+    );
 
-    expect(service['mapFormatters']).toEqual({
-      type: mockCacheFormatter,
-    });
-  });
+    expect(cacheManager.set).toHaveBeenCalledTimes(6);
+    expect(cacheManager.set).toHaveBeenCalledWith('key', '"value"', REDIS_CACHE_MANAGER_DEFAULT_OPTIONS.ttl);
 
-  it('setRaw', async () => {
-    await service.setRaw('key', 'value');
-    await service.setRaw('key', 'value', 100);
-
-    expect(cacheManager.set).toHaveBeenCalledTimes(2);
     expect(cacheManager.set).toHaveBeenCalledWith('key', 'value', REDIS_CACHE_MANAGER_DEFAULT_OPTIONS.ttl);
     expect(cacheManager.set).toHaveBeenCalledWith('key', 'value', 100);
-  });
-
-  it('getRaw', async () => {
-    await service.getRaw('key');
-
-    expect(cacheManager.get).toHaveBeenCalledTimes(1);
-    expect(cacheManager.get).toHaveBeenCalledWith('key');
-  });
-
-  it('set', async () => {
-    service.setCacheFormatter(mockCacheFormatter);
-
-    await service.set('key', { value: data });
-    await service.set('key', { value: data, type: 'type' });
-    await service.set('key', { value: data, type: 'type' }, 100);
-
-    expect(cacheManager.set).toHaveBeenCalledTimes(3);
     expect(cacheManager.set).toHaveBeenCalledWith('key', '{"status":"ok"}', REDIS_CACHE_MANAGER_DEFAULT_OPTIONS.ttl);
     expect(cacheManager.set).toHaveBeenCalledWith('key', 'decode', REDIS_CACHE_MANAGER_DEFAULT_OPTIONS.ttl);
     expect(cacheManager.set).toHaveBeenCalledWith('key', 'decode', 100);
@@ -111,12 +89,11 @@ describe(RedisCacheService.name, () => {
     const spyDefaultEncode = jest.spyOn(cacheFormatter, 'encode');
     const spyCacheGet = jest.spyOn(cacheManager, 'get').mockImplementation(async () => '[]');
 
-    service.setCacheFormatter(mockCacheFormatter);
+    await service.get('key', { formatter: false });
+    await service.get('key');
+    await service.get('key', { formatter: mockCacheFormatter });
 
-    service.get('key');
-    await service.get('key', 'type');
-
-    expect(spyCacheGet).toHaveBeenCalledTimes(2);
+    expect(spyCacheGet).toHaveBeenCalledTimes(3);
     expect(spyCacheGet).toHaveBeenCalledWith('key');
 
     expect(spyMockEncode).toHaveBeenCalledTimes(1);
@@ -127,8 +104,6 @@ describe(RedisCacheService.name, () => {
   });
 
   it('del', async () => {
-    service.setCacheFormatter(mockCacheFormatter);
-
     await service.del('key');
 
     expect(cacheManager.del).toHaveBeenCalledTimes(1);
@@ -136,8 +111,6 @@ describe(RedisCacheService.name, () => {
   });
 
   it('clear', async () => {
-    service.setCacheFormatter(mockCacheFormatter);
-
     await service.clear();
 
     expect(cacheManager.clear).toHaveBeenCalledTimes(1);

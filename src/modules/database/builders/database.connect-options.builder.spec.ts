@@ -39,6 +39,20 @@ describe(DatabaseConnectOptionsBuilder.name, () => {
       benchmark: true,
       logging: 2,
     });
+
+    const spyLogger = jest.spyOn(logger, 'info');
+
+    expect(typeof options.logging).toBe('function');
+
+    (options.logging as (sql: string, timing?: number) => void)('sql', 1);
+
+    expect(spyLogger).toHaveBeenCalledWith('DB query', {
+      module: 'query',
+      payload: {
+        sql: 'sql',
+        executeTime: 1,
+      },
+    });
   });
 
   it('build with out logging', async () => {

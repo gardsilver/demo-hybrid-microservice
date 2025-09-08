@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GeneralAsyncContextFormatter } from 'src/modules/common';
 import { ElkLoggerModule } from 'src/modules/elk-logger';
+import { RedisCacheManagerModule, RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
@@ -17,7 +18,7 @@ import { HealthModule } from 'src/health';
 import { AppModule } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
-import { PostgresModule } from 'src/core/repositories/postgres';
+import { PostgresModule, UserCacheFormatter } from 'src/core/repositories/postgres';
 import { ExampleHttpModule } from 'src/examples/integrations/http';
 import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
 
@@ -37,6 +38,7 @@ import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
           new GrpcServiceErrorFormatter(),
           new GrpcClientErrorFormatter(),
           new RpcExceptionFormatter(),
+          new RedisClientErrorFormatter(),
         ],
         objectFormatters: [new MetadataObjectFormatter()],
       },
@@ -51,6 +53,19 @@ import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
       },
     }),
     PrometheusModule,
+    RedisCacheManagerModule.forRoot({
+      imports: [PostgresModule],
+      mapFormatters: {
+        inject: [UserCacheFormatter],
+        useFactory: (userCacheFormatter: UserCacheFormatter) => {
+          const mapFormatters = {
+            [UserCacheFormatter.type]: userCacheFormatter,
+          };
+
+          return mapFormatters;
+        },
+      },
+    }),
     AuthModule.forRoot({
       useCertificate: '801c29c6-ed2f-4ae4-92fb-fafe914893c0',
     }),

@@ -6,6 +6,7 @@ import { PrometheusModule } from 'src/modules/prometheus';
 import { UserModel } from './models/user.model';
 import { REPOSITORIES } from './types/repositories';
 import { UserService } from './services/user.service';
+import { UserCacheFormatter } from './cache-formatters/user.cache-formatter';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { UserService } from './services/user.service';
       models: [UserModel],
     }),
   ],
-  providers: [UserService, ...REPOSITORIES],
-  exports: [UserService],
+  providers: [UserCacheFormatter, UserService, ...REPOSITORIES],
+  exports: [UserCacheFormatter, UserService],
 })
 export class PostgresModule {}

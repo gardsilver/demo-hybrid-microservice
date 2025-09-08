@@ -59,7 +59,13 @@ describe(DataBaseErrorFormatter.name, () => {
         {
           type: 'Error',
           message: 'Any Error',
-          cause: { sql: '', parameters: {} },
+          cause: {
+            type: 'SequelizeDatabaseError',
+            message: '',
+            sql: '',
+            parameters: {},
+            stack: ['Error: message', 'at <anonymous>:1:2'],
+          },
         },
         {
           type: 'SequelizeDatabaseError',

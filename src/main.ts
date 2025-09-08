@@ -13,6 +13,7 @@ import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerConfig,
 } from 'src/modules/elk-logger';
+import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 import { DataBaseErrorFormatter } from 'src/modules/database';
 import { HttpSecurityHeadersFormatter, BEARER_NAME } from 'src/modules/http/http-common';
 import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
@@ -51,6 +52,7 @@ async function bootstrap(): Promise<void> {
         new GrpcServiceErrorFormatter(),
         new GrpcClientErrorFormatter(),
         new RpcExceptionFormatter(),
+        new RedisClientErrorFormatter(),
       ],
       objectFormatters: [new MetadataObjectFormatter()],
     },

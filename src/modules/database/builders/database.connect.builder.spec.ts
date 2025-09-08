@@ -80,14 +80,16 @@ describe(DatabaseConnectBuilder.build.name, () => {
 
     expect(spyQuery).toHaveBeenCalledTimes(7);
     expect(spyQuery).toHaveBeenCalledWith(
-      'CREATE TABLE IF NOT EXISTS public.test_migrations (name varchar(255) NOT NULL);',
+      'CREATE TABLE IF NOT EXISTS public.test_migrations (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);',
     );
     expect(spyQuery).toHaveBeenCalledWith('BEGIN;');
     expect(spyQuery).toHaveBeenCalledWith('LOCK TABLE public.test_migrations IN ACCESS EXCLUSIVE MODE;');
     expect(spyQuery).toHaveBeenCalledWith("SELECT tablename FROM pg_tables WHERE schemaname = 'public';", {
       type: QueryTypes.SELECT,
     });
-    expect(spyQuery).toHaveBeenCalledWith('CREATE TABLE public.test_migrations (name varchar(255) NOT NULL);');
+    expect(spyQuery).toHaveBeenCalledWith(
+      'CREATE TABLE public.test_migrations (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);',
+    );
     expect(spyQuery).toHaveBeenCalledWith('SELECT migrateTable.name FROM public.test_migrations as migrateTable;', {
       type: QueryTypes.SELECT,
     });

@@ -69,11 +69,13 @@ export class DataBaseErrorFormatter implements IObjectFormatter<BaseError | Vali
         message: from.message,
         ...fields,
         stack: ExceptionHelper.stackFormat(from.stack),
-        cause: from.cause
-          ? this.canFormat(from.cause)
-            ? this.transform(from.cause)
-            : this.formatBase(from.cause)
-          : undefined,
+        errors:
+          'errors' in from
+            ? Array.isArray(from['errors'])
+              ? from['errors'].map((err) => this.formatBase(err))
+              : this.formatBase(from['errors'])
+            : undefined,
+        cause: from.cause ? this.formatBase(from.cause) : undefined,
       };
     }
 

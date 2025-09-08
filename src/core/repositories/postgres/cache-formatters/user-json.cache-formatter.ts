@@ -1,15 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { RedisCacheFormatter } from 'src/modules/redis-cache-manager';
+import { IRedisCacheFormatter } from 'src/modules/redis-cache-manager';
 import { IUser } from '../types/types';
 
 @Injectable()
-export class UserCacheFormatter extends RedisCacheFormatter<IUser> {
-  public static type = 'IUser';
-
-  public type() {
-    return UserCacheFormatter.type;
-  }
-
+export class UserJsonCacheFormatter implements IRedisCacheFormatter<IUser> {
   public encode(data?: string): IUser | undefined {
     if (data === undefined) {
       return undefined;

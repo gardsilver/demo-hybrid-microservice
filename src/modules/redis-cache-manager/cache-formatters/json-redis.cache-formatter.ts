@@ -1,15 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Injectable } from '@nestjs/common';
-import { RedisCacheFormatter } from '../types/types';
+import { IRedisCacheFormatter } from '../types/types';
 
 @Injectable()
-export class BaseRedisCacheFormatter extends RedisCacheFormatter<any> {
-  public static type = 'any';
-
-  public type() {
-    return BaseRedisCacheFormatter.type;
-  }
-
+export class JsonRedisCacheFormatter implements IRedisCacheFormatter<any> {
   public encode(data?: string): any | undefined {
     if (data === undefined) {
       return undefined;

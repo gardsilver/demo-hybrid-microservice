@@ -22,17 +22,14 @@
 
 Сервис хеширования данных в **Redis**. Реализует основные методы сохранения данных в хэше с автоматическим использованием `encode`/`decode` или без них.
 
-- `setCacheFormatter` - Позволяет динамически добавлять/переопределять `encode`/`decode`, но предпочтительнее их задавать на этапе подключения модуля `RedisCacheManagerModule`.
-- `setRaw` - сохраняет сериализованные данные в хэше.
-- `getRaw` - возвращает сериализованные данные сохраненные в хэше.
-- `set` - сохраняет данные в хэше с применение `decode`. Если не задан тип `decode`, то будет применен `BaseRedisCacheFormatter`.
-- `get` - возвращает данные сохраненные в хэше с применение `encode`. Если не задан тип `encode`, то будет применен `BaseRedisCacheFormatter`.
+- `set` - сохраняет данные в хэше с применение `formatter.decode()`. Если не задан тип `formatter`, то будет применен `JsonRedisCacheFormatter`. В случае? если не нужно применять `formatter.decode()`, то нужно явно указать `formatter=false`.
+- `get` - возвращает данные сохраненные в хэше с применение `formatter.encode()`. Если не задан тип `formatter`, то будет применен `JsonRedisCacheFormatter`. Если явно указан `formatter=false`, то `formatter.encode()` не будет применен.
 - `del` - удаляет сохраненные данные в хэше.
 - `clear` - удаляет все сохраненные данные в хэше.
 
-## `BaseRedisCacheFormatter`
+## `JsonRedisCacheFormatter`
 
-Реализует интерфейс  `encode`/`decode` (`JSON.parse`/`JSON.stringify`).
+Реализует интерфейс `encode`/`decode` (`JSON.parse`/`JSON.stringify`).
 
 ## `RedisClientErrorFormatter`
 

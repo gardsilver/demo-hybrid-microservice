@@ -1,16 +1,6 @@
 import { KeyvRedisOptions, RedisClientOptions } from '@keyv/redis';
 import { Provider } from '@nestjs/common';
-
-import {
-  IKeyValue,
-  ImportsType,
-  ServiceClassProvider,
-  ServiceFactoryProvider,
-  ServiceValueProvider,
-} from 'src/modules/common';
-import { RedisCacheFormatter } from './types';
-
-export type MapRedisCacheFormatter = IKeyValue<RedisCacheFormatter<object>>;
+import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
 
 export interface IRedisCacheManagerModuleOptions {
   imports?: ImportsType;
@@ -24,8 +14,4 @@ export interface IRedisCacheManagerModuleOptions {
     | ServiceClassProvider<KeyvRedisOptions>
     | ServiceFactoryProvider<KeyvRedisOptions>
     | ServiceValueProvider<KeyvRedisOptions>;
-  mapFormatters?:
-    | ServiceClassProvider<MapRedisCacheFormatter>
-    | ServiceFactoryProvider<MapRedisCacheFormatter>
-    | ServiceValueProvider<MapRedisCacheFormatter>;
 }

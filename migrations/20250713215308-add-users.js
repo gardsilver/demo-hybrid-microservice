@@ -1,11 +1,13 @@
 'use strict';
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, sequelize) {
-        const transaction = await queryInterface.sequelize.transaction();
+    const transaction = await queryInterface.sequelize.transaction();
 
     try {
       const current = new Date();
+
       await queryInterface.bulkInsert(
         'users',[
           {

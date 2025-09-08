@@ -64,6 +64,44 @@ describe(ExceptionObjectFormatter.name, () => {
           field: 'object',
         },
       });
+
+      const cause = Error('Parent Error');
+      cause.stack = undefined;
+      error['errors'] = [cause];
+
+      expect(formatter.transform(error)).toEqual({
+        type: 'Error',
+        message: 'Custom Error',
+        field: 'error',
+        stack: ['Error: message', 'at <anonymous>:1:2'],
+        errors: [
+          {
+            type: 'Error',
+            message: 'Parent Error',
+            field: 'error',
+          },
+        ],
+        cause: {
+          field: 'object',
+        },
+      });
+
+      error['errors'] = cause;
+
+      expect(formatter.transform(error)).toEqual({
+        type: 'Error',
+        message: 'Custom Error',
+        field: 'error',
+        stack: ['Error: message', 'at <anonymous>:1:2'],
+        errors: {
+          type: 'Error',
+          message: 'Parent Error',
+          field: 'error',
+        },
+        cause: {
+          field: 'object',
+        },
+      });
     });
   });
 });

@@ -11,12 +11,18 @@ import {
 import { DataBaseErrorFormatter } from './data-base-error.object-formatter';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
+class CustomBaseError extends BaseError {}
+
 describe(DataBaseErrorFormatter.name, () => {
+  let cause: Error;
   let dataBaseError: BaseError;
   let formatter: DataBaseErrorFormatter;
 
   beforeEach(async () => {
     formatter = new DataBaseErrorFormatter();
+
+    cause = new Error('Cause Error');
+    cause.stack = undefined;
 
     dataBaseError = new DatabaseError({ sql: '', name: '', message: '' });
     dataBaseError.stack = 'Error: message\n    at <anonymous>:1:2\n';
@@ -51,7 +57,7 @@ describe(DataBaseErrorFormatter.name, () => {
     error.stack = undefined;
     error.cause = dataBaseError;
 
-    const aggregateError = new AggregateError([error, dataBaseError]);
+    let aggregateError = new AggregateError([error, dataBaseError]);
     aggregateError.stack = undefined;
 
     expect(formatter.transform(aggregateError)).toEqual({
@@ -59,7 +65,13 @@ describe(DataBaseErrorFormatter.name, () => {
         {
           type: 'Error',
           message: 'Any Error',
-          cause: { sql: '', parameters: {} },
+          cause: {
+            type: 'SequelizeDatabaseError',
+            message: '',
+            sql: '',
+            parameters: {},
+            stack: ['Error: message', 'at <anonymous>:1:2'],
+          },
         },
         {
           type: 'SequelizeDatabaseError',
@@ -67,6 +79,73 @@ describe(DataBaseErrorFormatter.name, () => {
           sql: '',
           parameters: {},
           stack: ['Error: message', 'at <anonymous>:1:2'],
+        },
+      ],
+    });
+
+    dataBaseError['errors'] = [cause];
+    aggregateError = new AggregateError([error]);
+    aggregateError.stack = undefined;
+
+    expect(formatter.transform(aggregateError)).toEqual({
+      errors: [
+        {
+          type: 'Error',
+          message: 'Any Error',
+          cause: {
+            type: 'SequelizeDatabaseError',
+            message: '',
+            sql: '',
+            parameters: {},
+            stack: ['Error: message', 'at <anonymous>:1:2'],
+            errors: [
+              {
+                type: 'Error',
+                message: 'Cause Error',
+              },
+            ],
+          },
+        },
+      ],
+    });
+
+    dataBaseError['errors'] = cause;
+
+    expect(formatter.transform(aggregateError)).toEqual({
+      errors: [
+        {
+          type: 'Error',
+          message: 'Any Error',
+          cause: {
+            type: 'SequelizeDatabaseError',
+            message: '',
+            sql: '',
+            parameters: {},
+            stack: ['Error: message', 'at <anonymous>:1:2'],
+            errors: {
+              type: 'Error',
+              message: 'Cause Error',
+            },
+          },
+        },
+      ],
+    });
+
+    dataBaseError['errors'] = { status: 'error' };
+
+    expect(formatter.transform(aggregateError)).toEqual({
+      errors: [
+        {
+          type: 'Error',
+          message: 'Any Error',
+          cause: {
+            type: 'SequelizeDatabaseError',
+            message: '',
+            sql: '',
+            parameters: {},
+            stack: ['Error: message', 'at <anonymous>:1:2'],
+            errors: { status: 'error' },
+          },
         },
       ],
     });
@@ -146,5 +225,11 @@ describe(DataBaseErrorFormatter.name, () => {
       validatorName: 'fnName',
       instance: { status: 'ok' },
     });
+  });
+
+  it('CustomBaseError', async () => {
+    const error = new CustomBaseError('message');
+
+    expect(formatter.transform(error)).toEqual({});
   });
 });

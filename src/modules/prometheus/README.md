@@ -1,14 +1,16 @@
 # Prometheus Module
 
 ## Описание
+
 Модуль метрик [Prometheus](https://www.npmjs.com/package/prom-client)
 
 Реализована инициализация **PromClient**, авто-регистрация новых метрик и не блокируемая обработка ошибок с фиксацией соответствующих логов.
 Безопасно можно сразу писать нужные метрики: `Counter`, `Gauge`, `Histogram`, `Summary`.
 
-
 ## Конфигурация
-Через параметры окружения задаются метки, которые будут добавлены ко всем метрикам автоматически: 
+
+Через параметры окружения задаются метки, которые будут добавлены ко всем метрикам автоматически:
+
 ```typescript
 {
   application: string,
@@ -23,13 +25,13 @@
 | `MICROSERVICE_NAME` | нет  | Тип **string**. Регистр учитывается. | Значение метки **microservice** |
 | `MICROSERVICE_VERSION` | нет  | Тип **string**. Регистр учитывается. | Значение метки **version** |
 
-
 ## `PrometheusManager`
 
 Предоставляет доступ ко всем метрикам (методы: `counter`, `gauge`, `histogram`, `summary`).
- - `getMetrics` - выводит текущие данные по всем метриках
- - `getRegistry` - предоставляет прямой доступ к `Registry` (**@see** `prom-client`)
- - `getRegistryMetricNames` - выводит список названий всех зарегистрированных метрик.
+
+- `getMetrics` - выводит текущие данные по всем метриках
+- `getRegistry` - предоставляет прямой доступ к `Registry` (**@see** `prom-client`)
+- `getRegistryMetricNames` - выводит список названий всех зарегистрированных метрик.
 
 ### Пример подключения
 
@@ -48,9 +50,10 @@ import { PrometheusManager } from 'src/modules/prometheus';
 При необходимости можно подключить нужную метрику.
 
 ## `ICounterService`
+
 Сервис метрики `Counter`
 
-### Пример подключения
+### Пример подключения `Counter`
 
 ```typescript
 import { PROMETHEUS_COUNTER_SERVICE_DI, ICounterService} from 'src/modules/prometheus';
@@ -66,9 +69,10 @@ import { PROMETHEUS_COUNTER_SERVICE_DI, ICounterService} from 'src/modules/prome
 ```
 
 ## `IGaugeService`
+
 Сервис метрики `Gauge`
 
-### Пример подключения
+### Пример подключения `Gauge`
 
 ```typescript
 import { PROMETHEUS_GAUGE_SERVICE_DI, IGaugeService} from 'src/modules/prometheus';
@@ -84,9 +88,10 @@ import { PROMETHEUS_GAUGE_SERVICE_DI, IGaugeService} from 'src/modules/prometheu
 ```
 
 ## `IHistogramService`
+
 Сервис метрики `Histogram`
 
-### Пример подключения
+### Пример подключения `Histogram`
 
 ```typescript
 import { PROMETHEUS_HISTOGRAM_SERVICE_DI, IHistogramService} from 'src/modules/prometheus';
@@ -102,9 +107,10 @@ import { PROMETHEUS_HISTOGRAM_SERVICE_DI, IHistogramService} from 'src/modules/p
 ```
 
 ## `ISummaryService`
+
 Сервис метрики `Summary`
 
-### Пример подключения
+### Пример подключения `Summary`
 
 ```typescript
 import { PROMETHEUS_SUMMARY_SERVICE_DI, ISummaryService} from 'src/modules/prometheus';

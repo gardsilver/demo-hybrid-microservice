@@ -1,0 +1,14 @@
+version: '3'
+
+services: 
+  demo-hybrid-microservice:
+    build:
+      context: ../
+    container_name: 'demo-hybrid-microservice'
+    restart: always
+    volumes:
+      - ../:/app
+    entrypoint: ["npm", "--prefix=/app", "run", "start:dev"]
+    ports:
+      - "3000:3000"
+      - "3001:3001"

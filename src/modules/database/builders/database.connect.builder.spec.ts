@@ -2,6 +2,7 @@ import { QueryTypes } from 'sequelize';
 import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
+import { LoggerMarkers } from 'src/modules/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
@@ -72,25 +73,54 @@ describe(DatabaseConnectBuilder.build.name, () => {
     jest.spyOn(databaseConfig, 'getMigrationsEnabled').mockImplementation(() => true);
     jest.spyOn(fs, 'readdirSync').mockImplementation(() => []);
     const spyQuery = jest.spyOn(mSequelize, 'query').mockImplementation(async () => []);
+
+    let db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
+
+    expect(db).toEqual(mSequelize);
+    expect(spyQuery).toHaveBeenCalledTimes(0);
+
     DatabaseConnectBuilder['db'] = undefined;
 
-    const db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
+    db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
 
     expect(db).toEqual(mSequelize);
 
     expect(spyQuery).toHaveBeenCalledTimes(7);
     expect(spyQuery).toHaveBeenCalledWith(
-      'CREATE TABLE IF NOT EXISTS public.test_migrations (name varchar(255) NOT NULL);',
+      'CREATE TABLE IF NOT EXISTS public.test_migrations (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);',
     );
     expect(spyQuery).toHaveBeenCalledWith('BEGIN;');
     expect(spyQuery).toHaveBeenCalledWith('LOCK TABLE public.test_migrations IN ACCESS EXCLUSIVE MODE;');
     expect(spyQuery).toHaveBeenCalledWith("SELECT tablename FROM pg_tables WHERE schemaname = 'public';", {
       type: QueryTypes.SELECT,
     });
-    expect(spyQuery).toHaveBeenCalledWith('CREATE TABLE public.test_migrations (name varchar(255) NOT NULL);');
+    expect(spyQuery).toHaveBeenCalledWith(
+      'CREATE TABLE public.test_migrations (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);',
+    );
     expect(spyQuery).toHaveBeenCalledWith('SELECT migrateTable.name FROM public.test_migrations as migrateTable;', {
       type: QueryTypes.SELECT,
     });
     expect(spyQuery).toHaveBeenCalledWith('COMMIT;');
+  });
+
+  it('build with connection error', async () => {
+    const error = new Error('Connection Error');
+    const spyProcess = jest.spyOn(process, 'emit');
+    const spyLogger = jest.spyOn(logger, 'error');
+
+    jest.spyOn(mSequelize, 'authenticate').mockImplementation(async () => {
+      throw error;
+    });
+
+    DatabaseConnectBuilder['db'] = undefined;
+
+    await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
+
+    expect(spyLogger).toHaveBeenCalledWith('Authenticate failed', {
+      module: 'init',
+      markers: [LoggerMarkers.FAILED],
+      payload: { error },
+    });
+    expect(spyProcess).toHaveBeenCalledWith('SIGTERM');
   });
 });

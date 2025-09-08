@@ -23,6 +23,12 @@ export class ExceptionObjectFormatter implements IObjectFormatter<Error> {
       message: from.message,
       ...fields,
       stack: ExceptionHelper.stackFormat(from.stack),
+      errors:
+        'errors' in from
+          ? Array.isArray(from['errors'])
+            ? from['errors'].map((err) => this.formatCause(err))
+            : this.formatCause(from['errors'])
+          : undefined,
       cause: this.formatCause(from.cause),
     };
   }

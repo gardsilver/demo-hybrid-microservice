@@ -78,7 +78,7 @@ export class DatabaseConnectBuilder {
     const end = prometheusManager.histogram().startTimer(DB_QUERY_DURATIONS, { labels });
 
     try {
-      const sql = `CREATE TABLE IF NOT EXISTS ${databaseSchema}.${migrationsTable} (name varchar(255) NOT NULL);`;
+      const sql = `CREATE TABLE IF NOT EXISTS ${databaseSchema}.${migrationsTable} (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);`;
 
       await DatabaseConnectBuilder.db.query(sql);
 
@@ -94,7 +94,7 @@ export class DatabaseConnectBuilder {
 
       if (!tables.some((table) => table.tablename === migrationsTable)) {
         await DatabaseConnectBuilder.db.query(
-          `CREATE TABLE ${databaseSchema}.${migrationsTable} (name varchar(255) NOT NULL);`,
+          `CREATE TABLE ${databaseSchema}.${migrationsTable} (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);`,
         );
       }
 

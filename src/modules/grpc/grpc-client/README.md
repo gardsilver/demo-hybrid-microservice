@@ -1,14 +1,17 @@
 # Grpc Client Module
 
 ## Описание
+
 Модуль для создания `GrpcClientService` **gRPC**-клиента - пишет логи интеграции и фиксирует соответствующие метрики, реализована логика обработки полученных ошибок и повторной отправки запросов.
 
 Все ошибки, возникшие при отправки запроса будут приведены к виду:
-  - `GrpcClientExternalException` - если возникла сетевая ошибка или ошибка на стороне внешней системы.
-  - `GrpcClientInternalException` - если ошибка возникла в клиентском коде. Например подготовленные данные для отправки некорректны: url неподдерживаемого протокола, или данные запроса не возможно сериализовать (содержат циклические ссылки) и т.п..
-  - `GrpcClientTimeoutError` - ответ не был получен в рамках установленных временных ограничений.
+
+- `GrpcClientExternalException` - если возникла сетевая ошибка или ошибка на стороне внешней системы.
+- `GrpcClientInternalException` - если ошибка возникла в клиентском коде. Например подготовленные данные для отправки некорректны: url неподдерживаемого протокола, или данные запроса не возможно сериализовать (содержат циклические ссылки) и т.п..
+- `GrpcClientTimeoutError` - ответ не был получен в рамках установленных временных ограничений.
 
 ### Параметры окружения
+
 | Параметры окружения (**env**)| Обязательный | Возможные значения | Описание|
 |---|---|---|---|
 |`GRPC_CLIENT_RETRY_ENABLED`|нет. По умолчанию: **yes** | Строка: **yes** или **no** (без учета регистра) | Позволяет включать/отключать процесс повторной отправки **gRPC**-запроса. |
@@ -18,9 +21,11 @@
 |`GRPC_CLIENT_RETRY_STATUS_CODES`|нет. По умолчанию: **4,14,timeout** | Через запятую указываются статусы полученных ответов | При получении ошибки со статусом из указанного списка, будет выполнен повторный **gRPC**-запрос |
 
 ## `IGrpcMetadataRequestBuilder`
-Для формирования `Metadata` **gRPC**-запроса используйте сервис соответствующий интерфейсу `IGrpcMetadataRequestBuilder`.  Можно использовать `GrpcMetadataRequestBuilder` или реализовать свой. 
+
+Для формирования `Metadata` **gRPC**-запроса используйте сервис соответствующий интерфейсу `IGrpcMetadataRequestBuilder`.  Можно использовать `GrpcMetadataRequestBuilder` или реализовать свой.
 
 ## `GrpcClientBuilder`
+
 Позволяет создавать **gRPC**-клиент на основе **proto**-файлов.
 Можно применять как самостоятельно (не рекомендуется), для создания нужного **gRPC**-клиента или подключить `GrpcClientModule` и использовать `GrpcClientService`.
 
@@ -66,13 +71,16 @@ export class AppModule {}
 
 `GrpcClientBuilder.buildGrpcOptions` позволяет получить `GrpcOptions` (**@see** `@nestjs/microservices`), необходимые для создания `ClientGrpcProxy`. Может быть полезно для настройки `GRPCHealthIndicator` (**@see** `@nestjs/terminus`).
 
-## `GrpcServiceErrorFormatter` 
+## `GrpcServiceErrorFormatter`
+
 Лог-форматер ошибки `ServiceError` (**@see** `@grpc/grpc-js`): `IObjectFormatter<ServiceError>`
 
 ## `GrpcClientErrorFormatter`
+
 Лог-форматер ошибки `GrpcClientError`: `IObjectFormatter<GrpcClientError>`
 
 ## Метрики
+
 | Метрика| Метки |Описание|
 |---|---|---|
 |`GRPC_EXTERNAL_REQUEST_DURATIONS`|**labelNames** `['service', 'method']`| Гистограмма длительностей запросов по **gRPC** к внешним системам и их количество |
@@ -80,6 +88,7 @@ export class AppModule {}
 |`GRPC_EXTERNAL_REQUEST_RETRY`|**labelNames** `['service', 'method', 'statusCode', 'type']`| Количество повторных запросов по **gRPC** к внешним системам |
 
 ## `GrpcClientModule`
+
 Динамический модуль, предназначенный для создания **gRPC**-клиента.
 
 Пример подключения:
@@ -110,6 +119,7 @@ import { MAIN_SERVICE_CLIENT_DI } from './types/tokens';
   ]
 })
 ```
+
 ### Описание опций `GrpcClientModule`
 
 | Опция| Описание|

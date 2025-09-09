@@ -50,7 +50,14 @@ export class DatabaseConnectBuilder {
         markers: [LoggerMarkers.FAILED],
         payload: { error },
       });
-      
+
+      prometheusManager.counter().increment(DB_QUERY_FAILED, {
+        labels: {
+          service: 'DatabaseModule',
+          method: 'authenticate',
+        },
+      });
+
       return DatabaseConnectBuilder.db;
     }
 
@@ -152,7 +159,7 @@ export class DatabaseConnectBuilder {
         },
       });
 
-      prometheusManager.counter().increment(DB_QUERY_FAILED);
+      prometheusManager.counter().increment(DB_QUERY_FAILED, { labels });
     } finally {
       end();
     }

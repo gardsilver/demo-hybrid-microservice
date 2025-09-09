@@ -37,23 +37,22 @@ export class DatabaseConnectBuilder {
       ...modelConfig,
     });
 
-    DatabaseConnectBuilder.db
-      .authenticate()
-      .then((response) =>
-        logger.info('Authenticate success', {
-          module: 'init',
-          payload: { response },
-        }),
-      )
-      .catch((error) => {
-        logger.error('Authenticate failed', {
-          module: 'init',
-          markers: [LoggerMarkers.FAILED],
-          payload: { error },
-        });
+    try {
+      const response = await DatabaseConnectBuilder.db.authenticate();
 
-        process.emit('SIGTERM');
+      logger.info('Authenticate success', {
+        module: 'init',
+        payload: { response },
       });
+    } catch (error) {
+      logger.error('Authenticate failed', {
+        module: 'init',
+        markers: [LoggerMarkers.FAILED],
+        payload: { error },
+      });
+      
+      return DatabaseConnectBuilder.db;
+    }
 
     if (config.getMigrationsEnabled()) {
       await DatabaseConnectBuilder.migrateUp(config, logger, prometheusManager);

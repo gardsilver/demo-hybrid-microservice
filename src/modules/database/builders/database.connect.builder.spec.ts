@@ -105,7 +105,6 @@ describe(DatabaseConnectBuilder.build.name, () => {
 
   it('build with connection error', async () => {
     const error = new Error('Connection Error');
-    const spyProcess = jest.spyOn(process, 'emit');
     const spyLogger = jest.spyOn(logger, 'error');
 
     jest.spyOn(mSequelize, 'authenticate').mockImplementation(async () => {
@@ -121,6 +120,5 @@ describe(DatabaseConnectBuilder.build.name, () => {
       markers: [LoggerMarkers.FAILED],
       payload: { error },
     });
-    expect(spyProcess).toHaveBeenCalledWith('SIGTERM');
   });
 });

@@ -60,7 +60,7 @@ export class UserService {
 
       return model;
     } catch (error) {
-      this.prometheusManager.counter().increment(DB_QUERY_FAILED);
+      this.prometheusManager.counter().increment(DB_QUERY_FAILED, { labels });
 
       logger.error(`DB request filed`, {
         markers: [LoggerMarkers.REQUEST, LoggerMarkers.FAILED],

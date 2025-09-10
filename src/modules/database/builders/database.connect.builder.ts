@@ -57,8 +57,6 @@ export class DatabaseConnectBuilder {
           method: 'authenticate',
         },
       });
-
-      return DatabaseConnectBuilder.db;
     }
 
     if (config.getMigrationsEnabled()) {

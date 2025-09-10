@@ -4,8 +4,7 @@ import { ElkLoggerModule } from 'src/modules/elk-logger';
 import { AuthModule } from 'src/modules/auth';
 import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { HttpServerModule } from 'src/modules/http/http-server';
-import { HybridErrorResponseFilter } from './filters/hybrid.error-response.filter';
-import { HybridServerModule } from './hybrid-server.module';
+import { HybridServerModule, HybridErrorResponseFilter } from './';
 
 describe(HybridServerModule.name, () => {
   let filter: HybridErrorResponseFilter;

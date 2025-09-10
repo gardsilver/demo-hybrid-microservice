@@ -27,11 +27,10 @@ import { Keyv, RedisClientType } from '@keyv/redis';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { ElkLoggerModule } from 'src/modules/elk-logger';
+import { PrometheusModule } from 'src/modules/prometheus';
 import { MockConfigService } from 'tests/nestjs';
 import { TestModule, TestService } from 'tests/src/test-module';
-import { RedisCacheManagerModule } from './redis-cache-manager.module';
-import { RedisCacheService } from './services/redis-cache.service';
-import { PrometheusModule } from '../prometheus';
+import { RedisCacheManagerModule, RedisCacheService } from './';
 
 describe(RedisCacheManagerModule.name, () => {
   let redisCacheService: RedisCacheService;

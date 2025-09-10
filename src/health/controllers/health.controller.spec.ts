@@ -21,17 +21,11 @@ import { DATABASE_DI } from 'src/modules/database';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
+import { mockSequelize } from 'tests/sequelize-typescript';
 import { HealthController } from './health.controller';
 
-class MockSequelize {
-  async authenticate(): Promise<void> {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async query(): Promise<any> {}
-}
-const mSequelize = new MockSequelize();
-
 jest.mock('sequelize-typescript', () => {
-  return { Sequelize: jest.fn(() => mSequelize) };
+  return { Sequelize: jest.fn(() => mockSequelize) };
 });
 
 describe(HealthController.name, () => {
@@ -53,7 +47,7 @@ describe(HealthController.name, () => {
       providers: [
         {
           provide: DATABASE_DI,
-          useValue: mSequelize,
+          useValue: mockSequelize,
         },
         {
           provide: AUTH_SERVICE_DI,
@@ -126,7 +120,7 @@ describe(HealthController.name, () => {
   });
 
   it('liveness', async () => {
-    jest.spyOn(mSequelize, 'query').mockImplementation(async () => [1]);
+    jest.spyOn(mockSequelize, 'query').mockImplementation(async () => [1]);
 
     const result = await controller.liveness();
 

@@ -1,27 +1,34 @@
-import { ExceptionObjectFormatter } from '../formatters/objects/exception.object-formatter';
+import { AggregateErrorObjectFormatter } from '../formatters/objects/aggregate-error.object-formatter';
+import { ErrorObjectFormatter } from '../formatters/objects/error.object-formatter';
+import { UnknownFormatter } from '../formatters/objects/unknown-formatter';
 import { ObjectFormatter } from '../formatters/records/object.formatter';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
-import { IObjectFormatter } from '../types/elk-logger.types';
+import { IObjectFormatter, IErrorFormatter } from '../types/elk-logger.types';
 
 export class ObjectFormatterBuilder {
   public static build(
     elkLoggerConfig: ElkLoggerConfig,
     options?: {
-      exceptionFormatters?: IObjectFormatter[];
+      exceptionFormatters?: IErrorFormatter[];
       objectFormatters?: IObjectFormatter[];
     },
   ): ObjectFormatter {
-    const exceptionFormatters: IObjectFormatter[] = options?.exceptionFormatters?.length
-      ? options.exceptionFormatters
-      : [];
+    let exceptionFormatters: IErrorFormatter[] = [new AggregateErrorObjectFormatter()];
+
+    if (options?.exceptionFormatters?.length) {
+      exceptionFormatters = exceptionFormatters.concat(options.exceptionFormatters);
+    }
+
+    const errorObjectFormatter = new ErrorObjectFormatter(exceptionFormatters);
+
     const objectFormatters: IObjectFormatter[] = options?.objectFormatters?.length ? options.objectFormatters : [];
 
-    const exceptionObjectFormatter = new ExceptionObjectFormatter(exceptionFormatters);
+    objectFormatters.push(errorObjectFormatter);
 
-    objectFormatters.push(exceptionObjectFormatter);
+    const unknownFormatter = new UnknownFormatter(elkLoggerConfig, objectFormatters);
 
-    exceptionObjectFormatter.setObjectFormatters(objectFormatters);
+    errorObjectFormatter.setUnknownFormatter(unknownFormatter);
 
-    return new ObjectFormatter(elkLoggerConfig, objectFormatters);
+    return new ObjectFormatter(unknownFormatter);
   }
 }

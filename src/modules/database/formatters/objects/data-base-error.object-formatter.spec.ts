@@ -8,6 +8,8 @@ import {
   Model,
   ValidationErrorItemType,
 } from 'sequelize';
+import { IUnknownFormatter } from 'src/modules/elk-logger';
+import { MockUnknownFormatter } from 'tests/modules/elk-logger';
 import { DataBaseErrorFormatter } from './data-base-error.object-formatter';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
@@ -16,10 +18,13 @@ class CustomBaseError extends BaseError {}
 describe(DataBaseErrorFormatter.name, () => {
   let cause: Error;
   let dataBaseError: BaseError;
+  let unknownFormatter: IUnknownFormatter;
   let formatter: DataBaseErrorFormatter;
 
   beforeEach(async () => {
+    unknownFormatter = new MockUnknownFormatter();
     formatter = new DataBaseErrorFormatter();
+    formatter.setUnknownFormatter(unknownFormatter);
 
     cause = new Error('Cause Error');
     cause.stack = undefined;
@@ -53,99 +58,12 @@ describe(DataBaseErrorFormatter.name, () => {
   });
 
   it('transform AggregateError', async () => {
-    const error = new Error('Any Error');
-    error.stack = undefined;
-    error.cause = dataBaseError;
-
-    let aggregateError = new AggregateError([error, dataBaseError]);
-    aggregateError.stack = undefined;
+    const aggregateError = new AggregateError([dataBaseError]);
 
     expect(formatter.transform(aggregateError)).toEqual({
       errors: [
         {
-          type: 'Error',
-          message: 'Any Error',
-          cause: {
-            type: 'SequelizeDatabaseError',
-            message: '',
-            sql: '',
-            parameters: {},
-            stack: ['Error: message', 'at <anonymous>:1:2'],
-          },
-        },
-        {
-          type: 'SequelizeDatabaseError',
-          message: '',
-          sql: '',
-          parameters: {},
-          stack: ['Error: message', 'at <anonymous>:1:2'],
-        },
-      ],
-    });
-
-    dataBaseError['errors'] = [cause];
-    aggregateError = new AggregateError([error]);
-    aggregateError.stack = undefined;
-
-    expect(formatter.transform(aggregateError)).toEqual({
-      errors: [
-        {
-          type: 'Error',
-          message: 'Any Error',
-          cause: {
-            type: 'SequelizeDatabaseError',
-            message: '',
-            sql: '',
-            parameters: {},
-            stack: ['Error: message', 'at <anonymous>:1:2'],
-            errors: [
-              {
-                type: 'Error',
-                message: 'Cause Error',
-              },
-            ],
-          },
-        },
-      ],
-    });
-
-    dataBaseError['errors'] = cause;
-
-    expect(formatter.transform(aggregateError)).toEqual({
-      errors: [
-        {
-          type: 'Error',
-          message: 'Any Error',
-          cause: {
-            type: 'SequelizeDatabaseError',
-            message: '',
-            sql: '',
-            parameters: {},
-            stack: ['Error: message', 'at <anonymous>:1:2'],
-            errors: {
-              type: 'Error',
-              message: 'Cause Error',
-            },
-          },
-        },
-      ],
-    });
-
-    dataBaseError['errors'] = { status: 'error' };
-
-    expect(formatter.transform(aggregateError)).toEqual({
-      errors: [
-        {
-          type: 'Error',
-          message: 'Any Error',
-          cause: {
-            type: 'SequelizeDatabaseError',
-            message: '',
-            sql: '',
-            parameters: {},
-            stack: ['Error: message', 'at <anonymous>:1:2'],
-            errors: { status: 'error' },
-          },
+          field: 'fieldName',
         },
       ],
     });
@@ -164,11 +82,7 @@ describe(DataBaseErrorFormatter.name, () => {
     expect(formatter.transform(bulkRecordError)).toEqual({
       errors: [
         {
-          type: 'SequelizeDatabaseError',
-          message: '',
-          sql: '',
-          parameters: {},
-          stack: ['Error: message', 'at <anonymous>:1:2'],
+          field: 'fieldName',
         },
       ],
       record: { status: 'ok' },

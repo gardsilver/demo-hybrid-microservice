@@ -1,5 +1,7 @@
 export * from './factories/log-record.factory';
 export * from './mocks/formatters/encodes/mock.encode-formatter';
+export * from './mocks/formatters/objects/mock.error-formatter';
+export * from './mocks/formatters/objects/mock.unknown-formatter';
 export * from './mocks/formatters/objects/mock.object-formatter';
 export * from './mocks/formatters/record-encodes/mock.record-encode-formatter';
 export * from './mocks/formatters/records/mock.formatter';

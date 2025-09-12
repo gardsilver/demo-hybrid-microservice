@@ -1,9 +1,9 @@
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { HttpClientError } from '../../errors/http-client.error';
 
-export class HttpClientErrorFormatter implements IObjectFormatter<HttpClientError> {
+export class HttpClientErrorFormatter extends BaseErrorObjectFormatter<HttpClientError> {
   canFormat(obj: unknown): obj is HttpClientError {
     return obj instanceof HttpClientError;
   }

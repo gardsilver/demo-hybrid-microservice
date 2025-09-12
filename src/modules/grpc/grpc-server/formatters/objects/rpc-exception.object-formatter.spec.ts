@@ -5,14 +5,27 @@ import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { grpcMetadataFactory } from 'tests/modules/grpc/grpc-common';
 import { RpcExceptionFormatter } from './rpc-exception.object-formatter';
+import { IUnknownFormatter } from 'src/modules/elk-logger';
+import { MockUnknownFormatter } from 'tests/modules/elk-logger';
 
 describe(RpcExceptionFormatter.name, () => {
   let headers: IHeaders;
   let metadata: Metadata;
+  let unknownFormatter: IUnknownFormatter;
   let formatter: RpcExceptionFormatter;
 
   beforeEach(async () => {
+    unknownFormatter = new MockUnknownFormatter();
     formatter = new RpcExceptionFormatter();
+    formatter.setUnknownFormatter(unknownFormatter);
+
+    jest.spyOn(unknownFormatter, 'transform').mockImplementation((value) => {
+      if (value && value instanceof Metadata) {
+        return GrpcHeadersHelper.normalize(value.getMap());
+      }
+
+      return value;
+    });
 
     headers = httpHeadersFactory.build(
       {

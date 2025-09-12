@@ -1,10 +1,13 @@
 import { ReconnectStrategyError, MultiErrorReply, ErrorReply } from '@redis/client';
+import { IUnknownFormatter } from 'src/modules/elk-logger';
+import { MockUnknownFormatter } from 'tests/modules/elk-logger';
 import { RedisClientErrorFormatter } from './redis-client-error.object-formatter';
 
 describe(RedisClientErrorFormatter.name, () => {
   let originalError: Error;
   let socketError: unknown;
   let error: ReconnectStrategyError | MultiErrorReply;
+  let unknownFormatter: IUnknownFormatter;
   let formatter: RedisClientErrorFormatter;
 
   beforeEach(async () => {
@@ -18,7 +21,24 @@ describe(RedisClientErrorFormatter.name, () => {
     error = new ReconnectStrategyError(originalError, socketError);
     error.stack = 'Error: message\n    at <anonymous>:1:2\n';
 
+    unknownFormatter = new MockUnknownFormatter();
     formatter = new RedisClientErrorFormatter();
+    formatter.setUnknownFormatter(unknownFormatter);
+
+    jest.spyOn(unknownFormatter, 'transform').mockImplementation((value) => {
+      if (!value || typeof value !== 'object') {
+        return value;
+      }
+
+      if (value instanceof Error) {
+        return {
+          name: value.name,
+          message: value.message,
+        };
+      }
+
+      return value;
+    });
   });
 
   afterEach(async () => {
@@ -37,33 +57,8 @@ describe(RedisClientErrorFormatter.name, () => {
   it('transform ReconnectStrategyError', async () => {
     expect(formatter.transform(error)).toEqual({
       originalError: {
-        type: 'Error',
+        name: 'Error',
         message: '',
-        stack: ['Error: message', 'at <anonymous>:1:2'],
-      },
-      socketError,
-    });
-
-    originalError['errors'] = [socketError];
-
-    expect(formatter.transform(error)).toEqual({
-      originalError: {
-        type: 'Error',
-        message: '',
-        errors: [socketError],
-        stack: ['Error: message', 'at <anonymous>:1:2'],
-      },
-      socketError,
-    });
-
-    originalError['errors'] = socketError;
-
-    expect(formatter.transform(error)).toEqual({
-      originalError: {
-        type: 'Error',
-        message: '',
-        errors: socketError,
-        stack: ['Error: message', 'at <anonymous>:1:2'],
       },
       socketError,
     });
@@ -87,7 +82,7 @@ describe(RedisClientErrorFormatter.name, () => {
     expect(formatter.transform(error)).toEqual({
       replies: [
         {
-          type: 'Error',
+          name: 'Error',
           message: '',
         },
       ],

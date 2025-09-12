@@ -1,41 +1,25 @@
-import { ConfigService } from '@nestjs/config';
 import { DateTimestamp } from 'src/modules/date-timestamp';
-import { MockObjectFormatter } from 'tests/modules/elk-logger';
-import { MockConfigService } from 'tests/nestjs';
-import { ILogRecord } from '../../types/elk-logger.types';
-import { ElkLoggerConfig } from '../../services/elk-logger.config';
+import { MockUnknownFormatter } from 'tests/modules/elk-logger';
+import { ILogRecord, IUnknownFormatter } from '../../types/elk-logger.types';
 import { ObjectFormatter } from './object.formatter';
 
 describe(ObjectFormatter.name, () => {
-  let configService: ConfigService;
-  let loggerConfig: ElkLoggerConfig;
+  let unknownFormatter: IUnknownFormatter;
   let formatter: ObjectFormatter;
 
   beforeEach(async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
-    loggerConfig = new ElkLoggerConfig(configService, [], []);
-    formatter = new ObjectFormatter(loggerConfig, [new MockObjectFormatter()]);
+    unknownFormatter = new MockUnknownFormatter();
+    formatter = new ObjectFormatter(unknownFormatter);
     jest.clearAllMocks();
   });
 
   it('transform', async () => {
     const current = new DateTimestamp();
-    const now = new Date();
+    const error = new Error('test');
 
     const logRecord: ILogRecord = {
-      businessData: {
-        status: 'ok',
-        error: new Error('test'),
-      },
-      payload: {
-        current,
-        now,
-        details: {
-          message: 'message',
-          now,
-          array: ['success', 123, { data: {} }, current],
-        },
-      },
+      businessData: error,
+      payload: current,
     } as undefined as ILogRecord;
 
     expect(formatter.transform(logRecord)).toEqual({
@@ -47,23 +31,21 @@ describe(ObjectFormatter.name, () => {
       },
     });
 
-    jest.spyOn(MockObjectFormatter.prototype, 'canFormat').mockImplementation((obj) => obj instanceof Error);
+    jest.spyOn(unknownFormatter, 'transform').mockImplementation((value) => {
+      if (typeof value === 'object') {
+        if (!(value instanceof Error)) {
+          return {
+            field: 'fieldName',
+          };
+        }
+      }
+      return value;
+    });
 
     expect(formatter.transform(logRecord)).toEqual({
-      businessData: {
-        status: 'ok',
-        error: {
-          field: 'fieldName',
-        },
-      },
+      businessData: error,
       payload: {
-        current,
-        now,
-        details: {
-          message: 'message',
-          now,
-          array: ['success', 123, { data: {} }, current],
-        },
+        field: 'fieldName',
       },
     });
   });

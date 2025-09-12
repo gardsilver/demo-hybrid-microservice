@@ -50,8 +50,16 @@ export interface IOptionLog
     >
   > {}
 
+export interface IUnknownFormatter {
+  transform(value: unknown): unknown | IKeyValue<unknown>;
+}
+
 export interface IObjectFormatter<T extends object = object> extends IFormatter<T, IKeyValue<unknown>> {
   canFormat(obj: unknown): obj is T;
+}
+
+export interface IErrorFormatter<T extends object = object> extends IObjectFormatter<T> {
+  setUnknownFormatter(unknownFormatter: IUnknownFormatter): void;
 }
 
 export interface ILogRecordFormatter extends IFormatter<ILogRecord, ILogRecord> {

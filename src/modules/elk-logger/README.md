@@ -181,7 +181,9 @@ export class AppService {
 
 ### `ObjectFormatter`
 
-Применяется сразу после `CircularFormatter`. Преобразует различные экземпляры объектов к человеко читаемому виду. По умолчанию он включает в себя базовый форматер для объектов класса `Error` (`ExceptionObjectFormatter`). Подключать пользовательские форматеры, которые будет использовать  `ObjectFormatter`, можно указав соответствующие настройки при подключения модуля (**@see** `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`)
+Применяется сразу после `CircularFormatter`. Преобразует различные экземпляры объектов к человеко читаемому виду. По умолчанию он включает в себя базовый форматер для объектов класса `Error` (`ErrorObjectFormatter`). Подключать пользовательские форматеры, которые будет использовать `ObjectFormatter`, можно указав соответствующие настройки при подключения модуля (**@see** `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`)
+
+При реализации пользовательского `IErrorFormatter` наследуйтесь от `BaseErrorObjectFormatter`, в этом случае `BaseErrorObjectFormatter.unknownFormatter` будет соответствует `IUnknownFormatter` и позволит форматировать заранее известные данные (например `Error.cause`), используя все заданные настройки `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`.
 
 ### `PruneFormatter`
 

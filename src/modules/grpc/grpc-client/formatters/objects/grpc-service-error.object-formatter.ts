@@ -1,10 +1,10 @@
 import { ServiceError } from '@grpc/grpc-js';
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { isGrpcServiceError } from '../../errors/grpc-client.error';
 
-export class GrpcServiceErrorFormatter implements IObjectFormatter<ServiceError> {
+export class GrpcServiceErrorFormatter extends BaseErrorObjectFormatter<ServiceError> {
   canFormat(obj: unknown): obj is ServiceError {
     return isGrpcServiceError(obj);
   }

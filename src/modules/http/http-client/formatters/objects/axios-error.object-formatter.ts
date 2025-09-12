@@ -1,9 +1,9 @@
 import { AxiosError, isAxiosError } from 'axios';
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 
-export class AxiosErrorFormatter implements IObjectFormatter<AxiosError> {
+export class AxiosErrorFormatter extends BaseErrorObjectFormatter<AxiosError> {
   canFormat(obj: unknown): obj is AxiosError {
     return isAxiosError(obj);
   }

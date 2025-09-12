@@ -7,11 +7,11 @@ import {
   ValidationError,
   ValidationErrorItem,
 } from 'sequelize';
-import { ExceptionHelper, IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { IKeyValue } from 'src/modules/common';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
-export class DataBaseErrorFormatter implements IObjectFormatter<BaseError | ValidationErrorItem> {
+export class DataBaseErrorFormatter extends BaseErrorObjectFormatter<BaseError | ValidationErrorItem> {
   canFormat(obj: unknown): obj is BaseError | ValidationErrorItem {
     return obj instanceof BaseError || obj instanceof ValidationErrorItem;
   }
@@ -19,13 +19,13 @@ export class DataBaseErrorFormatter implements IObjectFormatter<BaseError | Vali
   transform(from: BaseError | ValidationErrorItem): IKeyValue<unknown> {
     if (from instanceof AggregateError || from instanceof ValidationError) {
       return {
-        errors: from.errors?.map((error) => this.formatBase(error)),
+        errors: from.errors?.map((error) => this.unknownFormatter.transform(error)),
       };
     }
 
     if (from instanceof BulkRecordError) {
       return {
-        errors: [this.formatBase(from.errors)],
+        errors: [this.unknownFormatter.transform(from.errors)],
         record: DatabaseHelper.modelToLogFormat(from.record),
       };
     }
@@ -58,27 +58,5 @@ export class DataBaseErrorFormatter implements IObjectFormatter<BaseError | Vali
     }
 
     return {};
-  }
-
-  private formatBase(from: unknown | Error): unknown | IKeyValue<unknown> {
-    if (from && from instanceof Error) {
-      const fields = this.canFormat(from) ? this.transform(from) : {};
-
-      return {
-        type: from.name ?? from.constructor.name,
-        message: from.message,
-        ...fields,
-        stack: ExceptionHelper.stackFormat(from.stack),
-        errors:
-          'errors' in from
-            ? Array.isArray(from['errors'])
-              ? from['errors'].map((err) => this.formatBase(err))
-              : this.formatBase(from['errors'])
-            : undefined,
-        cause: from.cause ? this.formatBase(from.cause) : undefined,
-      };
-    }
-
-    return from;
   }
 }

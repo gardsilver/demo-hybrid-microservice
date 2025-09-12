@@ -1,8 +1,8 @@
 import { HttpException } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
-export class HttpExceptionFormatter implements IObjectFormatter<HttpException> {
+export class HttpExceptionFormatter extends BaseErrorObjectFormatter<HttpException> {
   canFormat(obj: unknown): obj is HttpException {
     return obj instanceof HttpException;
   }

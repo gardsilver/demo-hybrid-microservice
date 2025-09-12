@@ -6,7 +6,13 @@ import {
   ServiceValueProvider,
   CheckObjectsType,
 } from 'src/modules/common';
-import { ILogFields, ILogRecordFormatter, IEncodeFormatter, IObjectFormatter } from './elk-logger.types';
+import {
+  ILogFields,
+  ILogRecordFormatter,
+  IEncodeFormatter,
+  IObjectFormatter,
+  IErrorFormatter,
+} from './elk-logger.types';
 
 export interface IElkLoggerModuleOptions {
   imports?: ImportsType;
@@ -15,7 +21,7 @@ export interface IElkLoggerModuleOptions {
   formattersOptions?: {
     ignoreObjects?: Array<CheckObjectsType>;
     sortFields?: string[];
-    exceptionFormatters?: IObjectFormatter[];
+    exceptionFormatters?: IErrorFormatter[];
     objectFormatters?: IObjectFormatter[];
   };
   formatters?:

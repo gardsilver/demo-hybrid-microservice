@@ -7,5 +7,6 @@ export * from './helpers/log-fields.helper';
 export * from './builders/trace-span.builder';
 export * from './builders/nest-elk-logger.service.builder';
 export * from './services/elk-logger.config';
+export * from './formatters/objects/base-error.object-formatter';
 export * from './formatters/prune.config';
 export * from './elk-logger.module';

@@ -1,10 +1,8 @@
-import { Metadata } from '@grpc/grpc-js';
 import { RpcException } from '@nestjs/microservices';
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
-import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
-export class RpcExceptionFormatter implements IObjectFormatter<RpcException> {
+export class RpcExceptionFormatter extends BaseErrorObjectFormatter<RpcException> {
   canFormat(obj: unknown): obj is RpcException {
     return obj instanceof RpcException;
   }
@@ -23,9 +21,7 @@ export class RpcExceptionFormatter implements IObjectFormatter<RpcException> {
     };
 
     if ('metadata' in format) {
-      if (!!format.metadata && format.metadata instanceof Metadata) {
-        format['metadata'] = GrpcHeadersHelper.normalize(format.metadata.getMap());
-      }
+      format['metadata'] = this.unknownFormatter.transform(format.metadata);
     }
 
     return format;

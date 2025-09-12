@@ -6,7 +6,7 @@ import { RedisCacheManagerModule, RedisClientErrorFormatter } from 'src/modules/
 import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
-import { DataBaseErrorFormatter } from 'src/modules/database';
+import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
 import { HttpExceptionFormatter, HttpServerModule } from 'src/modules/http/http-server';
@@ -40,7 +40,7 @@ import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
           new RpcExceptionFormatter(),
           new RedisClientErrorFormatter(),
         ],
-        objectFormatters: [new MetadataObjectFormatter()],
+        objectFormatters: [new MetadataObjectFormatter(), new ValidationErrorItemObjectFormatter()],
       },
       formatters: {
         inject: [GeneralAsyncContextFormatter, HttpSecurityHeadersFormatter],

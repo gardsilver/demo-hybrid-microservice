@@ -62,7 +62,7 @@ export class AppModule()
 | `defaultFields` | Позволяет задать базовые значения полей лога, которые всегда буду добавляться к конечной записи лога. | `defaultFields: { index: 'My Application' } as ILogFields` - добавит ко всем логам дополнительное поле `index` |
 | `formattersOptions.ignoreObjects` | Массив `Type @nestjs/common` или `AbstractCheckObject src/modules/common` для задания исключений в алгоритме приведения неизвестных объектов к виду `IKeyValue`. <br> По умолчанию в список исключений добавлены `Error`, `DateTimestamp` (**@see** `src/modules/date-timestamp`) и `MomentCheckObject` (**@see** `src/modules/common`)|  |
 | `formattersOptions.sortFields` | Массив `string` - имена полей `ILogRecord`. Все поля в конечной записи лога будут отсортированы в указанном порядке |  |
-| `formattersOptions.exceptionFormatters` | Массив `IObjectFormatter` - набор пользовательских форматеров для различных типов ошибок. |  |
+| `formattersOptions.exceptionFormatters` | Массив `IErrorFormatter` - набор пользовательских форматеров для различных типов ошибок. |  |
 | `formattersOptions.objectFormatters` | Массив `IObjectFormatter` - набор пользовательских форматеров для различных объектов  |
 | `formatters` | Задает массив дополнительных форматеров для `ILogRecord` которые будут применены перед формированием конечной записи лога. <br> По умолчанию включены следующие форматеры: `CircularFormatter`, `ObjectFormatter`, `PruneFormatter`, `SortFieldsFormatter`. |  |
 | `encoders` | Задает массив дополнительных форматеров, которые будут применены после приведения `ILogRecord` к  **json-строке**. <br> По умолчанию включены следующие форматеры: `PruneEncoder`. |  |
@@ -183,7 +183,7 @@ export class AppService {
 
 Применяется сразу после `CircularFormatter`. Преобразует различные экземпляры объектов к человеко читаемому виду. По умолчанию он включает в себя базовый форматер для объектов класса `Error` (`ErrorObjectFormatter`). Подключать пользовательские форматеры, которые будет использовать `ObjectFormatter`, можно указав соответствующие настройки при подключения модуля (**@see** `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`)
 
-При реализации пользовательского `IErrorFormatter` наследуйтесь от `BaseErrorObjectFormatter`, в этом случае `BaseErrorObjectFormatter.unknownFormatter` будет соответствует `IUnknownFormatter` и позволит форматировать заранее известные данные (например `Error.cause`), используя все заданные настройки `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`.
+При реализации пользовательского `IErrorFormatter` наследуйтесь от `BaseErrorObjectFormatter`, в этом случае `BaseErrorObjectFormatter.unknownFormatter` будет соответствует `IUnknownFormatter` и позволит форматировать заранее неизвестные данные (например `Error.cause`), используя все заданные настройки `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`.
 
 ### `PruneFormatter`
 

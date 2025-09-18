@@ -22,12 +22,12 @@
 
 Сервис хеширования данных в **Redis**. Реализует основные методы сохранения данных в хэше с автоматическим использованием `encode`/`decode` или без них.
 
-- `set` - сохраняет данные в хэше с применение `formatter.decode()`. Если не задан `formatter`, то будет применен `JsonRedisCacheFormatter`. В случае, если не нужно применять `formatter.decode()`, то нужно явно указать `formatter=false`.
-- `get` - возвращает данные сохраненные в хэше с применение `formatter.encode()`. Если не задан `formatter`, то будет применен `JsonRedisCacheFormatter`. Если явно указан `formatter=false`, то `formatter.encode()` не будет применен.
+- `set` - сохраняет данные в хэше с применение `adapter.decode()`. Если не задан `adapter`, то будет применен `JsonRedisCacheAdapter`. В случае, если не нужно применять `adapter.decode()`, то нужно явно указать `adapter=false`.
+- `get` - возвращает данные сохраненные в хэше с применение `adapter.encode()`. Если не задан `adapter`, то будет применен `JsonRedisCacheAdapter`. Если явно указан `adapter=false`, то `adapter.encode()` не будет применен.
 - `del` - удаляет сохраненные данные в хэше.
 - `clear` - удаляет все сохраненные данные в хэше.
 
-## `JsonRedisCacheFormatter`
+## `JsonRedisCacheAdapter`
 
 Реализует интерфейс `encode`/`decode` (`JSON.parse`/`JSON.stringify`).
 

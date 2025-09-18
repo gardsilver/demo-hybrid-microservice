@@ -12,7 +12,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint:all": "eslint \"{src,migrations,tests}/**/*.ts\" --fix",
-    "lint:diff": "grep -E '\\.(t|j)s$' /tmp/.eslint-list | xargs eslint --fix",
+    "lint:diff": "grep -E '\\.(t|j)s$' .eslint-list | xargs eslint --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",

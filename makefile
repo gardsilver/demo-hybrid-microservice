@@ -39,7 +39,7 @@ rebuild-win:
 .PHONY: lint
 lint:
 	npm run format
-	git diff --name-only --diff-filter=AM original/master > .eslint-list
+	git diff --name-only --diff-filter=AM origin/master > .eslint-list
 	npm run lint:diff
 
 .PHONY: lint-all

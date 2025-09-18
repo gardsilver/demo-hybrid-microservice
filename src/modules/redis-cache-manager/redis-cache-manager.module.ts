@@ -16,7 +16,7 @@ import { REDIS_CACHE_MANAGER_KEYV_REDIS_OPTIONS_DI, REDIS_CACHE_MANAGER_REDIS_CL
 import { RedisCacheManagerConfig } from './services/redis-cache-manager.config';
 import { defaultRedisReconnectStrategyBuilder } from './builders/default-redis.reconnect-strategy.builder';
 import { RedisCacheService } from './services/redis-cache.service';
-import { JsonRedisCacheFormatter } from './cache-formatters/json-redis.cache-formatter';
+import { JsonRedisCacheAdapter } from './adapters/json-redis.cache-adapter';
 
 @Module({})
 export class RedisCacheManagerModule {
@@ -27,7 +27,7 @@ export class RedisCacheManagerModule {
       imports = imports.concat(options?.imports);
     }
 
-    let providers: Provider[] = [RedisCacheManagerConfig, JsonRedisCacheFormatter, RedisCacheService];
+    let providers: Provider[] = [RedisCacheManagerConfig, JsonRedisCacheAdapter, RedisCacheService];
 
     if (options?.providers?.length) {
       providers = providers.concat(options?.providers);
@@ -112,7 +112,7 @@ export class RedisCacheManagerModule {
           /** @TODO Без обработчиков событий не активируется reconnectStrategy
            * ВАЖНО:
            *  - обработчики должны быть (в том числе и пустые)
-           *  - не имеет смыла подписываться на события Keyv.on() как в @keyv/redis не все события Redis реализованы.
+           *  - не имеет смыла подписываться на события Keyv.on(), так как в @keyv/redis не все события Redis реализованы.
            *  @see https://www.npmjs.com/package/redis#events
            */
           const redisClient = keyvStore.client as RedisClientType;

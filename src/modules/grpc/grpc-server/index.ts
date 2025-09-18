@@ -8,7 +8,7 @@ export * from './helpers/grpc.metadata.helper';
 export * from './builders/grpc.metadata-response.builder';
 export * from './builders/grpc.microservice.builder';
 export * from './filters/grpc.error-response.filter';
-export * from './formatters/objects/rpc-exception.object-formatter';
+export * from './formatters/logger/rpc-exception.object-formatter';
 export * from './guards/grpc.auth.guard';
 export * from './interceptors/grpc.logging';
 export * from './interceptors/grpc.prometheus';

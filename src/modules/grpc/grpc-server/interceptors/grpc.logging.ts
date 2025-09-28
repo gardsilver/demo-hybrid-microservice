@@ -14,6 +14,7 @@ import { GrpcHeadersHelper } from 'src/modules//grpc/grpc-common';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
 import { GrpcResponseHandler } from '../filters/grpc.response.handler';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 export class GrpcLogging implements NestInterceptor {
   constructor(
@@ -28,7 +29,7 @@ export class GrpcLogging implements NestInterceptor {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
     if (
-      context.getType() !== 'rpc' ||
+      !GrpcHelper.isGrpc(context) ||
       getSkipInterceptors(context, this.reflector)['All'] ||
       getSkipInterceptors(context, this.reflector)['GrpcLogging']
     ) {

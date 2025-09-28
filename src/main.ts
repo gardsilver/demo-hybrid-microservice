@@ -13,6 +13,7 @@ import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerConfig,
 } from 'src/modules/elk-logger';
+import { PrometheusManager } from 'src/modules/prometheus';
 import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { HttpSecurityHeadersFormatter, BEARER_NAME } from 'src/modules/http/http-common';
@@ -33,10 +34,12 @@ import {
   GrpcPrometheus,
   RpcExceptionFormatter,
 } from 'src/modules/grpc/grpc-server';
+import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
+import { KafkaServerStatusService, KafkaMicroserviceBuilder } from 'src/modules/kafka/kafka-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
-import { GLOBAL_ROUTE_PREFIX, AppConfig } from 'src/core/app';
-import { MainModule } from 'src/main.module';
+import { GLOBAL_ROUTE_PREFIX, AppConfig, KafkaServers } from 'src/core/app';
 import { HealthStatusService } from 'src/health';
+import { MainModule } from 'src/main.module';
 
 async function bootstrap(): Promise<void> {
   const initConfigService = new ConfigService();
@@ -53,6 +56,7 @@ async function bootstrap(): Promise<void> {
         new GrpcClientErrorFormatter(),
         new RpcExceptionFormatter(),
         new RedisClientErrorFormatter(),
+        new KafkaJsErrorObjectFormatter(),
       ],
       objectFormatters: [new MetadataObjectFormatter(), new ValidationErrorItemObjectFormatter()],
     },
@@ -129,6 +133,37 @@ async function bootstrap(): Promise<void> {
   });
 
   app.get(HealthStatusService).addGrpcHealthImplementation(grpcHealthImpl, grpcServices);
+
+  KafkaMicroserviceBuilder.setup(app, {
+    kafkaOptions: {
+      serverName: KafkaServers.MAIN_KAFKA_BROKER,
+      postfixId: '',
+      client: {
+        brokers: appConfig.getKafkaBrokers(),
+        clientId: appConfig.getKafkaClientId(),
+        connectionTimeout: 500,
+        authenticationTimeout: 500,
+        retry: {
+          timeout: 30_000,
+          delay: 1_000,
+          retryMaxCount: 20,
+        },
+        useLogger: true,
+      },
+      consumer: {
+        groupId: appConfig.getKafkaGroupId(),
+        retry: {
+          timeout: 30_000,
+          delay: 1_000,
+          retryMaxCount: 20,
+          statusCodes: appConfig.getKafkaRetryStatusCodes(),
+        },
+      },
+    },
+    loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),
+    prometheusManager: app.get(PrometheusManager),
+    kafkaStatusService: app.get(KafkaServerStatusService),
+  });
 
   app.enableShutdownHooks();
 

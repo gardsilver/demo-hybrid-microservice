@@ -3,6 +3,7 @@ import { ArgumentsHost, Catch } from '@nestjs/common';
 import { BaseRpcExceptionFilter } from '@nestjs/microservices';
 import { LoggerMarkers } from 'src/modules/common';
 import { GrpcResponseHandler } from './grpc.response.handler';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 /**
  * ВНИМАНИЕ!
@@ -16,7 +17,7 @@ export class GrpcErrorResponseFilter extends BaseRpcExceptionFilter {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   catch(exception: any, host: ArgumentsHost): Observable<any> {
-    if (host.getType() !== 'rpc') {
+    if (!GrpcHelper.isGrpc(host)) {
       return;
     }
 

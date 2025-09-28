@@ -40,7 +40,7 @@ export class HttpSecurityHeadersFormatter implements ILogRecordFormatter {
     }
 
     return this.removeList.reduce((isFirst, current) => {
-      return isFirst || path.includes(current.toLowerCase());
+      return isFirst || path.includes(current.toLocaleLowerCase());
     }, false);
   }
 
@@ -48,7 +48,7 @@ export class HttpSecurityHeadersFormatter implements ILogRecordFormatter {
     const tgt: IKeyValue = {};
 
     for (const [key, value] of Object.entries(src)) {
-      tgt[key] = this.replaceValue(value, path.concat([key.toLowerCase()]));
+      tgt[key] = this.replaceValue(value, path.concat([key.toLocaleLowerCase()]));
     }
 
     return tgt;

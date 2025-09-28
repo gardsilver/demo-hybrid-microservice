@@ -51,7 +51,7 @@ GRPC_PORT=3001
 |`make start-dev`| `npm run start:dev` | Запуск микросервиса c отслеживанием изменений файлов. |
 |`make rebuild`| `rmdir /s /q .\dist` <br> `rmdir /s /q .\node_modules` <br> `npm i` <br> `npm run proto-compile` | Осуществляет полную пересборку микросервиса в `Lunix` |
 |`make rebuild-win`| `rmdir /s /q .\dist` <br> `rmdir /s /q .\node_modules` <br> `npm i` <br> `npm run proto-compile-win` | Осуществляет полную пересборку микросервиса в `Windows` |
-|`make lint`| `npm run format` <br> `git diff --name-only --diff-filter=AM original/master > .eslint-list` <br> `npm run lint:diff` | Авто коррекция code-style для измененных файлов. (Применимо только для `Lunix`) |
+|`make lint`| `npm run format` <br> `git diff --name-only --diff-filter=AM origin/master > .eslint-list` <br> `npm run lint:diff` | Авто коррекция code-style для измененных файлов. (Применимо только для `Lunix`) |
 |`make lint-all`| `npm run format` <br> `npm run lint:all` | Авто коррекция code-style файлов. |
 |`make test`| `npm run test` | Запускает **unit**-тесты без расчета уровня покрытия тестами. |
 |`make test-cov`| `npm run test:cov` | Запускает **unit**-тесты c расчетом уровня покрытия тестами. |

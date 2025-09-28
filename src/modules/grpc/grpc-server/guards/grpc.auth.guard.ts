@@ -11,6 +11,7 @@ import {
 import { GrpcAuthHelper, GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 @Injectable()
 export class GrpcAuthGuard implements CanActivate {
@@ -23,7 +24,7 @@ export class GrpcAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (context.getType() !== 'rpc') {
+    if (!GrpcHelper.isGrpc(context)) {
       return true;
     }
 

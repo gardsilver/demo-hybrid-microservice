@@ -24,6 +24,7 @@ import { GrpcAuthGuard } from './grpc.auth.guard';
 import { GrpcMetadataResponseBuilder } from '../builders/grpc.metadata-response.builder';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI, GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI } from '../types/tokens';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 describe(GrpcAuthGuard.name, () => {
   let reflector: Reflector;
@@ -43,6 +44,8 @@ describe(GrpcAuthGuard.name, () => {
   let token;
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => true);
     logger = new MockElkLoggerService();
 
     const module = await Test.createTestingModule({
@@ -97,8 +100,6 @@ describe(GrpcAuthGuard.name, () => {
           getContext: () => requestMetadata,
         }) as undefined as RpcArgumentsHost,
     } as undefined as ExecutionContext;
-
-    jest.clearAllMocks();
   });
 
   it('init', async () => {
@@ -107,6 +108,7 @@ describe(GrpcAuthGuard.name, () => {
   });
 
   it('ignore', async () => {
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => false);
     host.getType = jest.fn().mockImplementation(() => 'http');
 
     expect(await guard.canActivate(host)).toBeTruthy();

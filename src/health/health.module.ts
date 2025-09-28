@@ -5,8 +5,9 @@ import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
-import { HealthController } from './controllers/health.controller';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { HealthStatusService } from './services/health-status.service';
+import { HealthController } from './controllers/health.controller';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { HealthStatusService } from './services/health-status.service';
     AuthModule,
     DatabaseModule,
     GracefulShutdownModule,
+    KafkaServerModule,
   ],
   providers: [HealthStatusService],
   exports: [HealthStatusService],

@@ -15,6 +15,7 @@ import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_INTERNAL_REQUEST_DURATIONS, GRPC_INTERNAL_REQUEST_FAILED } from '../types/metrics';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 @Injectable()
 export class GrpcPrometheus implements NestInterceptor {
@@ -28,7 +29,7 @@ export class GrpcPrometheus implements NestInterceptor {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> | Promise<Observable<any>> {
     if (
-      context.getType() !== 'rpc' ||
+      !GrpcHelper.isGrpc(context) ||
       getSkipInterceptors(context, this.reflector)['All'] ||
       getSkipInterceptors(context, this.reflector)['GrpcPrometheus']
     ) {

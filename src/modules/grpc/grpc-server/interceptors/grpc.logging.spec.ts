@@ -24,6 +24,7 @@ import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI, GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI } from '../types/tokens';
 import { GrpcResponseHandler } from '../filters/grpc.response.handler';
 import { GrpcMetadataResponseBuilder } from '../builders/grpc.metadata-response.builder';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 describe(GrpcLogging.name, () => {
   let reflector: Reflector;
@@ -120,6 +121,7 @@ describe(GrpcLogging.name, () => {
   });
 
   it('ignore', async () => {
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => false);
     host.getType = jest.fn().mockImplementation(() => 'http');
 
     const spy = jest.spyOn(host, 'switchToRpc');
@@ -132,6 +134,12 @@ describe(GrpcLogging.name, () => {
         GrpcLogging: true,
       };
     });
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => true);
+
+    await interceptor.intercept(host, handler);
+
+    expect(spy).toHaveBeenCalledTimes(0);
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
     await interceptor.intercept(host, handler);

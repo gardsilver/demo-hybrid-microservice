@@ -60,7 +60,7 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
     deserializer: new CustomDeserializer(), // CustomDeserializer implements IConsumerRequestDeserializer<T>
     ...
   })
-  async multi(@Payload() data: KafkaRequest<T>[], @Ctx() ctx: KafkaContext<T>) {
+  async multi(@Payload() data: KafkaRequest<T>[], @Ctx() ctx: KafkaContext) {
     // Тут ваша логика.
   }
 ...

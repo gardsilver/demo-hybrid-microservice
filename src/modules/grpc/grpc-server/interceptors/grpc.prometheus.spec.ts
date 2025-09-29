@@ -30,6 +30,7 @@ import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
 import { GRPC_INTERNAL_REQUEST_DURATIONS, GRPC_INTERNAL_REQUEST_FAILED } from '../types/metrics';
 import { GrpcPrometheus } from './grpc.prometheus';
+import { GrpcHelper } from '../helpers/grpc.helper';
 
 describe(GrpcPrometheus.name, () => {
   let reflector: Reflector;
@@ -120,6 +121,8 @@ describe(GrpcPrometheus.name, () => {
   });
 
   it('ignore', async () => {
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => false);
+
     host.getType = jest.fn().mockImplementation(() => 'http');
 
     const spy = jest.spyOn(host, 'switchToRpc');
@@ -132,6 +135,12 @@ describe(GrpcPrometheus.name, () => {
         GrpcPrometheus: true,
       };
     });
+    jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => true);
+
+    await interceptor.intercept(host, handler);
+
+    expect(spy).toHaveBeenCalledTimes(0);
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
     await interceptor.intercept(host, handler);

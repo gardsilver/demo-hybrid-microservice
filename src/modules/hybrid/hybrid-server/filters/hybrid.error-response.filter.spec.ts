@@ -1,3 +1,4 @@
+import { Metadata } from '@grpc/grpc-js';
 import { Test } from '@nestjs/testing';
 import { ExecutionContext } from '@nestjs/common';
 import { HttpErrorResponseFilter } from 'src/modules/http/http-server';
@@ -75,6 +76,9 @@ describe(HybridErrorResponseFilter.name, () => {
   it('grpc', async () => {
     const host = {
       getType: () => 'rpc',
+      switchToRpc: () => ({
+        getContext: () => new Metadata(),
+      }),
     } as undefined as ExecutionContext;
     const error = new Error('Test Error');
 

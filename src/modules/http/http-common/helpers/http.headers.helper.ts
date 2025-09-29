@@ -25,13 +25,13 @@ export class HttHeadersHelper {
 
   public static toAsyncContext<Ctx extends IAsyncContext>(headers: IHeaders): Ctx {
     const traceId =
-      this.searchValue(
+      HttHeadersHelper.searchValue(
         headers,
         HttpGeneralAsyncContextHeaderNames.TRACE_ID,
         HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
       ) ?? TraceSpanHelper.generateRandomValue();
 
-    const parentSpanId = this.searchValue(
+    const parentSpanId = HttHeadersHelper.searchValue(
       headers,
       HttpGeneralAsyncContextHeaderNames.SPAN_ID,
       HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
@@ -42,14 +42,14 @@ export class HttHeadersHelper {
       spanId: TraceSpanHelper.generateRandomValue(),
       parentSpanId,
       initialSpanId: parentSpanId,
-      requestId: this.searchValue(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
-      correlationId: this.searchValue(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
+      requestId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
+      correlationId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
     } as undefined as Ctx;
 
     return ctx;
   }
 
-  private static searchValue(headers: IHeaders, ...headerName: string[]): string {
+  protected static searchValue(headers: IHeaders, ...headerName: string[]): string {
     const result = BaseHeadersHelper.searchValue(headers, ...headerName);
 
     if (Array.isArray(result.value)) {

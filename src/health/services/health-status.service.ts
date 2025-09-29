@@ -4,12 +4,16 @@ import { GracefulShutdownEvents, GracefulShutdownOnEvent } from 'src/modules/gra
 
 @Injectable()
 export class HealthStatusService {
-  private grpcHealthImpl: HealthImplementation;
-  private grpcServices: string[];
+  private healthImplementations: Array<{
+    grpcHealthImpl: HealthImplementation;
+    grpcServices: string[];
+  }> = [];
 
   public addGrpcHealthImplementation(grpcHealthImplementation: HealthImplementation, services: string[]): this {
-    this.grpcHealthImpl = grpcHealthImplementation;
-    this.grpcServices = services;
+    this.healthImplementations.push({
+      grpcHealthImpl: grpcHealthImplementation,
+      grpcServices: services,
+    });
 
     return this;
   }
@@ -18,10 +22,12 @@ export class HealthStatusService {
     event: GracefulShutdownEvents.BEFORE_DESTROY,
   })
   public beforeDestroy() {
-    if (this.grpcHealthImpl && this.grpcServices?.length) {
-      this.grpcServices.forEach((service) => {
-        this.grpcHealthImpl.setStatus(service, 'NOT_SERVING');
-      });
-    }
+    this.healthImplementations.forEach((params) => {
+      if (params.grpcHealthImpl && params.grpcServices?.length) {
+        params.grpcServices.forEach((service) => {
+          params.grpcHealthImpl.setStatus(service, 'NOT_SERVING');
+        });
+      }
+    });
   }
 }

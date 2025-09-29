@@ -8,7 +8,7 @@ export class BaseHeadersHelper {
         continue;
       }
 
-      if (Array.isArray(v)) {
+      if (Array.isArray(v) && !Buffer.isBuffer(v)) {
         tgt[k.toString().toLocaleLowerCase().trim()] = v.map((hv) => hv?.toString()?.trim());
 
         continue;

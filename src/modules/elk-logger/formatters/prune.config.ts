@@ -20,8 +20,8 @@ export class PruneConfig {
     const configServiceHelper = new ConfigServiceHelper(configService, 'LOGGER_PRUNE_');
     const enabledRaw = configService.get<string>(configServiceHelper.getKeyName('ENABLED'), 'no').trim();
 
-    if (['yes', 'no'].includes(enabledRaw.toLowerCase())) {
-      this.isEnabled = enabledRaw.toLowerCase() === 'yes';
+    if (['yes', 'no'].includes(enabledRaw.toLocaleLowerCase())) {
+      this.isEnabled = enabledRaw.toLocaleLowerCase() === 'yes';
     } else {
       this.isEnabled = enabledRaw === '' ? false : enabledRaw;
     }

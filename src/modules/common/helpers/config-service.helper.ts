@@ -23,7 +23,7 @@ export class ConfigServiceHelper {
   public parseBoolean(key: string, defaultValue: boolean = true): boolean | never {
     const keyName = this.getKeyName(key);
 
-    const value = this.config.get<string>(keyName, '').trim().toLowerCase();
+    const value = this.config.get<string>(keyName, '').trim().toLocaleLowerCase();
     if (value === '') {
       return defaultValue;
     }

@@ -19,13 +19,13 @@ describe(HealthStatusService.name, () => {
 
   it('init', async () => {
     expect(service).toBeDefined();
-    expect(service['grpcHealthImpl']).toBeUndefined();
-    expect(service['grpcServices']).toBeUndefined();
+    expect(service['healthImplementations']).toEqual([]);
 
     service.addGrpcHealthImplementation(grpcHealthImpl, grpcServices);
 
-    expect(service['grpcHealthImpl']).toEqual(grpcHealthImpl);
-    expect(service['grpcServices']).toEqual(grpcServices);
+    expect(service['healthImplementations'].length).toBe(1);
+    expect(service['healthImplementations'][0]['grpcHealthImpl']).toEqual(grpcHealthImpl);
+    expect(service['healthImplementations'][0]['grpcServices']).toEqual(grpcServices);
   });
 
   it('beforeDestroy', () => {

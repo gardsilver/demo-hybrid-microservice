@@ -5,6 +5,7 @@ export * from './types/module.options';
 export * from './decorators/grpc.auth-info';
 export * from './decorators/grpc.general.async-context';
 export * from './helpers/grpc.metadata.helper';
+export * from './helpers/grpc.helper';
 export * from './builders/grpc.metadata-response.builder';
 export * from './builders/grpc.microservice.builder';
 export * from './filters/grpc.error-response.filter';

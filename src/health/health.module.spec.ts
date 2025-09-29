@@ -12,9 +12,12 @@ import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { mockSequelize } from 'tests/sequelize-typescript';
-import { HealthModule, HealthStatusService, HealthController } from './';
+import { HealthStatusService } from './services/health-status.service';
+import { HealthController } from './controllers/health.controller';
+import { HealthModule } from './health.module';
 
 jest.mock('sequelize-typescript', () => {
   return { Sequelize: jest.fn(() => mockSequelize) };
@@ -39,6 +42,7 @@ describe(HealthModule.name, () => {
         AuthModule.forRoot(),
         DatabaseModule.forRoot(),
         GracefulShutdownModule.forRoot(),
+        KafkaServerModule.forRoot(),
       ],
     })
       .overrideProvider(ELK_LOGGER_SERVICE_BUILDER_DI)

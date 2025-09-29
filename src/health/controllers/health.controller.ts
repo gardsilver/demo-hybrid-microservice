@@ -16,6 +16,7 @@ import { PrometheusManager } from 'src/modules/prometheus';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
 import { DATABASE_DI } from 'src/modules/database';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
+import { KafkaServerStatusService } from 'src/modules/kafka/kafka-server';
 
 @SkipInterceptors({
   All: true,
@@ -32,6 +33,7 @@ export class HealthController {
     private readonly sequelizeHealth: SequelizeHealthIndicator,
     private readonly authHealth: AuthHealthIndicatorService,
     @Inject(DATABASE_DI) private readonly db: Sequelize,
+    private readonly kafkaServerStatusService: KafkaServerStatusService,
     private readonly gracefulShutdownHealth: GracefulShutdownHealthIndicatorService,
     @Inject(PrometheusManager) private readonly prometheusManager: PrometheusManager,
     @Inject(AUTH_SERVICE_DI) private readonly authService: IAuthService,
@@ -41,13 +43,19 @@ export class HealthController {
   @Get('liveness-probe')
   @HealthCheck({ swaggerDocumentation: true })
   async liveness() {
-    return this.health.check([
+    const checks = [
       () =>
         this.sequelizeHealth.pingCheck('DataBase', {
           connection: this.db,
           timeout: 10_000,
         }),
-    ]);
+    ];
+
+    this.kafkaServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
+      checks.push(() => healthIndicator.isHealthy());
+    });
+
+    return this.health.check(checks);
   }
 
   @Get('readiness-probe')

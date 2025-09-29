@@ -12,7 +12,9 @@ import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/
 import { HttpExceptionFormatter, HttpServerModule } from 'src/modules/http/http-server';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules/grpc/grpc-client';
+import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { GrpcServerModule, RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
 import { HealthModule } from 'src/health';
 import { AppModule } from 'src/core/app';
@@ -21,6 +23,7 @@ import { GrpcApiModule } from 'src/core/api/grpc';
 import { PostgresModule } from 'src/core/repositories/postgres';
 import { ExampleHttpModule } from 'src/examples/integrations/http';
 import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
+import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
 
 @Module({
   imports: [
@@ -39,6 +42,7 @@ import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
           new GrpcClientErrorFormatter(),
           new RpcExceptionFormatter(),
           new RedisClientErrorFormatter(),
+          new KafkaJsErrorObjectFormatter(),
         ],
         objectFormatters: [new MetadataObjectFormatter(), new ValidationErrorItemObjectFormatter()],
       },
@@ -62,10 +66,12 @@ import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
     HttpServerModule.forRoot(),
     GracefulShutdownModule.forRoot(),
     GrpcServerModule.forRoot(),
+    KafkaServerModule.forRoot(),
     HybridServerModule,
     HealthModule,
     HttpApiModule,
     GrpcApiModule,
+    KafkaApiModule,
     PostgresModule,
     ExampleHttpModule,
     ExampleGrpcModule,

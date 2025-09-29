@@ -59,7 +59,7 @@ export class GrpcResponseHandler {
   public handleError(exception: any, host: ArgumentsHost, fieldsLogs?: ILogFields): RpcException {
     const rpc = host.switchToRpc();
     const request = rpc.getData();
-    const metadata = rpc.getContext();
+    const metadata = rpc.getContext<Metadata>();
     const headers = GrpcHeadersHelper.normalize(metadata.getMap());
 
     let asyncContext: IGeneralAsyncContext = GrpcMetadataHelper.getAsyncContext<IGeneralAsyncContext>(metadata);

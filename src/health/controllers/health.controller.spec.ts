@@ -9,7 +9,7 @@ import {
   IElkLoggerService,
   INestElkLoggerService,
 } from 'src/modules/elk-logger';
-import { PrometheusManager } from 'src/modules/prometheus';
+import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import {
   AUTH_CERTIFICATE_SERVICE_DI,
   AUTH_SERVICE_DI,
@@ -19,6 +19,7 @@ import {
 } from 'src/modules/auth';
 import { DATABASE_DI } from 'src/modules/database';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
 import { mockSequelize } from 'tests/sequelize-typescript';
@@ -43,7 +44,7 @@ describe(HealthController.name, () => {
     nestLogger = new MockNestElkLoggerService();
 
     const module = await Test.createTestingModule({
-      imports: [ConfigModule, ElkLoggerModule.forRoot(), TerminusModule],
+      imports: [ConfigModule, ElkLoggerModule.forRoot(), TerminusModule, PrometheusModule, KafkaServerModule.forRoot()],
       providers: [
         {
           provide: DATABASE_DI,
@@ -59,12 +60,6 @@ describe(HealthController.name, () => {
           provide: AUTH_CERTIFICATE_SERVICE_DI,
           useValue: {
             getCert: jest.fn(),
-          },
-        },
-        {
-          provide: PrometheusManager,
-          useValue: {
-            getMetrics: jest.fn(),
           },
         },
         {
@@ -102,6 +97,10 @@ describe(HealthController.name, () => {
       .useValue(logger)
       .overrideProvider(ELK_NEST_LOGGER_SERVICE_DI)
       .useValue(nestLogger)
+      .overrideProvider(PrometheusManager)
+      .useValue({
+        getMetrics: jest.fn(),
+      })
       .compile();
 
     module.useLogger(nestLogger);

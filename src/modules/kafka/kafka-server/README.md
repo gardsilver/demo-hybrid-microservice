@@ -15,7 +15,7 @@
 
 Данный модуль не реализует логику **Request-Response**. Вам будет доступен только функционал обработки полученного сообщения(сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`).
 
-Если не задан декоратор, то в полученных данных будут десериализованы только `headers` и `key` (**@see** `IKafkaMessage` `src/modules/kafka/kafka-common`).
+Если не задан `deserializer`, то в полученных данных будут десериализованы только `headers` и `key` (**@see** `IKafkaMessage` `src/modules/kafka/kafka-common`).
 
 ## Использование
 

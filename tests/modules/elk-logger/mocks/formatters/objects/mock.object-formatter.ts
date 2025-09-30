@@ -1,10 +1,12 @@
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { ObjectFormatter } from 'src/modules/elk-logger';
 
-export class MockObjectFormatter implements IObjectFormatter {
-  constructor(private readonly fieldName: string = 'fieldName') {}
+export class MockObjectFormatter extends ObjectFormatter {
+  constructor(private readonly fieldName: string = 'fieldName') {
+    super();
+  }
 
-  canFormat(obj: unknown): obj is object {
+  isInstanceOf(obj: unknown): obj is object {
     return true;
   }
 

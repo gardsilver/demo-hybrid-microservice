@@ -4,15 +4,15 @@ import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { grpcMetadataFactory } from 'tests/modules/grpc/grpc-common';
 import { GrpcClientErrorFormatter } from './grpc-client.error.object-formatter';
-import { IGrpcClientError } from '../../errors/grpc-client.error';
+import { GrpcClientError } from '../../errors/grpc-client.error';
 import { GrpcClientExternalException } from '../../errors/grpc-client.external.error';
 
 describe(GrpcClientErrorFormatter.name, () => {
   let headers: IHeaders;
   let metadata: Metadata;
   let serverError: ServiceError;
-  let error: IGrpcClientError;
-  let formatter;
+  let error: GrpcClientError;
+  let formatter: GrpcClientErrorFormatter;
 
   beforeEach(async () => {
     formatter = new GrpcClientErrorFormatter();
@@ -40,14 +40,14 @@ describe(GrpcClientErrorFormatter.name, () => {
     error = new GrpcClientExternalException('Tets Error', 'status', serverError);
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat('')).toBeFalsy();
-    expect(formatter.canFormat({})).toBeFalsy();
-    expect(formatter.canFormat(new Error())).toBeFalsy();
-    expect(formatter.canFormat(serverError)).toBeFalsy();
-    expect(formatter.canFormat(error)).toBeTruthy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf('')).toBeFalsy();
+    expect(formatter.isInstanceOf({})).toBeFalsy();
+    expect(formatter.isInstanceOf(new Error())).toBeFalsy();
+    expect(formatter.isInstanceOf(serverError)).toBeFalsy();
+    expect(formatter.isInstanceOf(error)).toBeTruthy();
   });
 
   it('transform', async () => {

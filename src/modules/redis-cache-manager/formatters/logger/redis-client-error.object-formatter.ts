@@ -3,7 +3,7 @@ import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
 export class RedisClientErrorFormatter extends BaseErrorObjectFormatter<ReconnectStrategyError | MultiErrorReply> {
-  canFormat(obj: unknown): obj is ReconnectStrategyError | MultiErrorReply {
+  isInstanceOf(obj: unknown): obj is ReconnectStrategyError | MultiErrorReply {
     return obj instanceof ReconnectStrategyError || obj instanceof MultiErrorReply;
   }
 

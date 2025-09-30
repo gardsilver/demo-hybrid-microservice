@@ -27,11 +27,13 @@ describe(UnknownFormatter.name, () => {
     const current = new DateTimestamp();
     const now = new Date();
     const error = new Error('test');
+    const buffer = Buffer.from('test', 'utf-8');
 
     const logRecord = {
       businessData: {
         status: 'ok',
         error: error,
+        buffer,
       },
       payload: {
         current,
@@ -39,7 +41,7 @@ describe(UnknownFormatter.name, () => {
         details: {
           message: 'message',
           now,
-          array: ['success', 123, { data: {} }, current],
+          array: ['success', 123, { data: {} }, current, buffer],
         },
       },
     };
@@ -52,11 +54,12 @@ describe(UnknownFormatter.name, () => {
       field: 'fieldName',
     });
 
-    jest.spyOn(MockObjectFormatter.prototype, 'canFormat').mockImplementation((obj) => obj instanceof Error);
+    jest.spyOn(MockObjectFormatter.prototype, 'isInstanceOf').mockImplementation((obj) => Buffer.isBuffer(obj));
 
     expect(formatter.transform(logRecord.businessData)).toEqual({
       status: 'ok',
-      error: {
+      error,
+      buffer: {
         field: 'fieldName',
       },
     });
@@ -64,10 +67,19 @@ describe(UnknownFormatter.name, () => {
     expect(formatter.transform(logRecord.payload)).toEqual({
       current,
       now,
+
       details: {
         message: 'message',
         now,
-        array: ['success', 123, { data: {} }, current],
+        array: [
+          'success',
+          123,
+          { data: {} },
+          current,
+          {
+            field: 'fieldName',
+          },
+        ],
       },
     });
   });

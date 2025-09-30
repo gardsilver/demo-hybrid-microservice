@@ -1,5 +1,5 @@
 import { LoggerService, LogLevel as NestLogLevel } from '@nestjs/common';
-import { IKeyValue, IFormatter } from 'src/modules/common';
+import { IKeyValue, IFormatter, AbstractCheckObject } from 'src/modules/common';
 import { ITraceSpan } from './trace-span';
 
 export enum LogLevel {
@@ -54,12 +54,15 @@ export interface IUnknownFormatter {
   transform(value: unknown): unknown | IKeyValue<unknown>;
 }
 
-export interface IObjectFormatter<T extends object = object> extends IFormatter<T, IKeyValue<unknown>> {
-  canFormat(obj: unknown): obj is T;
+export abstract class ObjectFormatter<T extends object = object>
+  extends AbstractCheckObject<T>
+  implements IFormatter<T, IKeyValue<unknown>>
+{
+  abstract transform(from: T): IKeyValue<unknown>;
 }
 
-export interface IErrorFormatter<T extends object = object> extends IObjectFormatter<T> {
-  setUnknownFormatter(unknownFormatter: IUnknownFormatter): void;
+export abstract class ErrorFormatter<T extends object = object> extends ObjectFormatter<T> {
+  abstract setUnknownFormatter(unknownFormatter: IUnknownFormatter): void;
 }
 
 export interface ILogRecordFormatter extends IFormatter<ILogRecord, ILogRecord> {

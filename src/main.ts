@@ -1,5 +1,7 @@
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
+import { ValidationErrorItem } from 'sequelize';
+import { Metadata } from '@grpc/grpc-js';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
@@ -34,8 +36,12 @@ import {
   GrpcPrometheus,
   RpcExceptionFormatter,
 } from 'src/modules/grpc/grpc-server';
-import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
-import { KafkaServerStatusService, KafkaMicroserviceBuilder } from 'src/modules/kafka/kafka-server';
+import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
+import {
+  KafkaServerStatusService,
+  KafkaMicroserviceBuilder,
+  KAFKA_SERVER_HEADERS_ADAPTER_DI,
+} from 'src/modules/kafka/kafka-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
 import { GLOBAL_ROUTE_PREFIX, AppConfig, KafkaServers } from 'src/core/app';
 import { HealthStatusService } from 'src/health';
@@ -47,6 +53,7 @@ async function bootstrap(): Promise<void> {
     configService: initConfigService,
     formattersOptions: {
       sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
+      ignoreObjects: [ValidationErrorItem, Metadata, new KafkaJsMessagesObjectFormatter()],
       exceptionFormatters: [
         new DataBaseErrorFormatter(),
         new AxiosErrorFormatter(),
@@ -58,7 +65,11 @@ async function bootstrap(): Promise<void> {
         new RedisClientErrorFormatter(),
         new KafkaJsErrorObjectFormatter(),
       ],
-      objectFormatters: [new MetadataObjectFormatter(), new ValidationErrorItemObjectFormatter()],
+      objectFormatters: [
+        new MetadataObjectFormatter(),
+        new KafkaJsMessagesObjectFormatter(),
+        new ValidationErrorItemObjectFormatter(),
+      ],
     },
     formatters: [
       new GeneralAsyncContextFormatter(),
@@ -159,6 +170,7 @@ async function bootstrap(): Promise<void> {
           statusCodes: appConfig.getKafkaRetryStatusCodes(),
         },
       },
+      headerAdapter: app.get(KAFKA_SERVER_HEADERS_ADAPTER_DI),
     },
     loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),
     prometheusManager: app.get(PrometheusManager),

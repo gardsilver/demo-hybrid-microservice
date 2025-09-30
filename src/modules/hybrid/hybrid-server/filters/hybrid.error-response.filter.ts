@@ -1,8 +1,9 @@
 import { Observable } from 'rxjs';
 import { ArgumentsHost, Catch, ExceptionFilter, RpcExceptionFilter } from '@nestjs/common';
+import { BaseRpcExceptionFilter } from '@nestjs/microservices';
 import { HttpErrorResponseFilter } from 'src/modules/http/http-server';
 import { GrpcErrorResponseFilter, GrpcHelper } from 'src/modules/grpc/grpc-server';
-import { BaseRpcExceptionFilter } from '@nestjs/microservices';
+import { KafkaErrorFilter, KafkaServerHelper } from 'src/modules/kafka/kafka-server';
 
 @Catch()
 export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionFilter {
@@ -10,6 +11,7 @@ export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionF
   constructor(
     private readonly httpErrorResponseFilter: HttpErrorResponseFilter,
     private readonly grpcErrorResponseFilter: GrpcErrorResponseFilter,
+    private readonly kafkaErrorFilter: KafkaErrorFilter,
   ) {
     this.defaultRpcExceptionFilter = new BaseRpcExceptionFilter();
   }
@@ -24,6 +26,10 @@ export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionF
 
     if (GrpcHelper.isGrpc(host)) {
       return this.grpcErrorResponseFilter.catch(exception, host);
+    }
+
+    if (KafkaServerHelper.isKafka(host)) {
+      return this.kafkaErrorFilter.catch(exception, host);
     }
 
     if (host.getType() === 'rpc') {

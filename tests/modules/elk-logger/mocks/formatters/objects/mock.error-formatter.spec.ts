@@ -7,7 +7,7 @@ describe(MockErrorFormatter.name, () => {
     formatter = new MockErrorFormatter();
 
     expect(formatter['fieldName']).toBe('fieldName');
-    expect(formatter.canFormat(undefined)).toBeTruthy();
+    expect(formatter.isInstanceOf(undefined)).toBeTruthy();
   });
 
   it('transform', async () => {

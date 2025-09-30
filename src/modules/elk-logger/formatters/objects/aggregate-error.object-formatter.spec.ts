@@ -11,15 +11,15 @@ describe(AggregateErrorObjectFormatter.name, () => {
     formatter = new AggregateErrorObjectFormatter();
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat({ status: 'ok' })).toBeFalsy();
-    expect(formatter.canFormat('success')).toBeFalsy();
-    expect(formatter.canFormat(12345)).toBeFalsy();
-    expect(formatter.canFormat(true)).toBeFalsy();
-    expect(formatter.canFormat(new Error())).toBeFalsy();
-    expect(formatter.canFormat(new AggregateError([]))).toBeTruthy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf({ status: 'ok' })).toBeFalsy();
+    expect(formatter.isInstanceOf('success')).toBeFalsy();
+    expect(formatter.isInstanceOf(12345)).toBeFalsy();
+    expect(formatter.isInstanceOf(true)).toBeFalsy();
+    expect(formatter.isInstanceOf(new Error())).toBeFalsy();
+    expect(formatter.isInstanceOf(new AggregateError([]))).toBeTruthy();
   });
 
   it('transform', async () => {

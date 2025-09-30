@@ -3,7 +3,7 @@ import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
 export class HttpExceptionFormatter extends BaseErrorObjectFormatter<HttpException> {
-  canFormat(obj: unknown): obj is HttpException {
+  isInstanceOf(obj: unknown): obj is HttpException {
     return obj instanceof HttpException;
   }
 

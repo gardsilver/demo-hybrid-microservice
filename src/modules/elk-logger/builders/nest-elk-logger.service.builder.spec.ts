@@ -38,7 +38,7 @@ describe(NestElkLoggerServiceBuilder.name, () => {
       const services = buildService({
         configService: new MockConfigService() as undefined as ConfigService,
         formattersOptions: {
-          ignoreObjects: [Error],
+          ignoreObjects: [MockFormatter],
           sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
         },
         defaultFields: {
@@ -55,7 +55,12 @@ describe(NestElkLoggerServiceBuilder.name, () => {
         module: 'TestModule',
         index: 'MyApplications',
       });
-      expect(elkLoggerConfig.getIgnoreObjects()).toEqual([Error, DateTimestamp, MomentCheckObject]);
+      expect(elkLoggerConfig.getIgnoreObjects()).toEqual([
+        MockFormatter,
+        Error,
+        DateTimestamp,
+        new MomentCheckObject(),
+      ]);
       expect(elkLoggerConfig.getSortFields()).toEqual([
         'timestamp',
         'level',

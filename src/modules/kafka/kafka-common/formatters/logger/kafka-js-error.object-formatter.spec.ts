@@ -55,14 +55,14 @@ describe(KafkaJsErrorObjectFormatter.name, () => {
     jest.clearAllMocks();
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat('')).toBeFalsy();
-    expect(formatter.canFormat({})).toBeFalsy();
-    expect(formatter.canFormat(cause)).toBeFalsy();
-    expect(formatter.canFormat(kafkaError)).toBeTruthy();
-    expect(formatter.canFormat(new KafkaJSAggregateError('Tets error', [kafkaError]))).toBeTruthy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf('')).toBeFalsy();
+    expect(formatter.isInstanceOf({})).toBeFalsy();
+    expect(formatter.isInstanceOf(cause)).toBeFalsy();
+    expect(formatter.isInstanceOf(kafkaError)).toBeTruthy();
+    expect(formatter.isInstanceOf(new KafkaJSAggregateError('Tets error', [kafkaError]))).toBeTruthy();
   });
 
   it('transform KafkaJSAggregateError', async () => {

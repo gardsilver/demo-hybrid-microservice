@@ -1,3 +1,5 @@
+import { ValidationErrorItem } from 'sequelize';
+import { Metadata } from '@grpc/grpc-js';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GeneralAsyncContextFormatter } from 'src/modules/common';
@@ -12,7 +14,7 @@ import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/
 import { HttpExceptionFormatter, HttpServerModule } from 'src/modules/http/http-server';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules/grpc/grpc-client';
-import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
+import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { GrpcServerModule, RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
@@ -33,6 +35,7 @@ import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
       providers: [GeneralAsyncContextFormatter, HttpSecurityHeadersFormatter],
       formattersOptions: {
         sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
+        ignoreObjects: [ValidationErrorItem, Metadata, new KafkaJsMessagesObjectFormatter()],
         exceptionFormatters: [
           new DataBaseErrorFormatter(),
           new AxiosErrorFormatter(),
@@ -44,7 +47,11 @@ import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
           new RedisClientErrorFormatter(),
           new KafkaJsErrorObjectFormatter(),
         ],
-        objectFormatters: [new MetadataObjectFormatter(), new ValidationErrorItemObjectFormatter()],
+        objectFormatters: [
+          new MetadataObjectFormatter(),
+          new KafkaJsMessagesObjectFormatter(),
+          new ValidationErrorItemObjectFormatter(),
+        ],
       },
       formatters: {
         inject: [GeneralAsyncContextFormatter, HttpSecurityHeadersFormatter],

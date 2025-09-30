@@ -25,17 +25,10 @@ export class ElkLoggerConfig {
   ) {
     this.initByEnvs(configService);
 
-    this.ignoreObjects = [].concat(ignoreObjects.length > 0 ? ignoreObjects : []);
+    this.ignoreObjects = []
+      .concat(ignoreObjects.length > 0 ? ignoreObjects : [])
+      .concat([Error, DateTimestamp, new MomentCheckObject()]);
 
-    if (!this.ignoreObjects.includes(Error)) {
-      this.ignoreObjects.push(Error);
-    }
-    if (!this.ignoreObjects.includes(DateTimestamp)) {
-      this.ignoreObjects.push(DateTimestamp);
-    }
-    if (!this.ignoreObjects.includes(MomentCheckObject)) {
-      this.ignoreObjects.push(MomentCheckObject);
-    }
     this.sortFields = sortFields.map((f) => f.trim()).filter((f) => f !== '' && f !== undefined);
   }
 

@@ -17,7 +17,7 @@ export class KafkaDemoController {
     mode: ConsumerMode.EACH_BATCH,
     deserializer: new DemoDeserializer(),
   })
-  async index(@Payload() data: KafkaRequest<string> | KafkaRequest<string>[], @Ctx() ctx: KafkaContext) {
+  async eachBatch(@Payload() data: KafkaRequest<string> | KafkaRequest<string>[], @Ctx() ctx: KafkaContext) {
     this.logger.info('Get new KafkaRequest', {
       payload: {
         request: data,

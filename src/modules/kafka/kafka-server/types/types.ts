@@ -1,5 +1,7 @@
+import { Provider } from '@nestjs/common';
 import { Deserializer, ReadPacket } from '@nestjs/microservices';
 import { KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
+import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
 import { IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
@@ -47,4 +49,13 @@ export interface IKafkaMicroserviceBuilderOptions<T = unknown> {
   loggerBuilder: IElkLoggerServiceBuilder;
   prometheusManager: PrometheusManager;
   kafkaStatusService: KafkaServerStatusService;
+}
+
+export interface IKafkaServerModuleOptions {
+  imports?: ImportsType;
+  providers?: Provider[];
+  headersToAsyncContextAdapter?:
+    | ServiceClassProvider<IKafkaHeadersToAsyncContextAdapter>
+    | ServiceValueProvider<IKafkaHeadersToAsyncContextAdapter>
+    | ServiceFactoryProvider<IKafkaHeadersToAsyncContextAdapter>;
 }

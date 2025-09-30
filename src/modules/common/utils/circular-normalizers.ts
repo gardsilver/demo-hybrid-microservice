@@ -112,17 +112,17 @@ export const circularRemove = (obj: unknown, option?: CircularRemoveOption): unk
     setObj.add(value);
     mapObj.set(value, ++indexRef);
 
+    const ignore: boolean = option?.ignoreObjects?.length ? isObjectInstanceOf(value, option.ignoreObjects) : false;
+
+    if (ignore) {
+      return value;
+    }
+
     if (Array.isArray(value)) {
       return value.map((item) => iterateObj(item));
     }
 
     if (!Object.keys(value).length) {
-      return value;
-    }
-
-    const ignore: boolean = option?.ignoreObjects?.length ? isObjectInstanceOf(value, option.ignoreObjects) : false;
-
-    if (ignore) {
       return value;
     }
 

@@ -12,7 +12,7 @@ import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
 export class DataBaseErrorFormatter extends BaseErrorObjectFormatter<BaseError | ValidationErrorItem> {
-  canFormat(obj: unknown): obj is BaseError | ValidationErrorItem {
+  isInstanceOf(obj: unknown): obj is BaseError | ValidationErrorItem {
     return obj instanceof BaseError || obj instanceof ValidationErrorItem;
   }
 

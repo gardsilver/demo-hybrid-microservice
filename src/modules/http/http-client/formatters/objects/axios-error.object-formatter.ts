@@ -4,7 +4,7 @@ import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 
 export class AxiosErrorFormatter extends BaseErrorObjectFormatter<AxiosError> {
-  canFormat(obj: unknown): obj is AxiosError {
+  isInstanceOf(obj: unknown): obj is AxiosError {
     return isAxiosError(obj);
   }
 

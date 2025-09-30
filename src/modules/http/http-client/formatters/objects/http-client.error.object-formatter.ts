@@ -4,7 +4,7 @@ import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { HttpClientError } from '../../errors/http-client.error';
 
 export class HttpClientErrorFormatter extends BaseErrorObjectFormatter<HttpClientError> {
-  canFormat(obj: unknown): obj is HttpClientError {
+  isInstanceOf(obj: unknown): obj is HttpClientError {
     return obj instanceof HttpClientError;
   }
 

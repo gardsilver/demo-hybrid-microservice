@@ -4,7 +4,9 @@ import { ElkLoggerModule } from 'src/modules/elk-logger';
 import { AuthModule } from 'src/modules/auth';
 import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { HttpServerModule } from 'src/modules/http/http-server';
-import { HybridServerModule, HybridErrorResponseFilter } from './';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+import { HybridServerModule } from './hybrid-server.module';
+import { HybridErrorResponseFilter } from './filters/hybrid.error-response.filter';
 
 describe(HybridServerModule.name, () => {
   let filter: HybridErrorResponseFilter;
@@ -18,6 +20,7 @@ describe(HybridServerModule.name, () => {
           AuthModule.forRoot(),
           HttpServerModule.forRoot(),
           GrpcServerModule.forRoot(),
+          KafkaServerModule.forRoot(),
           HybridServerModule,
         ],
       }).compile();

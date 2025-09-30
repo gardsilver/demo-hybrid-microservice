@@ -93,7 +93,7 @@ describe(GrpcErrorResponseFilter.name, () => {
     expect(spyBaseCatch).toHaveBeenCalledTimes(0);
   });
 
-  it('handleError', async () => {
+  it('catch', async () => {
     const error = new Error('test error');
     const handleError = new RpcException('Test error');
 

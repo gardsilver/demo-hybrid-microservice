@@ -3,7 +3,7 @@ import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
 export class RpcExceptionFormatter extends BaseErrorObjectFormatter<RpcException> {
-  canFormat(obj: unknown): obj is RpcException {
+  isInstanceOf(obj: unknown): obj is RpcException {
     return obj instanceof RpcException;
   }
 
@@ -17,12 +17,8 @@ export class RpcExceptionFormatter extends BaseErrorObjectFormatter<RpcException
     }
 
     const format: IKeyValue<unknown> = {
-      ...responseStatus,
+      status: this.unknownFormatter.transform(responseStatus),
     };
-
-    if ('metadata' in format) {
-      format['metadata'] = this.unknownFormatter.transform(format.metadata);
-    }
 
     return format;
   }

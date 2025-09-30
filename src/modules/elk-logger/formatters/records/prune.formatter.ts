@@ -135,48 +135,48 @@ export class PruneFormatter implements ILogRecordFormatter {
       };
     }
 
-    if (Array.isArray(value)) {
-      if (depth + 1 > this.pruneConfig.getMaxDepth()) {
-        return {
-          value: [PruneMessages.LIMIT_DEPTH],
-          markers: PruneFormatter.addMarker(PruneMarkers.LIMIT_DEPTH, markers),
-        };
-      }
-
-      let isLimitArrayCount = false;
-      let tgt: unknown[] = [].concat(value);
-
-      if (tgt.length > this.pruneConfig.getLengthArray(fieldName)) {
-        isLimitArrayCount = true;
-
-        tgt = tgt.slice(0, this.pruneConfig.getLengthArray(fieldName));
-      }
-
-      tgt = tgt.map((v) => {
-        const parse = this.pruneValue(v, markers, depth + 1, fieldName);
-
-        markers = parse.markers;
-
-        return parse.value;
-      });
-
-      if (isLimitArrayCount) {
-        return {
-          value: [].concat(tgt, [PruneMessages.LIMIT_LENGTH_ARRAY]),
-          markers: PruneFormatter.addMarker(PruneMarkers.LIMIT_LENGTH_ARRAY, markers),
-        };
-      }
-
-      return {
-        value: tgt,
-        markers,
-      };
-    }
-
     if (typeof value === 'object') {
       if (this.pruneConfig.getElkLoggerConfig().isIgnoreObject(value)) {
         return {
           value,
+          markers,
+        };
+      }
+
+      if (Array.isArray(value)) {
+        if (depth + 1 > this.pruneConfig.getMaxDepth()) {
+          return {
+            value: [PruneMessages.LIMIT_DEPTH],
+            markers: PruneFormatter.addMarker(PruneMarkers.LIMIT_DEPTH, markers),
+          };
+        }
+
+        let isLimitArrayCount = false;
+        let tgt: unknown[] = [].concat(value);
+
+        if (tgt.length > this.pruneConfig.getLengthArray(fieldName)) {
+          isLimitArrayCount = true;
+
+          tgt = tgt.slice(0, this.pruneConfig.getLengthArray(fieldName));
+        }
+
+        tgt = tgt.map((v) => {
+          const parse = this.pruneValue(v, markers, depth + 1, fieldName);
+
+          markers = parse.markers;
+
+          return parse.value;
+        });
+
+        if (isLimitArrayCount) {
+          return {
+            value: [].concat(tgt, [PruneMessages.LIMIT_LENGTH_ARRAY]),
+            markers: PruneFormatter.addMarker(PruneMarkers.LIMIT_LENGTH_ARRAY, markers),
+          };
+        }
+
+        return {
+          value: tgt,
           markers,
         };
       }

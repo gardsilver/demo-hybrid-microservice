@@ -1,12 +1,14 @@
 import { Metadata, StatusBuilder, status as GrpcStatus } from '@grpc/grpc-js';
+import { ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { IHeaders } from 'src/modules/common';
-import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
+import { ElkLoggerConfig, IUnknownFormatter } from 'src/modules/elk-logger';
+import { UnknownFormatter } from 'src/modules/elk-logger/formatters/objects/unknown-formatter';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { grpcMetadataFactory } from 'tests/modules/grpc/grpc-common';
+import { MockObjectFormatter } from 'tests/modules/elk-logger';
+import { MockConfigService } from 'tests/nestjs';
 import { RpcExceptionFormatter } from './rpc-exception.object-formatter';
-import { IUnknownFormatter } from 'src/modules/elk-logger';
-import { MockUnknownFormatter } from 'tests/modules/elk-logger';
 
 describe(RpcExceptionFormatter.name, () => {
   let headers: IHeaders;
@@ -15,17 +17,13 @@ describe(RpcExceptionFormatter.name, () => {
   let formatter: RpcExceptionFormatter;
 
   beforeEach(async () => {
-    unknownFormatter = new MockUnknownFormatter();
+    const configService = new MockConfigService() as undefined as ConfigService;
+    const loggerConfig = new ElkLoggerConfig(configService, [Metadata], []);
+    unknownFormatter = new UnknownFormatter(loggerConfig, [new MockObjectFormatter()]);
     formatter = new RpcExceptionFormatter();
     formatter.setUnknownFormatter(unknownFormatter);
 
-    jest.spyOn(unknownFormatter, 'transform').mockImplementation((value) => {
-      if (value && value instanceof Metadata) {
-        return GrpcHeadersHelper.normalize(value.getMap());
-      }
-
-      return value;
-    });
+    jest.spyOn(MockObjectFormatter.prototype, 'isInstanceOf').mockImplementation((obj) => obj instanceof Metadata);
 
     headers = httpHeadersFactory.build(
       {
@@ -44,13 +42,13 @@ describe(RpcExceptionFormatter.name, () => {
     metadata = grpcMetadataFactory.build(headers);
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat('')).toBeFalsy();
-    expect(formatter.canFormat({})).toBeFalsy();
-    expect(formatter.canFormat(new Error())).toBeFalsy();
-    expect(formatter.canFormat(new RpcException('Test Error'))).toBeTruthy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf('')).toBeFalsy();
+    expect(formatter.isInstanceOf({})).toBeFalsy();
+    expect(formatter.isInstanceOf(new Error())).toBeFalsy();
+    expect(formatter.isInstanceOf(new RpcException('Test Error'))).toBeTruthy();
   });
 
   it('transform', async () => {
@@ -65,9 +63,13 @@ describe(RpcExceptionFormatter.name, () => {
         ),
       ),
     ).toEqual({
-      code: GrpcStatus.NOT_FOUND,
-      details: 'Not Found',
-      metadata: GrpcHeadersHelper.normalize(metadata.getMap()),
+      status: {
+        code: GrpcStatus.NOT_FOUND,
+        details: 'Not Found',
+        metadata: {
+          field: 'fieldName',
+        },
+      },
     });
 
     expect(
@@ -75,8 +77,10 @@ describe(RpcExceptionFormatter.name, () => {
         new RpcException(new StatusBuilder().withCode(GrpcStatus.NOT_FOUND).withDetails('Not Found').build()),
       ),
     ).toEqual({
-      code: GrpcStatus.NOT_FOUND,
-      details: 'Not Found',
+      status: {
+        code: GrpcStatus.NOT_FOUND,
+        details: 'Not Found',
+      },
     });
 
     expect(
@@ -89,9 +93,11 @@ describe(RpcExceptionFormatter.name, () => {
         }),
       ),
     ).toEqual({
-      message: 'Test Message',
-      metadata: {
-        status: 'ok',
+      status: {
+        message: 'Test Message',
+        metadata: {
+          status: 'ok',
+        },
       },
     });
   });

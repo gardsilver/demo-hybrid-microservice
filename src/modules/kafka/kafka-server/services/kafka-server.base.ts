@@ -61,7 +61,7 @@ export abstract class KafkaServerBase extends Server {
       serverName: string;
       headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
     },
-    private readonly prometheusManager: PrometheusManager,
+    protected readonly prometheusManager: PrometheusManager,
   ) {
     super();
 

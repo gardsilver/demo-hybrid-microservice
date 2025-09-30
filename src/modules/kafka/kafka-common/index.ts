@@ -5,6 +5,7 @@ export * from './types/metrics';
 export * from './context/kafka.async-context';
 export * from './helpers/kafka.headers.helper';
 export * from './formatters/logger/kafka-js-error.object-formatter';
+export * from './formatters/logger/kafka-js.messages.object-formatter';
 export * from './adapters/kafka.headers-to-async-context.adapter';
 export * from './builders/kafka.ekf-logger.builder';
 export * from './builders/kafka.client-options.builder';

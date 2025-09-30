@@ -5,7 +5,7 @@ import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { isGrpcServiceError } from '../../errors/grpc-client.error';
 
 export class GrpcServiceErrorFormatter extends BaseErrorObjectFormatter<ServiceError> {
-  canFormat(obj: unknown): obj is ServiceError {
+  isInstanceOf(obj: unknown): obj is ServiceError {
     return isGrpcServiceError(obj);
   }
 

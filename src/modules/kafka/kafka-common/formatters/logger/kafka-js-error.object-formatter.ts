@@ -17,7 +17,7 @@ import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
 export class KafkaJsErrorObjectFormatter extends BaseErrorObjectFormatter<KafkaJSError | KafkaJSAggregateError> {
-  canFormat(obj: unknown): obj is KafkaJSError | KafkaJSAggregateError {
+  isInstanceOf(obj: unknown): obj is KafkaJSError | KafkaJSAggregateError {
     return obj instanceof KafkaJSError || obj instanceof KafkaJSAggregateError;
   }
 

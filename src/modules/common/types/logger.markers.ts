@@ -12,4 +12,5 @@ export enum LoggerMarkers {
   DB = 'DB',
   GRPC = 'gRPC',
   HTTP = 'HTTP',
+  KAFKA = 'KAFKA',
 }

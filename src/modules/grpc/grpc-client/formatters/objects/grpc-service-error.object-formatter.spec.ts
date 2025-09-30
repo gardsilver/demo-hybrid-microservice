@@ -9,7 +9,7 @@ describe(GrpcServiceErrorFormatter.name, () => {
   let headers: IHeaders;
   let metadata: Metadata;
   let serverError: ServiceError;
-  let formatter;
+  let formatter: GrpcServiceErrorFormatter;
 
   beforeEach(async () => {
     formatter = new GrpcServiceErrorFormatter();
@@ -35,13 +35,13 @@ describe(GrpcServiceErrorFormatter.name, () => {
     serverError.metadata = null;
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat('')).toBeFalsy();
-    expect(formatter.canFormat({})).toBeFalsy();
-    expect(formatter.canFormat(new Error())).toBeFalsy();
-    expect(formatter.canFormat(serverError)).toBeTruthy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf('')).toBeFalsy();
+    expect(formatter.isInstanceOf({})).toBeFalsy();
+    expect(formatter.isInstanceOf(new Error())).toBeFalsy();
+    expect(formatter.isInstanceOf(serverError)).toBeTruthy();
   });
 
   it('transform', async () => {

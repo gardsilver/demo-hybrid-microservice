@@ -54,13 +54,13 @@ export class CircularFormatter implements ILogRecordFormatter {
       return fieldValue;
     }
 
-    if (Array.isArray(fieldValue)) {
-      return fieldValue.filter((v) => v !== undefined).map((v) => this.filterValue(v));
-    }
-
     if (typeof fieldValue === 'object') {
       if (this.elkLoggerConfig.isIgnoreObject(fieldValue)) {
         return fieldValue;
+      }
+
+      if (Array.isArray(fieldValue)) {
+        return fieldValue.filter((v) => v !== undefined).map((v) => this.filterValue(v));
       }
 
       return this.filterKeyValue(fieldValue as IKeyValue);

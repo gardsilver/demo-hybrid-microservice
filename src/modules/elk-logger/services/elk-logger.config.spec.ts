@@ -47,7 +47,7 @@ describe(ElkLoggerConfig.name, () => {
       getIgnoreModules: [],
       getLogLevels: [],
       getTimestampFormat: 'YYYY-MM-DD[T]HH:mm:ssZ',
-      getIgnoreObjects: [Error, DateTimestamp, MomentCheckObject],
+      getIgnoreObjects: [Error, DateTimestamp, new MomentCheckObject()],
       getSortFields: [],
     });
   });
@@ -87,7 +87,7 @@ describe(ElkLoggerConfig.name, () => {
       getIgnoreModules: ['app', 'NestApplication'],
       getLogLevels: [LogLevel.INFO, LogLevel.WARN],
       getTimestampFormat: 'DD.MM.YYYY HH:mm:ss.SSS',
-      getIgnoreObjects: [Error, DateTimestamp, MomentCheckObject],
+      getIgnoreObjects: [Error, DateTimestamp, new MomentCheckObject()],
       getSortFields: ['timestamp', 'traceId', 'message'],
     });
   });

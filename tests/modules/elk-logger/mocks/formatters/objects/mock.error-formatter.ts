@@ -1,12 +1,14 @@
 import { IKeyValue } from 'src/modules/common';
-import { IErrorFormatter } from 'src/modules/elk-logger';
+import { ErrorFormatter } from 'src/modules/elk-logger';
 
-export class MockErrorFormatter implements IErrorFormatter {
-  constructor(private readonly fieldName: string = 'fieldName') {}
+export class MockErrorFormatter extends ErrorFormatter {
+  constructor(private readonly fieldName: string = 'fieldName') {
+    super();
+  }
 
   setUnknownFormatter(): void {}
 
-  canFormat(obj: unknown): obj is object {
+  isInstanceOf(obj: unknown): obj is object {
     return true;
   }
 

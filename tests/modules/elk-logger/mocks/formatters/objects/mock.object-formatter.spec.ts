@@ -7,7 +7,7 @@ describe(MockObjectFormatter.name, () => {
     formatter = new MockObjectFormatter();
 
     expect(formatter['fieldName']).toBe('fieldName');
-    expect(formatter.canFormat(undefined)).toBeTruthy();
+    expect(formatter.isInstanceOf(undefined)).toBeTruthy();
   });
 
   it('transform', async () => {

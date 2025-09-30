@@ -7,9 +7,12 @@ import {
   Kafka,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
+import { TraceSpanBuilder } from 'src/modules/elk-logger';
+import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, KafkaRequest } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerBase } from './kafka-server.base';
+import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE_SUCCESS } from '../types/metrics';
 
 export class KafkaServerService extends KafkaServerBase {
   protected consumer: Consumer | null = null;
@@ -83,31 +86,64 @@ export class KafkaServerService extends KafkaServerBase {
     await this.consumer.run(consumerRunOptions);
   }
 
+  @KafkaAsyncContext.define(() => ({
+    ...TraceSpanBuilder.build(),
+  }))
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
-    const pattern = payload.topic;
+    try {
+      const pattern = payload.topic;
 
-    const handler = this.getHandlerByPattern(pattern);
+      const handler = this.getHandlerByPattern(pattern);
 
-    const { messageOptions, adapters } = this.getMessageOptionsAndAdapters(pattern, payload.message, handler);
-    const packet = await adapters.deserializer.deserialize(payload.message, messageOptions);
+      const { messageOptions, adapters } = this.getMessageOptionsAndAdapters(pattern, payload.message, handler);
+      const packet = await adapters.deserializer.deserialize(payload.message, messageOptions);
 
-    // Skip: не целевое сообщение
-    if (packet.data === undefined) {
-      return;
+      // Skip: не целевое сообщение
+      if (packet.data === undefined) {
+        this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+          labels: {
+            service: this.serverName,
+            topics: payload.topic,
+            method: ConsumerMode.EACH_MESSAGE,
+          },
+        });
+
+        return;
+      }
+
+      const kafkaContext = new KafkaContext([
+        payload.message,
+        payload.partition,
+        payload.topic,
+        this.consumer,
+        () => payload.heartbeat(),
+        ConsumerMode.EACH_MESSAGE,
+        messageOptions,
+      ]);
+
+      await this.handleEvent(packet.pattern, packet, kafkaContext);
+
+      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: this.serverName,
+          topics: payload.topic,
+          method: ConsumerMode.EACH_MESSAGE,
+        },
+      });
+    } catch (error) {
+      this.logger.error(this.serverName + ' filed!', {
+        payload,
+        error,
+      });
+      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_FAILED, {
+        labels: {
+          service: this.serverName,
+          topics: payload.topic,
+          method: ConsumerMode.EACH_MESSAGE,
+          errorType: error.name ?? error.constructor.name,
+        },
+      });
     }
-
-    const kafkaContext = new KafkaContext([
-      payload.message,
-      payload.partition,
-      payload.topic,
-      this.consumer,
-      () => payload.heartbeat(),
-      ConsumerMode.EACH_MESSAGE,
-      messageOptions,
-    ]);
-
-    /** Не ждем завершения обработчика */
-    this.handleEvent(packet.pattern, packet, kafkaContext);
   }
 
   protected async bindBatchEvents(): Promise<void> {
@@ -142,40 +178,76 @@ export class KafkaServerService extends KafkaServerBase {
     return this.batchConsumer.run(consumerRunOptions);
   }
 
+  @KafkaAsyncContext.define(() => ({
+    ...TraceSpanBuilder.build(),
+  }))
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
-    const pattern = payload.batch.topic;
+    try {
+      const pattern = payload.batch.topic;
 
-    const handler = this.getHandlerByPattern(pattern);
+      const handler = this.getHandlerByPattern(pattern);
 
-    let messages = [];
+      let messages = [];
 
-    for (const kafkaMessage of payload.batch.messages) {
-      messages.push(this.handleBatchOneMessage(pattern, kafkaMessage, handler));
+      for (const kafkaMessage of payload.batch.messages) {
+        messages.push(this.handleBatchOneMessage(pattern, kafkaMessage, handler));
+      }
+
+      messages = (await Promise.all(messages)).filter((options) => options.packet.data);
+
+      // Skip: не целевые сообщения
+      if (!messages.length) {
+        this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+          labels: {
+            service: this.serverName,
+            topics: payload.batch.topic,
+            method: ConsumerMode.EACH_BATCH,
+          },
+          value: payload.batch.messages.length,
+        });
+
+        return;
+      }
+
+      const kafkaContext = new KafkaContext([
+        messages.map((options) => options.kafkaMessage),
+        payload.batch.partition,
+        payload.batch.topic,
+        this.batchConsumer,
+        () => payload.heartbeat(),
+        ConsumerMode.EACH_BATCH,
+        messages.map((options) => options.messageOptions),
+      ]);
+
+      await this.handleEvent(
+        pattern,
+        messages.map((options) => options.packet),
+        kafkaContext,
+      );
+
+      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: this.serverName,
+          topics: payload.batch.topic,
+          method: ConsumerMode.EACH_BATCH,
+        },
+        value: payload.batch.messages.length,
+      });
+    } catch (error) {
+      this.logger.error(ConsumerMode.EACH_BATCH + ' filed!', {
+        payload,
+        error,
+      });
+      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_FAILED, {
+        labels: {
+          service: this.serverName,
+          topics: payload.batch.topic,
+          method: ConsumerMode.EACH_BATCH,
+          errorType: error.name ?? error.constructor.name,
+        },
+        value: payload.batch.messages.length,
+      });
     }
-
-    messages = (await Promise.all(messages)).filter((options) => options.packet.data);
-
-    // Skip: не целевые сообщения
-    if (!messages.length) {
-      return;
-    }
-
-    const kafkaContext = new KafkaContext([
-      messages.map((options) => options.kafkaMessage),
-      payload.batch.partition,
-      payload.batch.topic,
-      this.batchConsumer,
-      () => payload.heartbeat(),
-      ConsumerMode.EACH_BATCH,
-      messages.map((options) => options.messageOptions),
-    ]);
-
-    /** Не ждем завершения обработчика */
-    this.handleEvent(
-      pattern,
-      messages.map((options) => options.packet),
-      kafkaContext,
-    );
   }
 
   protected async handleBatchOneMessage(

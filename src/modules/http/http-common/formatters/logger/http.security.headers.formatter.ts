@@ -67,11 +67,11 @@ export class HttpSecurityHeadersFormatter implements ILogRecordFormatter {
       return value;
     }
 
-    if (Array.isArray(value)) {
-      return value.map((v) => this.replaceValue(v, path));
-    }
-
     if (typeof value === 'object') {
+      if (Array.isArray(value)) {
+        return value.map((v) => this.replaceValue(v, path));
+      }
+
       if (this.elkLoggerConfig.isIgnoreObject(value)) {
         return value;
       }

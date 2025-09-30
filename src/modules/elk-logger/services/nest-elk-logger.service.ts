@@ -208,7 +208,7 @@ export class NestElkLoggerService extends BaseElkLoggerService implements INestE
         }
       }
     } else {
-      logFields.message = message.toString();
+      logFields.message = message?.toString();
     }
 
     if (options.errorStack) {

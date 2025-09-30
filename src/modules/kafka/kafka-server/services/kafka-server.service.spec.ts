@@ -13,6 +13,7 @@ import { kafkaMessageFactory, MockKafkaDeserializer, MockKafkaHeadersToAsyncCont
 import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerService } from './kafka-server.service';
+import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE_SUCCESS } from '../types/metrics';
 
 jest.mock('kafkajs', () => {
   return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
@@ -70,6 +71,8 @@ describe(KafkaServerService.name, () => {
 
     await server.listen(callback);
 
+    expect(callback).toHaveBeenCalledWith();
+
     let [client, eachConsumer, batchConsumer] = server.unwrap();
     expect(client).toBeDefined();
     expect(client instanceof MockKafka).toBeTruthy();
@@ -104,6 +107,15 @@ describe(KafkaServerService.name, () => {
     await server.close();
 
     expect(spyDisconnect).toHaveBeenCalledTimes(2);
+
+    const error = new Error('Test error');
+    server['createClient'] = jest.fn().mockImplementation(() => {
+      throw error;
+    });
+
+    await server.listen(callback);
+
+    expect(callback).toHaveBeenCalledWith(error);
   });
 
   describe('Handle eachMessage', () => {
@@ -139,6 +151,7 @@ describe(KafkaServerService.name, () => {
     });
 
     it('Skip handleEachMessage ', async () => {
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent');
       const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => ({
         pattern: undefined,
@@ -162,9 +175,17 @@ describe(KafkaServerService.name, () => {
         mode: ConsumerMode.EACH_MESSAGE,
       });
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_MESSAGE,
+        },
+      });
     });
 
-    it('run handleEachMessage ', async () => {
+    it('Run handleEachMessage ', async () => {
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
       const spyDeserialize = jest
         .spyOn(MockKafkaDeserializer.prototype, 'deserialize')
@@ -246,6 +267,52 @@ describe(KafkaServerService.name, () => {
         getMode: kafkaContext.getMode(),
         getMessageOptions: kafkaContext.getMessageOptions(),
       });
+
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_MESSAGE,
+        },
+      });
+    });
+
+    it('Failed handleEachMessage', async () => {
+      const error = new Error('Deserialize error!!!');
+
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
+      const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
+      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => {
+        throw error;
+      });
+
+      server.addHandler(topic, messageHandler, true, extras);
+
+      const payload: EachMessagePayload = {
+        topic,
+        message: kafkaMessage,
+        partition: faker.number.int(3),
+        heartbeat: jest.fn(),
+      } as undefined as EachMessagePayload;
+
+      await server['handleEachMessage'](payload);
+
+      expect(spyDeserialize).toHaveBeenCalledWith(kafkaMessage, {
+        serverName,
+        topic,
+        mode: ConsumerMode.EACH_MESSAGE,
+      });
+
+      expect(spyHandleEvent).toHaveBeenCalledTimes(0);
+
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_FAILED, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_MESSAGE,
+          errorType: error.name,
+        },
+      });
     });
   });
 
@@ -282,6 +349,7 @@ describe(KafkaServerService.name, () => {
     });
 
     it('Skip handleBatchMessages ', async () => {
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent');
       const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => ({
         pattern: undefined,
@@ -307,9 +375,19 @@ describe(KafkaServerService.name, () => {
         mode: ConsumerMode.EACH_BATCH,
       });
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
+
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_BATCH,
+        },
+        value: payload.batch.messages.length,
+      });
     });
 
-    it('run handleBatchMessages', async () => {
+    it('Run handleBatchMessages', async () => {
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
       const spyDeserialize = jest
         .spyOn(MockKafkaDeserializer.prototype, 'deserialize')
@@ -396,6 +474,56 @@ describe(KafkaServerService.name, () => {
         getHeartbeat: typeof kafkaContext.getHeartbeat(),
         getMode: kafkaContext.getMode(),
         getMessageOptions: kafkaContext.getMessageOptions(),
+      });
+
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_BATCH,
+        },
+        value: payload.batch.messages.length,
+      });
+    });
+
+    it('Filed handleBatchMessages', async () => {
+      const error = new Error('Deserialize error!!!');
+
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
+      const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
+      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => {
+        throw error;
+      });
+
+      server.addHandler(topic, messageHandler, true, extras);
+
+      const payload: EachBatchPayload = {
+        batch: {
+          topic,
+          partition: faker.number.int(3),
+          messages: [kafkaMessage],
+        },
+        heartbeat: jest.fn(),
+      } as undefined as EachBatchPayload;
+
+      await server['handleBatchMessages'](payload);
+
+      expect(spyDeserialize).toHaveBeenCalledWith(kafkaMessage, {
+        serverName,
+        topic,
+        mode: ConsumerMode.EACH_BATCH,
+      });
+
+      expect(spyHandleEvent).toHaveBeenCalledTimes(0);
+
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_FAILED, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_BATCH,
+          errorType: error.name,
+        },
+        value: payload.batch.messages.length,
       });
     });
   });

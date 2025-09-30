@@ -1,4 +1,4 @@
-import { tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -111,14 +111,20 @@ describe(KafkaServerBase, () => {
   describe('base methods', () => {
     let extras;
     let messageHandler: MessageHandler;
+    let spyHandler;
 
     beforeEach(async () => {
+      spyHandler = jest.fn();
       serverName = faker.string.alpha(10);
       server = new TestKafkaServer({ serverName }, prometheusManager);
       extras = {
         serverName,
       };
-      messageHandler = {} as undefined as MessageHandler;
+      messageHandler = async (...args: unknown[]) => {
+        return spyHandler(...args);
+      };
+
+      jest.clearAllMocks();
     });
 
     it('on', async () => {
@@ -232,22 +238,36 @@ describe(KafkaServerBase, () => {
       );
 
       server.getHandlerByPattern = () => {
-        return {
-          ...messageHandler,
-          isEventHandler: true,
-          extras: {
-            ...extras,
-            mode: ConsumerMode.EACH_MESSAGE,
-          },
-        } as undefined as MessageHandler;
+        messageHandler.isEventHandler = true;
+        messageHandler.extras = {
+          ...extras,
+          mode: ConsumerMode.EACH_MESSAGE,
+        };
+
+        return messageHandler;
       };
 
-      const spyHook = jest.fn();
+      const spyHook = jest.fn().mockImplementation(
+        () =>
+          new Observable((subscriber) => {
+            subscriber.next({ status: 'ok' });
+            subscriber.complete();
+          }),
+      );
 
-      server['onProcessingStartHook'] = () => spyHook();
+      server.setOnProcessingStartHook((transportId, context, done) => spyHook(transportId, context, done));
 
       await server.handleEvent('eachMessage', packet, mockContext);
+
       expect(spyHook).toHaveBeenCalledTimes(1);
+
+      const hook = async () => {
+        await spyHook.mock.calls[0][2]();
+      };
+
+      await hook();
+
+      expect(spyHandler).toHaveBeenCalledWith(packet.data, mockContext);
     });
 
     it('getMessageOptionsAndAdapters', async () => {

@@ -1,10 +1,10 @@
 import { Metadata } from '@grpc/grpc-js';
 import { IKeyValue } from 'src/modules/common';
-import { IObjectFormatter } from 'src/modules/elk-logger';
+import { ObjectFormatter } from 'src/modules/elk-logger';
 import { GrpcHeadersHelper } from '../../helpers/grpc.headers.helper';
 
-export class MetadataObjectFormatter implements IObjectFormatter<Metadata> {
-  canFormat(obj: unknown): obj is Metadata {
+export class MetadataObjectFormatter extends ObjectFormatter<Metadata> {
+  isInstanceOf(obj: unknown): obj is Metadata {
     return obj instanceof Metadata;
   }
 

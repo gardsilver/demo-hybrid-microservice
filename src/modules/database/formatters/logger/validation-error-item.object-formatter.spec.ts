@@ -11,14 +11,14 @@ describe(ValidationErrorItemObjectFormatter.name, () => {
     jest.clearAllMocks();
   });
 
-  it('canFormat', async () => {
-    expect(formatter.canFormat(null)).toBeFalsy();
-    expect(formatter.canFormat(undefined)).toBeFalsy();
-    expect(formatter.canFormat({})).toBeFalsy();
-    expect(formatter.canFormat(new Error())).toBeFalsy();
-    expect(formatter.canFormat(new DatabaseError({ sql: '', name: '', message: '' }))).toBeFalsy();
+  it('isInstanceOf', async () => {
+    expect(formatter.isInstanceOf(null)).toBeFalsy();
+    expect(formatter.isInstanceOf(undefined)).toBeFalsy();
+    expect(formatter.isInstanceOf({})).toBeFalsy();
+    expect(formatter.isInstanceOf(new Error())).toBeFalsy();
+    expect(formatter.isInstanceOf(new DatabaseError({ sql: '', name: '', message: '' }))).toBeFalsy();
     expect(
-      formatter.canFormat(
+      formatter.isInstanceOf(
         new ValidationErrorItem(
           'message',
           ValidationErrorItemType['validation error'],

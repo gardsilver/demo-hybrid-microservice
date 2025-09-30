@@ -86,3 +86,5 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 | Метрика| Метки |Описание|
 |---|---|---|
 |`KAFKA_CONNECTION_STATUS`|**labelNames** `['service', 'status']`| Количество изменений статуса соединения с **Kafka**. |
+|`KAFKA_HANDLE_MESSAGE_SUCCESS`|**labelNames** `['service', 'topics', 'method']`| Количество успешно обработанных сообщений **Kafka**. |
+|`KAFKA_HANDLE_MESSAGE_FAILED`|**labelNames** `['service', 'topics', 'method', 'errorType']`| Количество ошибок при обработке сообщений **Kafka**. |

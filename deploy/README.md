@@ -52,7 +52,6 @@
 
 | Параметр | Описание | **.env** **Demo Hybrid Microservice** | localhost |
 |---|---|---|---|
-| `HOST` | Host для подключения к **Kafka**  | `REDIS_CACHE_MANAGER_HOST=kafka` | `host=localhost` |
-| `PORT` | Port для подключения к **Kafka**  | `REDIS_CACHE_MANAGER_PORT=9092` | `port=9092` |
+| `KAFKA_BROKERS` | Список брокеров (через ",") для подключения к **Kafka**  | `KAFKA_BROKERS=kafka:9092` | `host=localhost` |
 
 - <http://localhost:8082> - **Kafka UI**

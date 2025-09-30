@@ -4,6 +4,7 @@ import {
   KafkaMessage,
   Batch,
 } from '@nestjs/microservices/external/kafka.interface';
+import { IKeyValue } from 'src/modules/common';
 import { ObjectFormatter } from 'src/modules/elk-logger';
 import { KafkaHeadersHelper } from '../../helpers/kafka.headers.helper';
 

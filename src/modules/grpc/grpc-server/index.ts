@@ -13,4 +13,5 @@ export * from './formatters/logger/rpc-exception.object-formatter';
 export * from './guards/grpc.auth.guard';
 export * from './interceptors/grpc.logging';
 export * from './interceptors/grpc.prometheus';
+export * from './services/grpc-server.status.service';
 export * from './grpc-server.module';

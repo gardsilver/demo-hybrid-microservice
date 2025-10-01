@@ -1,10 +1,10 @@
 import { HealthImplementation } from 'grpc-health-check';
-import { HealthStatusService } from './health-status.service';
+import { GrpcServerStatusService } from './grpc-server.status.service';
 
-describe(HealthStatusService.name, () => {
+describe(GrpcServerStatusService.name, () => {
   let grpcServices: string[];
   let grpcHealthImpl: HealthImplementation;
-  let service: HealthStatusService;
+  let service: GrpcServerStatusService;
 
   beforeEach(async () => {
     const initialStatusMap = {};
@@ -14,7 +14,7 @@ describe(HealthStatusService.name, () => {
       initialStatusMap[service] = 'UNKNOWN';
     });
     grpcHealthImpl = new HealthImplementation(initialStatusMap);
-    service = new HealthStatusService();
+    service = new GrpcServerStatusService();
   });
 
   it('init', async () => {

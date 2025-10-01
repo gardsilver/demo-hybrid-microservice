@@ -7,7 +7,13 @@ import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 
 export class GrpcMicroserviceBuilder {
-  public static setup(app: NestExpressApplication, options: IGrpcMicroserviceBuilderOptions) {
+  public static setup(
+    app: NestExpressApplication,
+    options: IGrpcMicroserviceBuilderOptions,
+  ): {
+    grpcServices: string[];
+    grpcHealthImpl: HealthImplementation;
+  } {
     GrpcProtoPathHelper.existPaths(options.baseDir);
 
     const protoPath = GrpcProtoPathHelper.joinBase(options.baseDir, options.protoPath);
@@ -43,6 +49,8 @@ export class GrpcMicroserviceBuilder {
       },
     );
 
+    options.statusService.addGrpcHealthImplementation(grpcHealthImpl, grpcServices);
+
     return {
       grpcServices,
       grpcHealthImpl,
@@ -60,7 +68,7 @@ export class GrpcMicroserviceBuilder {
   }
 
   private static createGrpcOptions(
-    options: Omit<IGrpcMicroserviceBuilderOptions & { protoPath: string[] }, 'baseDir'> & {
+    options: Omit<IGrpcMicroserviceBuilderOptions & { protoPath: string[] }, 'baseDir' | 'statusService'> & {
       grpcHealthImpl: HealthImplementation;
     },
   ): GrpcOptions {

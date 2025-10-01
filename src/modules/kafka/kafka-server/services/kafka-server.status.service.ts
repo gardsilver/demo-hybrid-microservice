@@ -18,7 +18,7 @@ export class KafkaServerStatusService {
     server: Server,
     optionsBuilder: KafkaOptionsBuilder,
     healthIndicator: KafkaServerHealthIndicator,
-  ) {
+  ): void {
     this.kafkaServices.push({
       serverName,
       server,

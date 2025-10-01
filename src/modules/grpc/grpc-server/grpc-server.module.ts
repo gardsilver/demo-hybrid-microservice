@@ -13,6 +13,7 @@ import { GrpcMetadataResponseBuilder } from './builders/grpc.metadata-response.b
 import { GrpcResponseHandler } from './filters/grpc.response.handler';
 import { GrpcErrorResponseFilter } from './filters/grpc.error-response.filter';
 import { GrpcPrometheus } from './interceptors/grpc.prometheus';
+import { GrpcServerStatusService } from './services/grpc-server.status.service';
 
 @Module({})
 export class GrpcServerModule {
@@ -32,6 +33,7 @@ export class GrpcServerModule {
         providerType: options?.metadataResponseBuilder,
         defaultType: { useClass: GrpcMetadataResponseBuilder },
       }),
+      GrpcServerStatusService,
     ];
 
     if (options?.imports?.length) {
@@ -53,6 +55,7 @@ export class GrpcServerModule {
         GrpcAuthGuard,
         GrpcLogging,
         GrpcPrometheus,
+        GrpcServerStatusService,
       ],
     };
   }

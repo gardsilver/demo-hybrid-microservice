@@ -1,12 +1,24 @@
 import { Observable } from 'rxjs';
-import { KafkaStatus, Server } from '@nestjs/microservices';
+import { KafkaStatus } from '@nestjs/microservices';
+import { Kafka, Admin } from '@nestjs/microservices/external/kafka.interface';
 import { KafkaServerHealthIndicator } from './kafka-server.health-indicator';
+import { KafkaServerService } from './kafka-server.service';
 
 describe(KafkaServerHealthIndicator.name, () => {
-  let server: Server;
+  let kafkaClient: Kafka;
+  let kafkaAdmin: Admin;
+  let server: KafkaServerService;
   let indicator: KafkaServerHealthIndicator;
 
-  it('as up', async () => {
+  beforeEach(async () => {
+    kafkaAdmin = {
+      fetchTopicMetadata: jest.fn(),
+    } as undefined as Admin;
+
+    kafkaClient = {
+      admin: () => kafkaAdmin,
+    } as undefined as Kafka;
+
     server = {
       status: new Observable((subscriber) => {
         subscriber.next(KafkaStatus.CONNECTED);
@@ -14,58 +26,136 @@ describe(KafkaServerHealthIndicator.name, () => {
       getHandlers: () => {
         return new Map([['topic', true]]);
       },
-    } as undefined as Server;
+      unwrap: () => [kafkaClient, null, null],
+    } as undefined as KafkaServerService;
+  });
 
-    indicator = new KafkaServerHealthIndicator('serverName', server);
+  describe('use events', () => {
+    it('as up', async () => {
+      const spyAdmin = jest.spyOn(kafkaClient, 'admin');
 
-    expect(indicator).toBeDefined();
-    expect(indicator['topics']).toBeUndefined();
+      indicator = new KafkaServerHealthIndicator('serverName', server);
 
-    const spy = jest.spyOn(server, 'getHandlers');
+      expect(indicator).toBeDefined();
+      expect(indicator['topics']).toBeUndefined();
 
-    expect(await indicator.isHealthy()).toEqual({
-      serverName: {
-        status: 'up',
-        details: KafkaStatus.CONNECTED,
-        topics: ['topic'],
-      },
+      const spy = jest.spyOn(server, 'getHandlers');
+
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'up',
+          details: KafkaStatus.CONNECTED,
+          topics: ['topic'],
+        },
+      });
+      expect(indicator['topics']).toEqual(['topic']);
+
+      await indicator.isHealthy();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      indicator['topics'] = undefined;
+      jest.spyOn(server, 'getHandlers').mockImplementation(() => new Map());
+
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'up',
+          details: KafkaStatus.CONNECTED,
+          topics: [],
+        },
+      });
+
+      expect(spyAdmin).toHaveBeenCalledTimes(0);
     });
-    expect(indicator['topics']).toEqual(['topic']);
 
-    await indicator.isHealthy();
+    it('as down', async () => {
+      const spyAdmin = jest.spyOn(kafkaClient, 'admin');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (server as any).status = new Observable((subscriber) => {
+        subscriber.next(KafkaStatus.CRASHED);
+      });
 
-    expect(spy).toHaveBeenCalledTimes(1);
+      indicator = new KafkaServerHealthIndicator('serverName', server);
 
-    indicator['topics'] = undefined;
-    jest.spyOn(server, 'getHandlers').mockImplementation(() => new Map());
-
-    expect(await indicator.isHealthy()).toEqual({
-      serverName: {
-        status: 'up',
-        details: KafkaStatus.CONNECTED,
-        topics: [],
-      },
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'down',
+          details: KafkaStatus.CRASHED,
+          topics: ['topic'],
+        },
+      });
+      expect(spyAdmin).toHaveBeenCalledTimes(0);
     });
   });
 
-  it('as down', async () => {
-    server = {
-      status: new Observable((subscriber) => {
-        subscriber.next(KafkaStatus.CRASHED);
-      }),
-      getHandlers: () => {
-        return new Map([['topic', true]]);
-      },
-    } as undefined as Server;
+  describe('use Admin', () => {
+    beforeEach(async () => {
+      indicator = new KafkaServerHealthIndicator('serverName', server, {
+        useAdmin: true,
+        retry: {
+          maxRetryTime: 1_000,
+        },
+      });
 
-    indicator = new KafkaServerHealthIndicator('serverName', server);
+      jest.useFakeTimers();
+      jest.clearAllMocks();
+      jest.clearAllTimers();
+    });
 
-    expect(await indicator.isHealthy()).toEqual({
-      serverName: {
-        status: 'down',
-        details: KafkaStatus.CRASHED,
-        topics: ['topic'],
-      },
+    afterEach(async () => {
+      jest.useRealTimers();
+    });
+
+    it('as up', async () => {
+      const spyAdmin = jest.spyOn(kafkaClient, 'admin');
+      jest.advanceTimersByTimeAsync(1_000);
+
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'up',
+          details: KafkaStatus.CONNECTED,
+          topics: ['topic'],
+        },
+      });
+
+      expect(spyAdmin).toHaveBeenCalledWith({
+        retry: {
+          maxRetryTime: 1_000,
+        },
+      });
+    });
+
+    it('as down: server not start', async () => {
+      server.unwrap = () => {
+        throw new Error();
+      };
+      const spyAdmin = jest.spyOn(kafkaClient, 'admin');
+
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'down',
+          details: KafkaStatus.DISCONNECTED,
+          topics: ['topic'],
+        },
+      });
+      expect(spyAdmin).toHaveBeenCalledTimes(0);
+    });
+
+    it('as down: server crashed', async () => {
+      indicator = new KafkaServerHealthIndicator('serverName', server, { useAdmin: true });
+      kafkaAdmin.fetchTopicMetadata = () => {
+        throw new Error('Test Error');
+      };
+      const spyAdmin = jest.spyOn(kafkaClient, 'admin');
+
+      expect(await indicator.isHealthy()).toEqual({
+        serverName: {
+          status: 'down',
+          details: 'Error: Test Error',
+          topics: ['topic'],
+        },
+      });
+      expect(spyAdmin).toHaveBeenCalledWith(undefined);
     });
   });
 });

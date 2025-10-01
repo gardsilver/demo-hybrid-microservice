@@ -19,7 +19,11 @@ import {
 } from 'src/modules/auth';
 import { DATABASE_DI } from 'src/modules/database';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
-import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+import {
+  KafkaServerHealthIndicator,
+  KafkaServerModule,
+  KafkaServerStatusService,
+} from 'src/modules/kafka/kafka-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
 import { mockSequelize } from 'tests/sequelize-typescript';
@@ -34,6 +38,7 @@ describe(HealthController.name, () => {
   let nestLogger: INestElkLoggerService;
   let authService: IAuthService;
   let certificateService: ICertificateService;
+  let kafkaServerStatusService: KafkaServerStatusService;
   let prometheusManager: PrometheusManager;
   let controller: HealthController;
 
@@ -76,7 +81,7 @@ describe(HealthController.name, () => {
         {
           provide: GracefulShutdownHealthIndicatorService,
           useValue: {
-            isReadiness: async () => ({
+            isHealthy: async () => ({
               GracefulShutdown: {
                 status: 'up',
                 isActive: false,
@@ -107,13 +112,27 @@ describe(HealthController.name, () => {
 
     authService = module.get(AUTH_SERVICE_DI);
     certificateService = module.get(AUTH_CERTIFICATE_SERVICE_DI);
+    kafkaServerStatusService = module.get(KafkaServerStatusService);
     prometheusManager = module.get(PrometheusManager);
     controller = module.get(HealthController);
+
+    kafkaServerStatusService.getHealthIndicators = () => {
+      return [
+        {
+          isHealthy: async () => ({
+            Kafka: {
+              status: 'up',
+            },
+          }),
+        } as undefined as KafkaServerHealthIndicator,
+      ];
+    };
   });
 
   it('init', async () => {
     expect(authService).toBeDefined();
     expect(certificateService).toBeDefined();
+    expect(kafkaServerStatusService).toBeDefined();
     expect(prometheusManager).toBeDefined();
     expect(controller).toBeDefined();
   });
@@ -129,10 +148,24 @@ describe(HealthController.name, () => {
         DataBase: {
           status: 'up',
         },
+        GracefulShutdown: {
+          status: 'up',
+          isActive: false,
+        },
+        Kafka: {
+          status: 'up',
+        },
       },
       error: {},
       details: {
         DataBase: {
+          status: 'up',
+        },
+        GracefulShutdown: {
+          status: 'up',
+          isActive: false,
+        },
+        Kafka: {
           status: 'up',
         },
       },
@@ -153,6 +186,9 @@ describe(HealthController.name, () => {
           status: 'up',
           isActive: false,
         },
+        Kafka: {
+          status: 'up',
+        },
       },
       error: {},
       details: {
@@ -163,6 +199,9 @@ describe(HealthController.name, () => {
         GracefulShutdown: {
           status: 'up',
           isActive: false,
+        },
+        Kafka: {
+          status: 'up',
         },
       },
     });

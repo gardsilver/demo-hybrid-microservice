@@ -6,14 +6,14 @@
 
 - Реализована логика автоматического восстановления соединения с брокером **Kafka**.
 - Реализован `KafkaServerHealthIndicator`
-- Настроено логирование
-- Добавления поддержка одновременно подключения к нескольким независимым брокерам **Kafka**
+- Настроено логирование и фиксирование базовых метрик.
+- Добавления поддержка одновременного подключения к нескольким независимым брокерам **Kafka**.
 - Реализована возможность установки пользовательских адаптеров сообщений **Kafka** для каждого топика отдельно.
 - Реализована возможность запуска **Consumer** в разных режимах: **eachMessage** и **eachBatch**.
 
 ## ВАЖНО
 
-Данный модуль не реализует логику **Request-Response**. Вам будет доступен только функционал обработки полученного сообщения(сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`).
+Данный модуль не реализует логику **Request-Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`). Для всех запущенных консъюмеров будет отключен `requestTimeout` (**@see** [eachBatchAutoResolve: true](https://kafka.js.org/docs/configuration#request-timeout)).
 
 Если не задан `deserializer`, то в полученных данных будут десериализованы только `headers` и `key` (**@see** `IKafkaMessage` `src/modules/kafka/kafka-common`).
 
@@ -66,7 +66,7 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 ...
 ```
 
-Декоратор `EventKafkaMessage` полностью соответствует декоратору `EventPattern` (**@see** `@nestjs/microservices`) и в сочетании с ним можно дополнительно использовать стандартные декораторы `Payload` и `Ctx`. Последний из них вернет объект класса `KafkaContext`, который поддерживает `eachBatch` в отличии от базового `KafkaContext` (**@see** `@nestjs/microservices`).
+Декоратор `EventKafkaMessage` полностью соответствует декоратору `EventPattern` (**@see** `@nestjs/microservices`) и в сочетании с ним можно дополнительно использовать стандартные декораторы `Payload` и `Ctx`, как на примере выше. Последний из них вернет объект класса `KafkaContext`, который поддерживает `eachBatch` в отличии от базового `KafkaContext` (**@see** `@nestjs/microservices`).
 
 ### Фильтрация сообщений
 
@@ -85,6 +85,14 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 
 | Метрика| Метки |Описание|
 |---|---|---|
-|`KAFKA_CONNECTION_STATUS`|**labelNames** `['service', 'status']`| Количество изменений статуса соединения с **Kafka**. |
-|`KAFKA_HANDLE_MESSAGE_SUCCESS`|**labelNames** `['service', 'topics', 'method']`| Количество успешно обработанных сообщений **Kafka**. |
-|`KAFKA_HANDLE_MESSAGE_FAILED`|**labelNames** `['service', 'topics', 'method', 'errorType']`| Количество ошибок при обработке сообщений **Kafka**. |
+|`KAFKA_CONNECTION_STATUS`|**labelNames** `[service', 'topics', 'method', 'status']`| Количество изменений статуса соединения с **Kafka**. |
+|`KAFKA_HANDLE_MESSAGE`|**labelNames** `['service', 'topics', 'method']`| Количество полученных сообщений **Kafka**. |
+|`KAFKA_HANDLE_MESSAGE_FAILED`|**labelNames** `['service', 'topics', 'method', 'errorType']`| Количество не обработанных сообщений **Kafka** из-за возникновения ошибок. |
+
+## Примечание
+
+Работа `KafkaServerHealthIndicator` основана на событиях [Events](https://kafka.js.org/docs/instrumentation-events). Однако выявлено, что события не всегда срабатывают так, как ожидается. Например при потере соединения с **Kafka**-сервером событие `CRASH` может не произойти и как следствие в журналах будут фиксироваться логи о потери соединения и попытках переподключения, но статус  `KafkaServerHealthIndicator` будет показывать о нормальном состоянии.
+
+Возможное решение отказаться от модели `Events` и использовать `KafkaAdmin.fetchTopicMetadata`, как `ping`-метод для проверки доступности **Kafka**-сервера.
+
+Для того, что то задать принцип работы `KafkaServerHealthIndicator` имеется опция `kafkaOptions.healthIndicatorOptions` (**@see** `KafkaMicroserviceBuilder.setup`).

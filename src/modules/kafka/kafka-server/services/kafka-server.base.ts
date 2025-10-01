@@ -138,12 +138,12 @@ export abstract class KafkaServerBase extends Server {
     );
   }
 
-  protected async createConsumer(): Promise<Consumer> {
+  protected async createConsumer(mode: ConsumerMode, topics: string[]): Promise<Consumer> {
     const consumerOptions = Object.assign(this.options.consumer || {}, {
       groupId: this.groupId,
     });
     const consumer = this.client.consumer(consumerOptions);
-    this.registerConsumerEventListeners(consumer);
+    this.registerConsumerEventListeners(consumer, mode, topics);
 
     await consumer.connect();
 
@@ -162,23 +162,25 @@ export abstract class KafkaServerBase extends Server {
   public abstract close(): Promise<void>;
   protected abstract start(callback: () => void): Promise<void>;
 
-  protected updateStatus(status: KafkaStatus): void {
+  protected updateStatus(status: KafkaStatus, mode: ConsumerMode, topics: string[]): void {
     this._status$.next(status);
     this.prometheusManager.counter().increment(KAFKA_CONNECTION_STATUS, {
       labels: {
         service: this.serverName,
         status: status,
+        topics: topics.join(','),
+        method: mode,
       },
     });
   }
 
-  protected registerConsumerEventListeners(consumer: Consumer): void {
-    consumer.on(consumer.events.CONNECT, () => this.updateStatus(KafkaStatus.CONNECTED));
-    consumer.on(consumer.events.DISCONNECT, () => this.updateStatus(KafkaStatus.DISCONNECTED));
-    consumer.on(consumer.events.REBALANCING, () => this.updateStatus(KafkaStatus.REBALANCING));
-    consumer.on(consumer.events.STOP, () => this.updateStatus(KafkaStatus.STOPPED));
-    consumer.on(consumer.events.CRASH, () => this.updateStatus(KafkaStatus.CRASHED));
-    consumer.on(consumer.events.GROUP_JOIN, () => this.updateStatus(KafkaStatus.CONNECTED));
+  protected registerConsumerEventListeners(consumer: Consumer, mode: ConsumerMode, topics: string[]): void {
+    consumer.on(consumer.events.CONNECT, () => this.updateStatus(KafkaStatus.CONNECTED, mode, topics));
+    consumer.on(consumer.events.DISCONNECT, () => this.updateStatus(KafkaStatus.DISCONNECTED, mode, topics));
+    consumer.on(consumer.events.REBALANCING, () => this.updateStatus(KafkaStatus.REBALANCING, mode, topics));
+    consumer.on(consumer.events.STOP, () => this.updateStatus(KafkaStatus.STOPPED, mode, topics));
+    consumer.on(consumer.events.CRASH, () => this.updateStatus(KafkaStatus.CRASHED, mode, topics));
+    consumer.on(consumer.events.GROUP_JOIN, () => this.updateStatus(KafkaStatus.CONNECTED, mode, topics));
   }
 
   protected abstract bindEachEvents(): Promise<void>;

@@ -7,6 +7,7 @@ import { PrometheusManager } from 'src/modules/prometheus';
 import {
   IKafkaClientProxyBuilderOptions,
   IKafkaHeadersToAsyncContextAdapter,
+  IKafkaHealthIndicatorOptions,
   IKafkaMessage,
 } from 'src/modules/kafka/kafka-common';
 import { KafkaServerStatusService } from '../services/kafka-server.status.service';
@@ -42,6 +43,7 @@ export interface IKafkaServerOptions<T = unknown>
   extends Omit<IKafkaClientProxyBuilderOptions, 'producerOnlyMode' | 'producer' | 'serializer' | 'deserializer'> {
   deserializer?: IConsumerRequestDeserializer<T>;
   headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
+  healthIndicatorOptions?: IKafkaHealthIndicatorOptions;
 }
 
 export interface IKafkaMicroserviceBuilderOptions<T = unknown> {

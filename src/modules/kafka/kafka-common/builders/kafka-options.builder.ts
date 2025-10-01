@@ -103,7 +103,7 @@ export class KafkaOptionsBuilder {
     return kafkaRetryConfig;
   }
 
-  private createRetryOptions(options: IRetryOptions): KafkaRetryConfig {
+  public createRetryOptions(options: IRetryOptions): KafkaRetryConfig {
     if (options.retry === false) {
       return undefined;
     }

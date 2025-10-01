@@ -39,6 +39,11 @@ export interface IKafkaProducerOptions extends Omit<KafkaProducerConfig, 'retry'
   retry?: Omit<IRetryOptions, 'statusCodes'>;
 }
 
+export interface IKafkaHealthIndicatorOptions {
+  useAdmin?: boolean;
+  retry?: Omit<IRetryOptions, 'statusCodes'>;
+}
+
 export interface IKafkaClientProxyBuilderOptions
   extends Omit<KafkaOptions['options'], 'client' | 'consumer' | 'producer' | 'parser'> {
   serverName: string;

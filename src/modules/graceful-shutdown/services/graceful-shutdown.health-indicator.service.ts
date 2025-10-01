@@ -9,7 +9,7 @@ export class GracefulShutdownHealthIndicatorService {
     private readonly healthIndicatorService: HealthIndicatorService,
   ) {}
 
-  async isReadiness(): Promise<HealthIndicatorResult> {
+  async isHealthy(): Promise<HealthIndicatorResult> {
     const indicator = this.healthIndicatorService.check('GracefulShutdown');
 
     if (this.gracefulShutdownService.isActive()) {

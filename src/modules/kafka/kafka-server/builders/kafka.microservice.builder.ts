@@ -24,7 +24,13 @@ export class KafkaMicroserviceBuilder {
       options.prometheusManager,
     );
 
-    const healthIndicator = new KafkaServerHealthIndicator(options.kafkaOptions.serverName, server);
+    const healthIndicator = new KafkaServerHealthIndicator(options.kafkaOptions.serverName, server, {
+      useAdmin: options.kafkaOptions.healthIndicatorOptions?.useAdmin,
+      retry:
+        options.kafkaOptions.healthIndicatorOptions?.retry === undefined
+          ? undefined
+          : optionsBuilder.createRetryOptions(options.kafkaOptions.healthIndicatorOptions?.retry),
+    });
 
     options.kafkaStatusService.addKafkaServices(
       options.kafkaOptions.serverName,

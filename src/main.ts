@@ -171,6 +171,14 @@ async function bootstrap(): Promise<void> {
         },
       },
       headerAdapter: app.get(KAFKA_SERVER_HEADERS_ADAPTER_DI),
+      healthIndicatorOptions: {
+        useAdmin: true,
+        retry: {
+          timeout: 500,
+          delay: 100,
+          retryMaxCount: 3,
+        },
+      },
     },
     loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),
     prometheusManager: app.get(PrometheusManager),
@@ -180,8 +188,10 @@ async function bootstrap(): Promise<void> {
   app.enableShutdownHooks();
 
   await app.init();
-  await app.startAllMicroservices();
+  // В начале открываем REST API для доступности Health Checks, логов и метрик.
   await app.listen(appConfig.getServicePort());
+  // Запускаем все дополнительные службы - их состояние будет отражено в Health Checks, логах и метриках.
+  await app.startAllMicroservices();
 }
 
 bootstrap();

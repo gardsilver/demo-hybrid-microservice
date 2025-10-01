@@ -12,7 +12,7 @@ import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, KafkaRequest } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerBase } from './kafka-server.base';
-import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE_SUCCESS } from '../types/metrics';
+import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
 
 export class KafkaServerService extends KafkaServerBase {
   protected consumer: Consumer | null = null;
@@ -64,7 +64,7 @@ export class KafkaServerService extends KafkaServerBase {
       return;
     }
 
-    this.consumer = await this.createConsumer();
+    this.consumer = await this.createConsumer(ConsumerMode.EACH_MESSAGE, registeredPatterns);
 
     const consumerSubscribeOptions = this.options.subscribe || {};
 
@@ -90,6 +90,14 @@ export class KafkaServerService extends KafkaServerBase {
     ...TraceSpanBuilder.build(),
   }))
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
+    this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
+      labels: {
+        service: this.serverName,
+        topics: payload.topic,
+        method: ConsumerMode.EACH_MESSAGE,
+      },
+    });
+
     try {
       const pattern = payload.topic;
 
@@ -100,14 +108,6 @@ export class KafkaServerService extends KafkaServerBase {
 
       // Skip: не целевое сообщение
       if (packet.data === undefined) {
-        this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
-          labels: {
-            service: this.serverName,
-            topics: payload.topic,
-            method: ConsumerMode.EACH_MESSAGE,
-          },
-        });
-
         return;
       }
 
@@ -122,14 +122,6 @@ export class KafkaServerService extends KafkaServerBase {
       ]);
 
       await this.handleEvent(packet.pattern, packet, kafkaContext);
-
-      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
-        labels: {
-          service: this.serverName,
-          topics: payload.topic,
-          method: ConsumerMode.EACH_MESSAGE,
-        },
-      });
     } catch (error) {
       this.logger.error(this.serverName + ' filed!', {
         payload,
@@ -156,7 +148,7 @@ export class KafkaServerService extends KafkaServerBase {
       return;
     }
 
-    this.batchConsumer = await this.createConsumer();
+    this.batchConsumer = await this.createConsumer(ConsumerMode.EACH_BATCH, registeredPatterns);
 
     const consumerSubscribeOptions = this.options.subscribe || {};
 
@@ -182,6 +174,15 @@ export class KafkaServerService extends KafkaServerBase {
     ...TraceSpanBuilder.build(),
   }))
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
+    this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
+      labels: {
+        service: this.serverName,
+        topics: payload.batch.topic,
+        method: ConsumerMode.EACH_BATCH,
+      },
+      value: payload.batch.messages.length,
+    });
+
     try {
       const pattern = payload.batch.topic;
 
@@ -197,15 +198,6 @@ export class KafkaServerService extends KafkaServerBase {
 
       // Skip: не целевые сообщения
       if (!messages.length) {
-        this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
-          labels: {
-            service: this.serverName,
-            topics: payload.batch.topic,
-            method: ConsumerMode.EACH_BATCH,
-          },
-          value: payload.batch.messages.length,
-        });
-
         return;
       }
 
@@ -224,15 +216,6 @@ export class KafkaServerService extends KafkaServerBase {
         messages.map((options) => options.packet),
         kafkaContext,
       );
-
-      this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_SUCCESS, {
-        labels: {
-          service: this.serverName,
-          topics: payload.batch.topic,
-          method: ConsumerMode.EACH_BATCH,
-        },
-        value: payload.batch.messages.length,
-      });
     } catch (error) {
       this.logger.error(ConsumerMode.EACH_BATCH + ' filed!', {
         payload,

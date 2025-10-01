@@ -46,7 +46,7 @@ describe(GracefulShutdownHealthIndicatorService.name, () => {
 
     jest.spyOn(gracefulShutdownService, 'isActive').mockImplementation(() => false);
 
-    await gracefulShutdownHealth.isReadiness();
+    await gracefulShutdownHealth.isHealthy();
 
     expect(spyUp).toHaveBeenCalledTimes(1);
     expect(spyDown).toHaveBeenCalledTimes(0);
@@ -58,7 +58,7 @@ describe(GracefulShutdownHealthIndicatorService.name, () => {
 
     jest.spyOn(gracefulShutdownService, 'isActive').mockImplementation(() => true);
 
-    await gracefulShutdownHealth.isReadiness();
+    await gracefulShutdownHealth.isHealthy();
 
     expect(spyUp).toHaveBeenCalledTimes(0);
     expect(spyDown).toHaveBeenCalledTimes(1);

@@ -16,6 +16,7 @@ import { ConsumerMode } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerRequestDeserializer } from '../adapters/kafka-server.request.deserializer';
 import { KafkaServerBase } from './kafka-server.base';
+import { KAFKA_CONNECTION_STATUS } from '../types/metrics';
 
 jest.mock('kafkajs', () => {
   return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
@@ -179,13 +180,13 @@ describe(KafkaServerBase, () => {
       const spyOn = jest.spyOn(MockConsumer.prototype, 'on');
       const spyConnect = jest.spyOn(MockConsumer.prototype, 'connect');
 
-      const consumer = await server['createConsumer']();
+      const consumer = await server['createConsumer'](ConsumerMode.EACH_BATCH, ['topic']);
 
       expect(consumer instanceof MockConsumer).toBeTruthy();
       expect(consumer['config']).toEqual({
         groupId: KAFKA_DEFAULT_GROUP + '-server',
       });
-      expect(spyOn).toHaveReturnedTimes(6);
+      expect(spyOn).toHaveBeenCalledTimes(6);
 
       expect(spyOn.mock.calls[0][0]).toBe('consumer.connect');
       expect(spyOn.mock.calls[1][0]).toBe('consumer.disconnect');
@@ -194,7 +195,7 @@ describe(KafkaServerBase, () => {
       expect(spyOn.mock.calls[4][0]).toBe('consumer.crash');
       expect(spyOn.mock.calls[5][0]).toBe('consumer.group_join');
 
-      expect(spyConnect).toHaveReturnedTimes(1);
+      expect(spyConnect).toHaveBeenCalledTimes(1);
     });
 
     it('listen', async () => {
@@ -336,9 +337,12 @@ describe(KafkaServerBase, () => {
 
     it('status', async () => {
       const spy = jest.fn();
+      const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
 
       server['client'] = server['createClient']();
-      const consumer = (await server['createConsumer']()) as undefined as MockConsumer;
+      const consumer = (await server['createConsumer'](ConsumerMode.EACH_BATCH, [
+        'topic',
+      ])) as undefined as MockConsumer;
       const subscription = server.status.pipe(tap(spy)).subscribe();
 
       consumer.emit('consumer.connect');
@@ -355,6 +359,47 @@ describe(KafkaServerBase, () => {
       expect(spy).toHaveBeenCalledWith(KafkaStatus.STOPPED);
       expect(spy).toHaveBeenCalledWith(KafkaStatus.CRASHED);
 
+      expect(spyCount).toHaveBeenCalledTimes(6);
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_CONNECTION_STATUS, {
+        labels: {
+          service: serverName,
+          status: 'connected',
+          topics: 'topic',
+          method: ConsumerMode.EACH_BATCH,
+        },
+      });
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_CONNECTION_STATUS, {
+        labels: {
+          service: serverName,
+          status: 'disconnected',
+          topics: 'topic',
+          method: ConsumerMode.EACH_BATCH,
+        },
+      });
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_CONNECTION_STATUS, {
+        labels: {
+          service: serverName,
+          status: 'stopped',
+          topics: 'topic',
+          method: ConsumerMode.EACH_BATCH,
+        },
+      });
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_CONNECTION_STATUS, {
+        labels: {
+          service: serverName,
+          status: 'crashed',
+          topics: 'topic',
+          method: ConsumerMode.EACH_BATCH,
+        },
+      });
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_CONNECTION_STATUS, {
+        labels: {
+          service: serverName,
+          status: 'rebalancing',
+          topics: 'topic',
+          method: ConsumerMode.EACH_BATCH,
+        },
+      });
       subscription.unsubscribe();
     });
   });

@@ -13,7 +13,7 @@ import { kafkaMessageFactory, MockKafkaDeserializer, MockKafkaHeadersToAsyncCont
 import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerService } from './kafka-server.service';
-import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE_SUCCESS } from '../types/metrics';
+import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE } from '../types/metrics';
 
 jest.mock('kafkajs', () => {
   return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
@@ -175,7 +175,7 @@ describe(KafkaServerService.name, () => {
         mode: ConsumerMode.EACH_MESSAGE,
       });
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
-      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
         labels: {
           service: serverName,
           topics: topic,
@@ -268,7 +268,7 @@ describe(KafkaServerService.name, () => {
         getMessageOptions: kafkaContext.getMessageOptions(),
       });
 
-      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
         labels: {
           service: serverName,
           topics: topic,
@@ -305,6 +305,13 @@ describe(KafkaServerService.name, () => {
 
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
 
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_MESSAGE,
+        },
+      });
       expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_FAILED, {
         labels: {
           service: serverName,
@@ -376,7 +383,7 @@ describe(KafkaServerService.name, () => {
       });
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
 
-      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
         labels: {
           service: serverName,
           topics: topic,
@@ -476,7 +483,7 @@ describe(KafkaServerService.name, () => {
         getMessageOptions: kafkaContext.getMessageOptions(),
       });
 
-      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_SUCCESS, {
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
         labels: {
           service: serverName,
           topics: topic,
@@ -516,6 +523,14 @@ describe(KafkaServerService.name, () => {
 
       expect(spyHandleEvent).toHaveBeenCalledTimes(0);
 
+      expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE, {
+        labels: {
+          service: serverName,
+          topics: topic,
+          method: ConsumerMode.EACH_BATCH,
+        },
+        value: payload.batch.messages.length,
+      });
       expect(spyCount).toHaveBeenCalledWith(KAFKA_HANDLE_MESSAGE_FAILED, {
         labels: {
           service: serverName,

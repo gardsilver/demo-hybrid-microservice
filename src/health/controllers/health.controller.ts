@@ -49,6 +49,7 @@ export class HealthController {
           connection: this.db,
           timeout: 10_000,
         }),
+      () => this.gracefulShutdownHealth.isHealthy(),
     ];
 
     this.kafkaServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
@@ -61,7 +62,13 @@ export class HealthController {
   @Get('readiness-probe')
   @HealthCheck({ swaggerDocumentation: true })
   async readiness() {
-    return this.health.check([() => this.authHealth.isReadiness(), () => this.gracefulShutdownHealth.isReadiness()]);
+    const checks = [() => this.authHealth.isReadiness(), () => this.gracefulShutdownHealth.isHealthy()];
+
+    this.kafkaServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
+      checks.push(() => healthIndicator.isHealthy());
+    });
+
+    return this.health.check(checks);
   }
 
   @Get('our-metrics')

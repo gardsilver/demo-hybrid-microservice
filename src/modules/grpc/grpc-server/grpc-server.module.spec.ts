@@ -13,6 +13,7 @@ import { GrpcAuthGuard } from './guards/grpc.auth.guard';
 import { GrpcLogging } from './interceptors/grpc.logging';
 import { GrpcPrometheus } from './interceptors/grpc.prometheus';
 import { GrpcMetadataResponseBuilder } from './builders/grpc.metadata-response.builder';
+import { GrpcServerStatusService } from './services/grpc-server.status.service';
 
 class TestHeadersAdapter extends GrpcHeadersToAsyncContextAdapter {
   constructor(private readonly testService: TestService) {
@@ -32,6 +33,7 @@ describe(GrpcServerModule.name, () => {
   let errorFilter: GrpcErrorResponseFilter;
   let authGuard: GrpcAuthGuard;
   let loggingInterceptor: GrpcLogging;
+  let statusService: GrpcServerStatusService;
   let prometheusInterceptor: GrpcPrometheus;
 
   describe('default', () => {
@@ -51,6 +53,7 @@ describe(GrpcServerModule.name, () => {
       errorFilter = module.get(GrpcErrorResponseFilter);
       authGuard = module.get(GrpcAuthGuard);
       loggingInterceptor = module.get(GrpcLogging);
+      statusService = module.get(GrpcServerStatusService);
       prometheusInterceptor = module.get(GrpcPrometheus);
     });
 
@@ -60,6 +63,7 @@ describe(GrpcServerModule.name, () => {
       expect(errorFilter).toBeDefined();
       expect(authGuard).toBeDefined();
       expect(loggingInterceptor).toBeDefined();
+      expect(statusService).toBeDefined();
       expect(prometheusInterceptor).toBeDefined();
     });
   });
@@ -107,6 +111,7 @@ describe(GrpcServerModule.name, () => {
       expect(errorFilter).toBeDefined();
       expect(authGuard).toBeDefined();
       expect(loggingInterceptor).toBeDefined();
+      expect(statusService).toBeDefined();
       expect(prometheusInterceptor).toBeDefined();
     });
   });

@@ -6,7 +6,6 @@ import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
-import { HealthStatusService } from './services/health-status.service';
 import { HealthController } from './controllers/health.controller';
 
 @Module({
@@ -19,8 +18,6 @@ import { HealthController } from './controllers/health.controller';
     GracefulShutdownModule,
     KafkaServerModule,
   ],
-  providers: [HealthStatusService],
-  exports: [HealthStatusService],
   controllers: [HealthController],
 })
 export class HealthModule {}

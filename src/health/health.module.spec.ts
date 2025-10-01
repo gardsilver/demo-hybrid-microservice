@@ -15,7 +15,6 @@ import { DatabaseModule } from 'src/modules/database';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { mockSequelize } from 'tests/sequelize-typescript';
-import { HealthStatusService } from './services/health-status.service';
 import { HealthController } from './controllers/health.controller';
 import { HealthModule } from './health.module';
 
@@ -26,7 +25,6 @@ jest.mock('sequelize-typescript', () => {
 describe(HealthModule.name, () => {
   let logger: IElkLoggerService;
   let nestLogger: INestElkLoggerService;
-  let service: HealthStatusService;
   let controller: HealthController;
 
   beforeEach(async () => {
@@ -55,12 +53,10 @@ describe(HealthModule.name, () => {
       .useValue(nestLogger)
       .compile();
 
-    service = module.get(HealthStatusService);
     controller = module.get(HealthController);
   });
 
   it('init', async () => {
-    expect(service).toBeDefined();
     expect(controller).toBeDefined();
   });
 });

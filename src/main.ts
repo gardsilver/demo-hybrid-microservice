@@ -34,6 +34,7 @@ import {
   GrpcLogging,
   GrpcMicroserviceBuilder,
   GrpcPrometheus,
+  GrpcServerStatusService,
   RpcExceptionFormatter,
 } from 'src/modules/grpc/grpc-server';
 import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
@@ -44,7 +45,6 @@ import {
 } from 'src/modules/kafka/kafka-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
 import { GLOBAL_ROUTE_PREFIX, AppConfig, KafkaServers } from 'src/core/app';
-import { HealthStatusService } from 'src/health';
 import { MainModule } from 'src/main.module';
 
 async function bootstrap(): Promise<void> {
@@ -133,7 +133,7 @@ async function bootstrap(): Promise<void> {
 
   SwaggerModule.setup('/', app, documentation, customOption);
 
-  const { grpcServices, grpcHealthImpl } = GrpcMicroserviceBuilder.setup(app, {
+  GrpcMicroserviceBuilder.setup(app, {
     url: `http://${appConfig.getGrpcHost()}:${appConfig.getGrpcPort()}`,
     services: [MAIN_SERVICE_NAME],
     package: ['demo.service'],
@@ -141,9 +141,8 @@ async function bootstrap(): Promise<void> {
     protoPath: ['/demo/service/MainService.proto'],
     includeDirs: [],
     normalizeUrl: true,
+    statusService: app.get(GrpcServerStatusService),
   });
-
-  app.get(HealthStatusService).addGrpcHealthImplementation(grpcHealthImpl, grpcServices);
 
   KafkaMicroserviceBuilder.setup(app, {
     kafkaOptions: {

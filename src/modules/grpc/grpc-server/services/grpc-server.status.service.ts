@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { GracefulShutdownEvents, GracefulShutdownOnEvent } from 'src/modules/graceful-shutdown';
 
 @Injectable()
-export class HealthStatusService {
+export class GrpcServerStatusService {
   private healthImplementations: Array<{
     grpcHealthImpl: HealthImplementation;
     grpcServices: string[];

@@ -6,11 +6,13 @@ import { UrlHelper } from 'src/modules/common';
 import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 import { GrpcMicroserviceBuilder } from './grpc.microservice.builder';
+import { GrpcServerStatusService } from '../services/grpc-server.status.service';
 
 describe(GrpcMicroserviceBuilder.name, () => {
   let spyUrlHelper;
   let spyExistPaths;
   let spyExistJoinBase;
+  let statusService: GrpcServerStatusService;
 
   const app = {
     connectMicroservice: jest.fn(),
@@ -23,13 +25,18 @@ describe(GrpcMicroserviceBuilder.name, () => {
     spyExistJoinBase = jest.spyOn(GrpcProtoPathHelper, 'joinBase').mockImplementation(() => {
       return ['proto/testDir'];
     });
+    statusService = {
+      addGrpcHealthImplementation: jest.fn(),
+    } as undefined as GrpcServerStatusService;
   });
 
   it('Должен подключить Микросервис', async () => {
+    const spyStatusService = jest.spyOn(statusService, 'addGrpcHealthImplementation');
     GrpcMicroserviceBuilder.setup(
       app as unknown as NestExpressApplication,
       {
         url: 'test:1111',
+        statusService,
       } as IGrpcMicroserviceBuilderOptions,
     );
     expect(app.connectMicroservice).toHaveBeenCalled();
@@ -38,6 +45,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
 
     expect(params.transport).toBe(Transport.GRPC);
     expect(params.options.url).toBe('test:1111');
+    expect(spyStatusService).toHaveBeenCalledTimes(1);
   });
 
   it('Должен проверить все proto-файлы', async () => {
@@ -48,6 +56,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
         baseDir: 'protos',
         protoPath: ['/file.proto'],
         includeDirs: ['protos/test'],
+        statusService,
       } as IGrpcMicroserviceBuilderOptions,
     );
 
@@ -63,6 +72,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
         {
           url: 'test.ru',
           normalizeUrl: true,
+          statusService,
         } as IGrpcMicroserviceBuilderOptions,
       );
     }).toThrow(new Error('Не корректный формат url (test.ru)'));
@@ -82,6 +92,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
         baseDir: 'protos',
         protoPath: ['/file.proto'],
         includeDirs: ['protos/test'],
+        statusService,
       } as IGrpcMicroserviceBuilderOptions,
     );
 

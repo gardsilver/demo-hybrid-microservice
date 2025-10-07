@@ -4,7 +4,7 @@ export * from './types/tokens';
 export * from './ctx-host/kafka.context';
 export * from './helpers/kafka-server.helper';
 export * from './decorators/event.kafka-message.decorator';
-export * from './adapters/kafka-server.request.deserializer';
+export * from './adapters/consumer.deserializer';
 export * from './builders/kafka.microservice.builder';
 export * from './filters/kafka.error.filter';
 export * from './services/kafka-server.service';

@@ -29,7 +29,7 @@ export class KafkaMicroserviceBuilder {
       retry:
         options.kafkaOptions.healthIndicatorOptions?.retry === undefined
           ? undefined
-          : optionsBuilder.createRetryOptions(options.kafkaOptions.healthIndicatorOptions?.retry),
+          : KafkaOptionsBuilder.createRetryOptions(options.kafkaOptions.healthIndicatorOptions?.retry),
     });
 
     options.kafkaStatusService.addKafkaServices(

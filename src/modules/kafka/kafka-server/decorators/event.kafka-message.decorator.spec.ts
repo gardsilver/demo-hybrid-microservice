@@ -8,7 +8,7 @@ import {
 } from '@nestjs/microservices/constants';
 import { PatternHandler } from '@nestjs/microservices/enums/pattern-handler.enum';
 import { KafkaHeadersToAsyncContextAdapter } from 'src/modules/kafka/kafka-common';
-import { MockKafkaDeserializer } from 'tests/modules/kafka';
+import { MockConsumerDeserializer } from 'tests/modules/kafka';
 import { ConsumerMode } from '../types/types';
 import { EventKafkaMessage } from './event.kafka-message.decorator';
 
@@ -18,7 +18,7 @@ const params = {
   replyTopic: 'replyTopic',
   replyPartition: 3,
   headerAdapter: new KafkaHeadersToAsyncContextAdapter(),
-  deserializer: new MockKafkaDeserializer(),
+  deserializer: new MockConsumerDeserializer(),
 };
 
 class Test {

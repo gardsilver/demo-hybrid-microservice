@@ -55,5 +55,5 @@ export interface IKafkaClientProxyBuilderOptions
 export interface IKafkaMessage<T> {
   key?: string;
   value: T;
-  headers: IHeaders;
+  headers?: IHeaders;
 }

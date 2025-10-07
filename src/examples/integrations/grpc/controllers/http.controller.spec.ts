@@ -6,11 +6,11 @@ import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { HttpController } from './http.controller';
 import { GrpcService } from '../services/grpc.service';
-import { SearchRequest } from '../types/dto';
+import { GrpcSearchRequest } from '../types/dto';
 
 describe(HttpController, () => {
   let context: IGeneralAsyncContext;
-  let request: SearchRequest;
+  let request: GrpcSearchRequest;
   let authInfo: IAuthInfo;
 
   let service: GrpcService;

@@ -32,13 +32,8 @@ import {
   KafkaHeadersHelper,
   KafkaHeadersToAsyncContextAdapter,
 } from 'src/modules/kafka/kafka-common';
-import {
-  ConsumerMode,
-  IConsumerRequestDeserializer,
-  IEventKafkaMessageOptions,
-  IKafkaMessageOptions,
-} from '../types/types';
-import { KafkaServerRequestDeserializer } from '../adapters/kafka-server.request.deserializer';
+import { ConsumerMode, IConsumerDeserializer, IEventKafkaMessageOptions, IKafkaMessageOptions } from '../types/types';
+import { ConsumerDeserializer } from '../adapters/consumer.deserializer';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KAFKA_CONNECTION_STATUS } from '../types/metrics';
 
@@ -51,7 +46,7 @@ export abstract class KafkaServerBase extends Server {
   protected brokers: string[] | BrokersFunction;
   protected clientId: string;
   protected groupId: string;
-  declare protected deserializer: IConsumerRequestDeserializer;
+  declare protected deserializer: IConsumerDeserializer;
   protected readonly eachMessageHandlers: string[] = [];
   protected readonly batchMessageHandlers: string[] = [];
   protected readonly headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
@@ -74,7 +69,7 @@ export abstract class KafkaServerBase extends Server {
     this.clientId = (clientOptions.clientId || KAFKA_DEFAULT_CLIENT) + postfixId;
     this.groupId = (consumerOptions.groupId || KAFKA_DEFAULT_GROUP) + postfixId;
 
-    this.deserializer = this.options?.deserializer ?? new KafkaServerRequestDeserializer();
+    this.deserializer = this.options?.deserializer ?? new ConsumerDeserializer();
     this.headerAdapter = this.options?.headerAdapter ?? new KafkaHeadersToAsyncContextAdapter();
   }
 
@@ -140,7 +135,7 @@ export abstract class KafkaServerBase extends Server {
 
   protected async createConsumer(mode: ConsumerMode, topics: string[]): Promise<Consumer> {
     const consumerOptions = Object.assign(this.options.consumer || {}, {
-      groupId: this.groupId,
+      groupId: this.groupId + '-' + mode.toString(),
     });
     const consumer = this.client.consumer(consumerOptions);
     this.registerConsumerEventListeners(consumer, mode, topics);
@@ -214,7 +209,7 @@ export abstract class KafkaServerBase extends Server {
     messageOptions: IKafkaMessageOptions;
     adapters: {
       headerAdapter: IKafkaHeadersToAsyncContextAdapter;
-      deserializer: IConsumerRequestDeserializer;
+      deserializer: IConsumerDeserializer;
     };
   } {
     const eventKafkaMessageOptions = {

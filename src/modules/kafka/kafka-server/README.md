@@ -4,7 +4,7 @@
 
 Модуль для создания и настройки **Kafka**-сервера: **Middleware**, **Guards**, **Interceptors**, **Pipes** и т.д.
 
-- Реализована логика автоматического восстановления соединения с брокером **Kafka**.
+- Реализована логика автоматического восстановления соединения с брокером **Kafka**: [retry](https://kafka.js.org/docs/configuration#default-retry).
 - Реализован `KafkaServerHealthIndicator`
 - Настроено логирование и фиксирование базовых метрик.
 - Добавления поддержка одновременного подключения к нескольким независимым брокерам **Kafka**.
@@ -13,9 +13,11 @@
 
 ## ВАЖНО
 
-Данный модуль не реализует логику **Request-Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`). Для всех запущенных консъюмеров будет отключен `requestTimeout` (**@see** [eachBatchAutoResolve: true](https://kafka.js.org/docs/configuration#request-timeout)).
+Данный модуль не реализует логику **Request/Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`). Для всех запущенных консъюмеров будет отключен `requestTimeout` (**@see** [eachBatchAutoResolve: true](https://kafka.js.org/docs/configuration#request-timeout)).
 
 Если не задан `deserializer`, то в полученных данных будут десериализованы только `headers` и `key` (**@see** `IKafkaMessage` `src/modules/kafka/kafka-common`).
+
+Данный модуль игнорирует настройки декораторами `MessagePattern` и `EventPattern`  (**@see** `@nestjs/microservices`). Для того чтобы подписаться на нужные топики используйте `EventKafkaMessage`.
 
 ## Использование
 
@@ -42,7 +44,7 @@ const { server, serverHealthIndicator } =  KafkaMicroserviceBuilder.setup(app, {
 ```typescript
 
 import { Ctx, Payload } from '@nestjs/microservices';
-import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src/modules/kafka/kafka-server';
+import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'src/modules/kafka/kafka-server';
 ...
 
   @EventKafkaMessage('DemoRequest', { // Имя топика на который подписываемся или pattern ему соответствующий.
@@ -50,17 +52,17 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
     mode: ConsumerMode.EACH_MESSAGE,
     ...
   })
-  async index(data: KafkaRequest) {
+  async index(data: IKafkaMessage) {
     // Тут ваша логика.
   }
 
   @EventKafkaMessage(['request_1', 'request_2', ...], {
     serverName: '...',
     mode: ConsumerMode.EACH_BATCH,
-    deserializer: new CustomDeserializer(), // CustomDeserializer implements IConsumerRequestDeserializer<T>
+    deserializer: new CustomDeserializer(), // CustomDeserializer implements IConsumerDeserializer<T>
     ...
   })
-  async multi(@Payload() data: KafkaRequest<T>[], @Ctx() ctx: KafkaContext) {
+  async multi(@Payload() data: IKafkaMessage<T>[], @Ctx() ctx: KafkaContext) {
     // Тут ваша логика.
   }
 ...
@@ -70,7 +72,7 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 
 ### Фильтрация сообщений
 
-Если `deserializer` вернет данные с `KafkaRequest.data === undefined`, то такое сообщение не будет обрабатываться.
+Если `deserializer` вернет данные с `IConsumerPacket.data === undefined`, то такое сообщение не будет обрабатываться.
 
 Настроить `deserializer` можно очень гибко:
 
@@ -79,7 +81,11 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 Доступ к `serverName` и `topic` в `deserializer` будет всегда (**@see** `options: IKafkaMessageOptions`), поэтому можно организовать выбор способа десериализации для `KafkaMessage`.
 
 - Задать через декоратор `EventKafkaMessage`. В этом случае глобальный будет проигнорирован.
-- Или воспользоваться стандартными механизмами `NodeJs` и реализовать **Middleware** или **Pipe**. Например через `KafkaContext.getMessageOptions` можно получить `serverName`.
+- Или воспользоваться стандартными механизмами `NodeJs` и реализовать **Middleware**, **Interceptors**, **Pipe**.
+
+### KafkaErrorFilter
+
+Фильтр **Kafka**-ошибок возникающих при обработке полученных сообщений. При перехвате ошибки будет записан лог. Можно подключать с использованием `@UseFilters` (**@see** `@nestjs/common`), Используется в `HybridErrorResponseFilter` ( **@see** `src/modules/hybrid/hybrid-server`).
 
 ### Метрики
 
@@ -91,8 +97,8 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, KafkaRequest } from 'src
 
 ## Примечание
 
-Работа `KafkaServerHealthIndicator` основана на событиях [Events](https://kafka.js.org/docs/instrumentation-events). Однако выявлено, что события не всегда срабатывают так, как ожидается. Например при потере соединения с **Kafka**-сервером событие `CRASH` может не произойти и как следствие в журналах будут фиксироваться логи о потери соединения и попытках переподключения, но статус  `KafkaServerHealthIndicator` будет показывать о нормальном состоянии.
+Работа `KafkaServerHealthIndicator` основана на событиях [Events](https://kafka.js.org/docs/instrumentation-events). Однако выявлено, что события не всегда срабатывают так, как ожидается. Например при потере соединения с **Kafka**-сервером событие `CRASH` может не произойти и как следствие в журналах будут фиксироваться логи о потери соединения и попытках переподключения, но статус `KafkaServerHealthIndicator` будет показывать о нормальном состоянии.
 
-Возможное решение отказаться от модели `Events` и использовать `KafkaAdmin.fetchTopicMetadata`, как `ping`-метод для проверки доступности **Kafka**-сервера.
+Возможное решение отказаться от модели `Events` и использовать `Kafka.admin.fetchTopicMetadata`, как `ping`-метод для проверки доступности **Kafka**-сервера.
 
-Для того, что то задать принцип работы `KafkaServerHealthIndicator` имеется опция `kafkaOptions.healthIndicatorOptions` (**@see** `KafkaMicroserviceBuilder.setup`).
+Для того, чтобы задать принцип работы `KafkaServerHealthIndicator` имеется опция `kafkaOptions.healthIndicatorOptions` (**@see** `KafkaMicroserviceBuilder.setup`).

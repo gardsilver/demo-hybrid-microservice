@@ -3,7 +3,7 @@ import { RedisCacheService } from 'src/modules/redis-cache-manager';
 import { IUser, UserJsonCacheAdapter, UserService } from 'src/core/repositories/postgres';
 
 @Injectable()
-export class GrpcApiService {
+export class CommonApiService {
   constructor(
     private readonly userService: UserService,
     private readonly cacheService: RedisCacheService,

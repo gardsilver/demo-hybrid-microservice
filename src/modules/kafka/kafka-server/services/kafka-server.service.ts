@@ -9,7 +9,7 @@ import {
 } from '@nestjs/microservices/external/kafka.interface';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
-import { ConsumerMode, IKafkaMessageOptions, KafkaRequest } from '../types/types';
+import { ConsumerMode, IKafkaMessageOptions, IConsumerPacket } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerBase } from './kafka-server.base';
 import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
@@ -239,7 +239,7 @@ export class KafkaServerService extends KafkaServerBase {
     handler: MessageHandler,
   ): Promise<{
     kafkaMessage: KafkaMessage;
-    packet: KafkaRequest;
+    packet: IConsumerPacket;
     messageOptions: IKafkaMessageOptions;
   }> {
     const { messageOptions, adapters } = this.getMessageOptionsAndAdapters(pattern, kafkaMessage, handler);

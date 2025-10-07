@@ -94,7 +94,7 @@ describe(KafkaErrorFilter.name, () => {
 
     filter.catch(error, host);
 
-    expect(spyLogger).toHaveBeenCalledWith('Kafka request filed', {
+    expect(spyLogger).toHaveBeenCalledWith('KAFKA handle message filed', {
       payload: {
         message: kafkaMessage,
         options: messageOptions,
@@ -112,7 +112,7 @@ describe(KafkaErrorFilter.name, () => {
 
     filter.catch(error, host);
 
-    expect(spyLogger).toHaveBeenCalledWith('Kafka request filed', {
+    expect(spyLogger).toHaveBeenCalledWith('KAFKA handle message filed', {
       payload: {
         message: kafkaMessage,
         options: messageOptions,

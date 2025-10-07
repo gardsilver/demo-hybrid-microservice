@@ -3,7 +3,7 @@ import { MainRequest, MainResponse, MAIN_SERVICE_NAME } from 'protos/compiled/de
 import { SearchResponse } from 'src/examples/integrations/common';
 import { AUTH_SERVICE_DI, IAccessTokenData, IAuthInfo, IAuthService } from 'src/modules/auth';
 import { GrpcClientService } from 'src/modules/grpc/grpc-client';
-import { SearchRequest } from '../types/dto';
+import { GrpcSearchRequest } from '../types/dto';
 
 @Injectable()
 export class GrpcService {
@@ -12,7 +12,7 @@ export class GrpcService {
     private readonly grpcClientService: GrpcClientService,
   ) {}
 
-  async search(request: SearchRequest, authInfo: IAuthInfo): Promise<SearchResponse> {
+  async search(request: GrpcSearchRequest, authInfo: IAuthInfo): Promise<SearchResponse> {
     const response = await this.grpcClientService.request<MainRequest, MainResponse>(
       {
         service: MAIN_SERVICE_NAME,

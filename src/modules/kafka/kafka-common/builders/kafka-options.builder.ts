@@ -35,7 +35,7 @@ export class KafkaOptionsBuilder {
       },
       client: {
         ...clientOptions,
-        retry: options.client.retry ? this.createRetryOptions(options.client.retry) : undefined,
+        retry: options.client.retry ? KafkaOptionsBuilder.createRetryOptions(options.client.retry) : undefined,
       },
       consumer: options.consumer
         ? {
@@ -55,7 +55,7 @@ export class KafkaOptionsBuilder {
       producer: options.producer
         ? {
             ...KafkaProducerOptionsBuilder.build(options.producer),
-            retry: options.producer.retry ? this.createRetryOptions(options.producer.retry) : undefined,
+            retry: options.producer.retry ? KafkaOptionsBuilder.createRetryOptions(options.producer.retry) : undefined,
           }
         : undefined,
     };
@@ -69,7 +69,7 @@ export class KafkaOptionsBuilder {
       logFields?: ILogFields;
     },
   ): KafkaRetryConfig {
-    const kafkaRetryConfig = this.createRetryOptions(options);
+    const kafkaRetryConfig = KafkaOptionsBuilder.createRetryOptions(options);
 
     if (kafkaRetryConfig === undefined) {
       return kafkaRetryConfig;
@@ -103,7 +103,7 @@ export class KafkaOptionsBuilder {
     return kafkaRetryConfig;
   }
 
-  public createRetryOptions(options: IRetryOptions): KafkaRetryConfig {
+  public static createRetryOptions(options: IRetryOptions): KafkaRetryConfig {
     if (options.retry === false) {
       return undefined;
     }

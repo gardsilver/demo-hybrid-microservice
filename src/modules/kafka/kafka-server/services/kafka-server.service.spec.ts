@@ -9,7 +9,11 @@ import { KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
 import { MockConfigService } from 'tests/nestjs';
 import { MockKafka, MockConsumer } from 'tests/kafkajs';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { kafkaMessageFactory, MockKafkaDeserializer, MockKafkaHeadersToAsyncContextAdapter } from 'tests/modules/kafka';
+import {
+  kafkaMessageFactory,
+  MockConsumerDeserializer,
+  MockKafkaHeadersToAsyncContextAdapter,
+} from 'tests/modules/kafka';
 import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerService } from './kafka-server.service';
@@ -145,7 +149,7 @@ describe(KafkaServerService.name, () => {
       extras = {
         ...extras,
         headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-        deserializer: new MockKafkaDeserializer(),
+        deserializer: new MockConsumerDeserializer(),
         mode: ConsumerMode.EACH_MESSAGE,
       };
     });
@@ -153,7 +157,7 @@ describe(KafkaServerService.name, () => {
     it('Skip handleEachMessage ', async () => {
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent');
-      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => ({
+      const spyDeserialize = jest.spyOn(MockConsumerDeserializer.prototype, 'deserialize').mockImplementation(() => ({
         pattern: undefined,
         data: undefined,
       }));
@@ -188,7 +192,7 @@ describe(KafkaServerService.name, () => {
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
       const spyDeserialize = jest
-        .spyOn(MockKafkaDeserializer.prototype, 'deserialize')
+        .spyOn(MockConsumerDeserializer.prototype, 'deserialize')
         .mockImplementation((value, options) => ({
           pattern: options.topic,
           data: value.value
@@ -282,7 +286,7 @@ describe(KafkaServerService.name, () => {
 
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
-      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => {
+      const spyDeserialize = jest.spyOn(MockConsumerDeserializer.prototype, 'deserialize').mockImplementation(() => {
         throw error;
       });
 
@@ -350,7 +354,7 @@ describe(KafkaServerService.name, () => {
       extras = {
         ...extras,
         headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-        deserializer: new MockKafkaDeserializer(),
+        deserializer: new MockConsumerDeserializer(),
         mode: ConsumerMode.EACH_BATCH,
       };
     });
@@ -358,7 +362,7 @@ describe(KafkaServerService.name, () => {
     it('Skip handleBatchMessages ', async () => {
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent');
-      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => ({
+      const spyDeserialize = jest.spyOn(MockConsumerDeserializer.prototype, 'deserialize').mockImplementation(() => ({
         pattern: undefined,
         data: undefined,
       }));
@@ -397,7 +401,7 @@ describe(KafkaServerService.name, () => {
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
       const spyDeserialize = jest
-        .spyOn(MockKafkaDeserializer.prototype, 'deserialize')
+        .spyOn(MockConsumerDeserializer.prototype, 'deserialize')
         .mockImplementation((value, options) => ({
           pattern: options.topic,
           data: value.value
@@ -498,7 +502,7 @@ describe(KafkaServerService.name, () => {
 
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
       const spyHandleEvent = jest.spyOn(server, 'handleEvent').mockImplementation(jest.fn());
-      const spyDeserialize = jest.spyOn(MockKafkaDeserializer.prototype, 'deserialize').mockImplementation(() => {
+      const spyDeserialize = jest.spyOn(MockConsumerDeserializer.prototype, 'deserialize').mockImplementation(() => {
         throw error;
       });
 

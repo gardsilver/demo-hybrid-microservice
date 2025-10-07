@@ -11,10 +11,14 @@ import { KafkaAsyncContextHeaderNames, KafkaHeadersToAsyncContextAdapter } from 
 import { MockKafka, MockConsumer } from 'tests/kafkajs';
 import { MockConfigService } from 'tests/nestjs';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { kafkaMessageFactory, MockKafkaDeserializer, MockKafkaHeadersToAsyncContextAdapter } from 'tests/modules/kafka';
+import {
+  kafkaMessageFactory,
+  MockConsumerDeserializer,
+  MockKafkaHeadersToAsyncContextAdapter,
+} from 'tests/modules/kafka';
 import { ConsumerMode } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
-import { KafkaServerRequestDeserializer } from '../adapters/kafka-server.request.deserializer';
+import { ConsumerDeserializer } from '../adapters/consumer.deserializer';
 import { KafkaServerBase } from './kafka-server.base';
 import { KAFKA_CONNECTION_STATUS } from '../types/metrics';
 
@@ -78,7 +82,7 @@ describe(KafkaServerBase, () => {
       expect(server['clientId']).toEqual(KAFKA_DEFAULT_CLIENT + '-server');
       expect(server['groupId']).toEqual(KAFKA_DEFAULT_GROUP + '-server');
       expect(server['headerAdapter'] instanceof KafkaHeadersToAsyncContextAdapter).toBeTruthy();
-      expect(server['deserializer'] instanceof KafkaServerRequestDeserializer).toBeTruthy();
+      expect(server['deserializer'] instanceof ConsumerDeserializer).toBeTruthy();
     });
 
     it('custom', async () => {
@@ -94,7 +98,7 @@ describe(KafkaServerBase, () => {
             groupId: 'groupId',
           },
           headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-          deserializer: new MockKafkaDeserializer(),
+          deserializer: new MockConsumerDeserializer(),
         },
         prometheusManager,
       );
@@ -105,7 +109,7 @@ describe(KafkaServerBase, () => {
       expect(server['clientId']).toEqual('clientId-postfixId');
       expect(server['groupId']).toEqual('groupId-postfixId');
       expect(server['headerAdapter'] instanceof MockKafkaHeadersToAsyncContextAdapter).toBeTruthy();
-      expect(server['deserializer'] instanceof MockKafkaDeserializer).toBeTruthy();
+      expect(server['deserializer'] instanceof MockConsumerDeserializer).toBeTruthy();
     });
   });
 
@@ -184,7 +188,7 @@ describe(KafkaServerBase, () => {
 
       expect(consumer instanceof MockConsumer).toBeTruthy();
       expect(consumer['config']).toEqual({
-        groupId: KAFKA_DEFAULT_GROUP + '-server',
+        groupId: KAFKA_DEFAULT_GROUP + '-server' + '-' + ConsumerMode.EACH_BATCH.toString(),
       });
       expect(spyOn).toHaveBeenCalledTimes(6);
 
@@ -315,7 +319,7 @@ describe(KafkaServerBase, () => {
         replyTopic: faker.string.alpha(4),
         replyPartition: faker.number.int(),
         headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-        deserializer: new MockKafkaDeserializer(),
+        deserializer: new MockConsumerDeserializer(),
       };
 
       handle.extras = extras;

@@ -10,12 +10,12 @@ import {
   GrpcMetadataHelper,
   IGrpcMetadataResponseBuilder,
 } from 'src/modules/grpc/grpc-server';
-import { GrpcApiService } from '../services/grpc-api.service';
+import { CommonApiService } from 'src/core/api/common';
 
 @Controller()
 export class GrpcMainController {
   constructor(
-    private readonly service: GrpcApiService,
+    private readonly service: CommonApiService,
     @Inject(GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI)
     private readonly grpcMetadataResponseBuilder: IGrpcMetadataResponseBuilder,
   ) {}

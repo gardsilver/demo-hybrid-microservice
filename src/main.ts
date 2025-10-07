@@ -44,7 +44,7 @@ import {
   KAFKA_SERVER_HEADERS_ADAPTER_DI,
 } from 'src/modules/kafka/kafka-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
-import { GLOBAL_ROUTE_PREFIX, AppConfig, KafkaServers } from 'src/core/app';
+import { GLOBAL_ROUTE_PREFIX, AppConfig, AppKafkaConfig, KafkaServers } from 'src/core/app';
 import { MainModule } from 'src/main.module';
 
 async function bootstrap(): Promise<void> {
@@ -144,39 +144,26 @@ async function bootstrap(): Promise<void> {
     statusService: app.get(GrpcServerStatusService),
   });
 
+  const appKafkaConfig = app.get(AppKafkaConfig);
+
   KafkaMicroserviceBuilder.setup(app, {
     kafkaOptions: {
       serverName: KafkaServers.MAIN_KAFKA_BROKER,
       postfixId: '',
       client: {
-        brokers: appConfig.getKafkaBrokers(),
-        clientId: appConfig.getKafkaClientId(),
-        connectionTimeout: 500,
-        authenticationTimeout: 500,
-        retry: {
-          timeout: 30_000,
-          delay: 1_000,
-          retryMaxCount: 20,
-        },
+        brokers: appKafkaConfig.getKafkaBrokers(),
+        clientId: appKafkaConfig.getKafkaClientId(),
         useLogger: true,
+        connectionTimeout: 2_000,
       },
       consumer: {
-        groupId: appConfig.getKafkaGroupId(),
-        retry: {
-          timeout: 30_000,
-          delay: 1_000,
-          retryMaxCount: 20,
-          statusCodes: appConfig.getKafkaRetryStatusCodes(),
-        },
+        groupId: appKafkaConfig.getKafkaGroupId(),
+        retry: appKafkaConfig.getKafkaConsumerRetry(),
       },
       headerAdapter: app.get(KAFKA_SERVER_HEADERS_ADAPTER_DI),
       healthIndicatorOptions: {
         useAdmin: true,
-        retry: {
-          timeout: 500,
-          delay: 100,
-          retryMaxCount: 3,
-        },
+        retry: appKafkaConfig.getKafkaHealthIndicatorRetry(),
       },
     },
     loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),

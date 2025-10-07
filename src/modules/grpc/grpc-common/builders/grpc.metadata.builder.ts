@@ -29,7 +29,7 @@ export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
       let value: string;
 
       if (params?.asyncContext && key in params.asyncContext && params.asyncContext[key] !== undefined) {
-        value = params.asyncContext[key] as string;
+        value = params.asyncContext[key].toString();
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
         value = Array.isArray(headers[useHeaderName]) ? headers[useHeaderName].join('-') : headers[useHeaderName];
 

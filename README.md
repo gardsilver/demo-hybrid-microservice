@@ -9,7 +9,7 @@
 - Корректное завершение приложение **Graceful Shutdown**.
 - Реализована взаимодействие в базой данных **Postgres**: логирование, базовые метрики, авто-применение миграций.
 - Настроено кеширование с использованием **Redis** (не блокирует выполнение приложения в случае не доступности **Redis** и реализовано автоматическое восстановление соединения).
-- Настроена интеграция с сервером очередей **Kafka**: автоматическое восстановление соединения, логирование, метрики, запуск консъюмеров **eachMessage** или **eachBatch**...
+- Настроена интеграция с сервером очередей **Kafka**: автоматическое восстановление соединения, логирование, метрики, запуск консъюмеров `eachMessage` или `eachBatch`, отправка сообщений `send` или `sendBatch` с возможностью переотправки.
 
 ## Установка и настройка
 
@@ -61,7 +61,7 @@ GRPC_PORT=3001
 
 ## Локальная среда разработки
 
-Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды позволяющие быстро поднимать минимально-необходимое окружение, эмулировать различные аварийные ситуации (например отказ **Postgres** или другой интеграции). **see** `deploy`.
+Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды позволяющие быстро поднимать минимально-необходимое окружение, эмулировать различные аварийные ситуации (например отказ **Postgres** или другой интеграции). **@see** `deploy`.
 
 ## Логирование и асинхронный контекст выполнения  
 
@@ -72,7 +72,7 @@ GRPC_PORT=3001
 
 - `PrometheusModule` (**@see** `src/modules/prometheus`).
 
-## **Hybrid Microservice**:  **REST**, **gRPC**
+## **Hybrid Microservice**: **REST**, **gRPC**, **Kafka**
 
 А именно реализована поддержка глобальных **Guard**, **Interceptor**, **Errors Filter**.
 
@@ -81,6 +81,8 @@ GRPC_PORT=3001
 - `HttpClientService` (**@see**  `src/modules/http/http-client`)
 - `GrpcAuthGuard`, `GrpcLogging`, `GrpcPrometheus` и многое другое (**@see**  `src/modules/grpc/grpc-server`)
 - `GrpcClientService` (**@see**  `src/modules/grpc/grpc-client`)
+- `KafkaErrorFilter`, `KafkaServerService` (**@see**  `src/modules/kafka/kafka-server`)
+- `KafkaClientService` (**@see**  `src/modules/kafka/kafka-client`)
 
 ## **Graceful Shutdown**
 
@@ -101,7 +103,11 @@ GRPC_PORT=3001
 
 ## **Kafka**
 
-Гибкая настройка подключения к **Kafka**, настроен механизм автоматического восстановления соединения с брокером **Kafka**, логирование, метрики и **Health Check**.
-Реализована возможность запуска **Consumer** в разных режимах: **eachMessage** и **eachBatch**. (**@see**  `src/modules/kafka/kafka-server`).
+Гибкая настройка подключения к **Kafka**, логирование, метрики и **Health Check**.
+Реализованы возможности:
+
+- Запуск **Consumer**: `eachMessage` и `eachBatch`. (**@see**  `src/modules/kafka/kafka-server`).
+- Оправка сообщений **Producer**: `send` и `sendBatch`. (**@see**  `src/modules/kafka/kafka-client`).
+- Настройка восстановления подключения и переотправка сообщений: [retry](https://kafka.js.org/docs/configuration#default-retry)
 
 [email](mailto:gardsilver@list.ru)

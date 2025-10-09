@@ -14,11 +14,13 @@ import {
   KAFKA_CLIENT_PRODUCER_REQUEST_SERIALIZER_DI,
   KAFKA_CLIENT_PROXY_BUILDER_OPTIONS_DI,
   KAFKA_CLIENT_PROXY_DI,
+  KAFKA_CLIENT_REQUEST_OPTIONS_DI,
 } from './types/tokens';
 import { KafkaHeadersRequestBuilder } from './builders/kafka.headers-request.builder';
 import { ProducerSerializer } from './adapters/producer.serializer';
 import { KafkaClientService } from './services/kafka-client.service';
 import { KafkaClientProxy } from './services/kafka-client.proxy';
+import { KafkaClientErrorHandler } from './filters/kafka-client.error.handler';
 
 @Module({})
 export class KafkaClientModule {
@@ -30,6 +32,10 @@ export class KafkaClientModule {
     }
 
     let providers: Provider[] = [
+      ProviderBuilder.build(KAFKA_CLIENT_REQUEST_OPTIONS_DI, {
+        providerType: options?.requestOptions,
+        defaultType: { useValue: {} },
+      }),
       ProviderBuilder.build(KAFKA_CLIENT_HEADERS_REQUEST_BUILDER_DI, {
         providerType: options?.headerBuilder,
         defaultType: { useClass: KafkaHeadersRequestBuilder },
@@ -58,6 +64,7 @@ export class KafkaClientModule {
           return new KafkaClientProxy(options, loggerBuilder, serializer, headerBuilder);
         },
       },
+      KafkaClientErrorHandler,
       KafkaClientService,
     ];
 
@@ -73,6 +80,7 @@ export class KafkaClientModule {
         KAFKA_CLIENT_HEADERS_REQUEST_BUILDER_DI,
         KAFKA_CLIENT_PRODUCER_REQUEST_SERIALIZER_DI,
         KAFKA_CLIENT_PROXY_DI,
+        KafkaClientErrorHandler,
         KafkaClientService,
       ],
     };

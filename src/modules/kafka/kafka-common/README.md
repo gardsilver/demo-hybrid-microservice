@@ -1,10 +1,10 @@
 # Kafka Common
 
-Основной функционал для работы с **Kafka** Request/Response.
+Основной функционал для работы с **Kafka** **Request/Response**.
 
 ## ВАЖНО
 
-Для получения нормализованных заголовков `IHeaders` (**@see** `src/modules/common`) из **Kafka** Request/Response используйте `KafkaHeadersHelper.normalize`.
+Для получения нормализованных заголовков `IHeaders` (**@see** `src/modules/common`) из **Kafka** **Request/Response** используйте `KafkaHeadersHelper.normalize`.
 
 ```typescript
 import { KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
@@ -38,7 +38,7 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 #### `KafkaJsErrorObjectFormatter`
 
-Реализует форматирование всех ошибок `KafkaJSError` (**@see** `kafkajs`).
+Реализует форматирование всех ошибок `KafkaJSError` (**@see** `kafkajs`): `IObjectFormatter<KafkaJSError>`.
 
 ```typescript
 import { ElkLoggerConfig, ElkLoggerModule } from 'src/modules/elk-logger';
@@ -57,35 +57,34 @@ import { KafkaJsErrorObjectFormatter } from 'src/modules/http/http-common';
 
 ### Восстановление подключения
 
-Обязательно [ознакомьтесь](https://kafka.js.org/docs/configuration#default-retry).
-В настоящем разделе используются параметры аналогичные другим интеграциям:
+Обязательно [ознакомьтесь](https://kafka.js.org/docs/configuration#default-retry):
 
 ```typescript
-export interface IRetryOptions {
-  retry?: boolean;
-  timeout?: number;
-  delay?: number;
-  retryMaxCount?: number;
-  statusCodes?: Array<string | number>;
+export interface RetryOptions {
+  maxRetryTime?: number;
+  initialRetryTime?: number;
+  factor?: number;
+  multiplier?: number;
+  retries?: number;
+  restartOnFailure?: (e: Error) => Promise<boolean>;
 }
 ```
 
-Поскольку в разных сценариях могут быть задействованы только определенные параметры, то реализованы билдеры для формирования соответствующего набора в каждом из сценарии **@see** `KafkaOptionsBuilder`.
-
-- `KafkaOptionsBuilder.createRetryOptions` основные параметры переотправки без использования `restartOnFailure`.
-- `KafkaOptionsBuilder.createRetryOptionsWithRestartOnFailure` добавляет стратегию восстановления подключения `restartOnFailure`.
-
-Стратегия восстановления подключения остановит процесс переподключения, только если будет задан список исключений `IRetryOptions.statusCodes`, в котором проверка соответствия реализована в виде:
-
-```typescript
-const errorType = error.name ?? error.constructor.name;
-const isStop = this.isStop || (options.statusCodes?.length && options.statusCodes.includes(errorType));
-```
-
-Флаг `isStop` будет автоматически установлен при получении сигнала о завершении работы приложения **SIGTERM**  (**@see** `src/modules/graceful-shutdown`)
+Поскольку в разных сценариях могут быть задействованы только определенные параметры, то реализованы билдеры для формирования соответствующего набора в каждом из сценарии **@see** `KafkaOptionsBuilder`. В частности для консъюмеров всегда будет добавляться метод `restartOnFailure`, который фиксирует лог и вернет `false`, если был послан сигнал о завершении работы приложения **SIGTERM**  (**@see** `src/modules/graceful-shutdown`).
 
 ### Метрики
 
 | Метрика| Метки |Описание|
 |---|---|---|
 |`KAFKA_CONNECTION_RESTART`|**labelNames** `['service', 'errorType']`| Количество запусков сценария restartOnFailure. |
+
+### Замечания
+
+Опция `retry` отвечает за стратегию установки соединения, в которой можно задать следующие параметры:
+
+- `retries` количество попыток установки соединения.
+- `maxRetryTime` в `ms` длительность, в течении которой будут запускаться повторные попытки установления соединения.
+- `initialRetryTime` в `ms` задает начальную паузу перед началом следующей попытки установления соединения.
+- `multiplier` и `factor` веса влияющие на вычисление длины паузы перед началом следующей попытки установления соединения.
+
+Соответственно, если за отведенное время (`maxRetryTime`) и/или указанное количество попыток (`retries`) соединение не будет установлено, то процесс будет прерван с выбрасываем соответствующего исключения. При этом о всех не удавшихся попытках будут активно писаться логи, которые по факту не информативны и излишни. Чтобы минимизировать количество логов в `KafkaElkLoggerBuilder` определена дополнительная фильтрация логов. Если для отладки нужно отключить или изменить фильтры используйте параметр: `logFilterParams` (**@see** `IKafkaClientOptions.retry`). Например, если задать: `logFilterParams=[]`, то фильтрация будет отключена.

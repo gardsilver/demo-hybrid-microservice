@@ -7,10 +7,10 @@ import { KafkaOptionsBuilder } from './kafka-options.builder';
 import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
 import {
   IKafkaClientProxyBuilderOptions,
-  IRetryOptions,
   KafkaClientConfig,
   KafkaConsumerConfig,
   KafkaProducerConfig,
+  KafkaRetryConfig,
 } from '../types/types';
 import { KafkaConsumerOptionsBuilder } from './kafka.consumer-options.builder';
 import { KafkaProducerOptionsBuilder } from './kafka.producer-options.builder';
@@ -18,7 +18,7 @@ import { KafkaProducerOptionsBuilder } from './kafka.producer-options.builder';
 describe(KafkaOptionsBuilder.name, () => {
   let mockHost: string;
   let serverName: string;
-  let retryOptions: IRetryOptions;
+  let retryOptions: Omit<KafkaRetryConfig, 'restartOnFailure'>;
   let clientOptions: KafkaClientConfig;
   let consumerOptions: KafkaConsumerConfig;
   let producerOptions: KafkaProducerConfig;
@@ -39,20 +39,23 @@ describe(KafkaOptionsBuilder.name, () => {
     } as ITraceSpan;
 
     retryOptions = {
-      timeout: faker.number.int(),
-      delay: faker.number.int(),
-      retryMaxCount: faker.number.int(),
+      maxRetryTime: faker.number.int(),
+      initialRetryTime: faker.number.int(),
+      retries: faker.number.int(),
     };
 
     clientOptions = {
       clientId: faker.string.alpha(10),
       brokers: [mockHost],
+      retry: retryOptions,
     };
     consumerOptions = {
       groupId: faker.string.alpha(10),
+      retry: retryOptions,
     };
     producerOptions = {
       allowAutoTopicCreation: true,
+      retry: retryOptions,
     };
 
     builderOptions = {
@@ -63,23 +66,12 @@ describe(KafkaOptionsBuilder.name, () => {
           ...clientOptions,
           brokers: clientOptions.brokers as undefined as string[],
         },
-        retry: {
-          ...retryOptions,
-        },
       },
       consumer: {
         ...consumerOptions,
-        retry: {
-          ...retryOptions,
-          retry: true,
-          statusCodes: [KafkaJSConnectionError.name],
-        },
       },
       producer: {
         ...producerOptions,
-        retry: {
-          ...retryOptions,
-        },
       },
     };
 
@@ -135,27 +127,15 @@ describe(KafkaOptionsBuilder.name, () => {
       ...builderOptions,
       client: {
         ...clientOptions,
-        retry: {
-          maxRetryTime: retryOptions.timeout,
-          initialRetryTime: retryOptions.delay,
-          retries: retryOptions.retryMaxCount,
-        },
       },
       consumer: {
         ...consumerOptions,
         retry: {
-          maxRetryTime: retryOptions.timeout,
-          initialRetryTime: retryOptions.delay,
-          retries: retryOptions.retryMaxCount,
+          ...consumerOptions.retry,
         },
       },
       producer: {
         ...producerOptions,
-        retry: {
-          maxRetryTime: retryOptions.timeout,
-          initialRetryTime: retryOptions.delay,
-          retries: retryOptions.retryMaxCount,
-        },
       },
     });
 
@@ -165,11 +145,11 @@ describe(KafkaOptionsBuilder.name, () => {
 
     let error: Error = new KafkaJSConnectionError('Test error');
 
-    expect(await restartOnFailure(error)).toBeFalsy();
+    expect(await restartOnFailure(error)).toBeTruthy();
 
     expect(spyLog).toHaveBeenCalledWith('Kafka restart on failure', {
       payload: {
-        status: 'stop reconnection',
+        status: 'reconnection',
         serverName,
         brokers: [mockHost],
         error,
@@ -214,13 +194,15 @@ describe(KafkaOptionsBuilder.name, () => {
         ...builderOptions.consumer,
         retry: {
           ...builderOptions.consumer.retry,
-          retry: false,
         },
       },
     });
 
-    expect(tgt.client.retry).toBeUndefined();
-    expect(tgt.consumer.retry).toBeUndefined();
+    expect(tgt.client.retry).toBeDefined();
+    expect({
+      ...tgt.consumer.retry,
+      restartOnFailure: undefined,
+    }).toEqual(retryOptions);
   });
 
   it('build without consumer and producer', async () => {
@@ -234,11 +216,7 @@ describe(KafkaOptionsBuilder.name, () => {
       ...builderOptions,
       client: {
         ...clientOptions,
-        retry: {
-          maxRetryTime: retryOptions.timeout,
-          initialRetryTime: retryOptions.delay,
-          retries: retryOptions.retryMaxCount,
-        },
+        retry: retryOptions,
       },
       consumer: undefined,
       producer: undefined,

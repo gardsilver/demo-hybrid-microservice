@@ -16,7 +16,7 @@ export const defaultRedisReconnectStrategyBuilder = {
     return (retries: number, cause: Error): false | Error | number => {
       ++attempts;
       if (attempts > redisCacheManagerConfig.getCountForResetReconnectStrategy()) {
-        logger.error('Redis client reconnect filed', {
+        logger.error('Redis client reconnect failed', {
           payload: {
             retries,
             cause,

@@ -19,7 +19,7 @@ export class KafkaHeadersHelper extends HttHeadersHelper {
     return {
       ...HttHeadersHelper.toAsyncContext<Ctx>(headers),
       replyTopic: KafkaHeadersHelper.searchValue(headers, KafkaAsyncContextHeaderNames.REPLY_TOPIC),
-      replyPartition: replyPartitionRaw ? Number(replyPartitionRaw) : undefined,
+      replyPartition: replyPartitionRaw !== undefined ? Number(replyPartitionRaw) : undefined,
     };
   }
 }

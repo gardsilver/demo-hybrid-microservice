@@ -1,11 +1,11 @@
-import { GrpcClientExternalException } from '../errors/grpc-client.external.error';
+import { GrpcClientExternalError } from '../errors/grpc-client.external.error';
 import { GRPC_CLIENT_DEFAULT_OPTIONS } from '../types/constants';
 import { IGrpcRequestOptions } from '../types/types';
 import { GrpcClientHelper } from './grpc-client.helper';
 
 describe(GrpcClientHelper.name, () => {
   it('canRetry', async () => {
-    const error = new GrpcClientExternalException('Test error', 1);
+    const error = new GrpcClientExternalError('Test error', 1);
     expect(GrpcClientHelper.canRetry(error)).toBeFalsy();
     expect(GrpcClientHelper.canRetry(error, {})).toBeFalsy();
     expect(GrpcClientHelper.canRetry(error, { retryOptions: {} })).toBeFalsy();

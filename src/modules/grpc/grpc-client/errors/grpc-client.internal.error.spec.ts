@@ -1,8 +1,8 @@
-import { GrpcClientInternalException } from './grpc-client.internal.error';
+import { GrpcClientInternalError } from './grpc-client.internal.error';
 
-describe(GrpcClientInternalException.name, () => {
+describe(GrpcClientInternalError.name, () => {
   it('default', async () => {
-    const error = new GrpcClientInternalException(undefined, undefined);
+    const error = new GrpcClientInternalError(undefined, undefined);
 
     expect({
       message: error.message,

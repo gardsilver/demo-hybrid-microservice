@@ -15,7 +15,6 @@ import {
   IKafkaMessage,
   KafkaAsyncContext,
   KafkaClientOptionsBuilder,
-  KafkaOptionsBuilder,
   KafkaProducerOptionsBuilder,
 } from 'src/modules/kafka/kafka-common';
 import { MockConfigService } from 'tests/nestjs';
@@ -25,7 +24,7 @@ import { MockProducerSerializer, MockKafkaHeadersRequestBuilder, kafkaHeadersFac
 import {
   IKafkaHeadersRequestBuilder,
   IKafkaRequest,
-  IKafkaRequestOptions,
+  IKafkaSendOptions,
   IProducerSerializer,
   ProducerMode,
 } from '../types/types';
@@ -74,7 +73,6 @@ describe(KafkaClientProxy.name, () => {
     it('default', async () => {
       const spyClientOptions = jest.spyOn(KafkaClientOptionsBuilder, 'build');
       const spyProducerOptions = jest.spyOn(KafkaProducerOptionsBuilder, 'build');
-      const spyRetryOptions = jest.spyOn(KafkaOptionsBuilder, 'createRetryOptions');
 
       clientProxy = new KafkaClientProxy(
         {
@@ -95,16 +93,18 @@ describe(KafkaClientProxy.name, () => {
         { brokers: [] },
         {
           loggerBuilder,
+          logFields: {
+            module: 'KafkaClient',
+          },
+          logTitle: `Kafka Client [${serverName}]: `,
         },
       );
-      expect(spyProducerOptions).toHaveBeenCalledWith({});
-      expect(spyRetryOptions).toHaveBeenCalledTimes(0);
+      expect(spyProducerOptions).toHaveBeenCalledWith(undefined);
     });
 
     it('with retry', async () => {
       const spyClientOptions = jest.spyOn(KafkaClientOptionsBuilder, 'build');
       const spyProducerOptions = jest.spyOn(KafkaProducerOptionsBuilder, 'build');
-      const spyRetryOptions = jest.spyOn(KafkaOptionsBuilder, 'createRetryOptions');
 
       clientProxy = new KafkaClientProxy(
         {
@@ -114,17 +114,17 @@ describe(KafkaClientProxy.name, () => {
             clientId: 'clientId',
             brokers: ['broker'],
             retry: {
-              timeout: 10_000,
-              delay: 500,
-              retryMaxCount: 10,
+              maxRetryTime: 10_000,
+              initialRetryTime: 500,
+              retries: 10,
             },
           },
           producer: {
             metadataMaxAge: 2,
             retry: {
-              timeout: 20_000,
-              delay: 1_000,
-              retryMaxCount: 20,
+              maxRetryTime: 20_000,
+              initialRetryTime: 1_000,
+              retries: 30,
             },
           },
         },
@@ -140,31 +140,44 @@ describe(KafkaClientProxy.name, () => {
           clientId: 'clientId',
           brokers: ['broker'],
           retry: {
-            timeout: 10_000,
-            delay: 500,
-            retryMaxCount: 10,
+            maxRetryTime: 10_000,
+            initialRetryTime: 500,
+            retries: 10,
           },
         },
         {
           loggerBuilder,
+          logFields: {
+            module: 'KafkaClient',
+          },
+          logTitle: `Kafka Client [${serverName}]: `,
         },
       );
       expect(spyProducerOptions).toHaveBeenCalledWith({
         metadataMaxAge: 2,
         retry: {
-          timeout: 20_000,
-          delay: 1_000,
-          retryMaxCount: 20,
+          maxRetryTime: 20_000,
+          initialRetryTime: 1_000,
+          retries: 30,
         },
       });
-      expect(spyRetryOptions).toHaveBeenCalledWith({ timeout: 10_000, delay: 500, retryMaxCount: 10 });
-      expect(spyRetryOptions).toHaveBeenCalledWith({ timeout: 20_000, delay: 1_000, retryMaxCount: 20 });
+
+      expect(clientProxy['clientConfig']['retry']).toEqual({
+        maxRetryTime: 10_000,
+        initialRetryTime: 500,
+        retries: 10,
+      });
+      expect(clientProxy['producerConfig']['retry']).toEqual({
+        maxRetryTime: 20_000,
+        initialRetryTime: 1_000,
+        retries: 30,
+      });
     });
   });
 
   describe('base methods', () => {
     let request: IKafkaRequest;
-    let options: IKafkaRequestOptions;
+    let options: IKafkaSendOptions;
     beforeEach(async () => {
       clientProxy = new KafkaClientProxy(
         {

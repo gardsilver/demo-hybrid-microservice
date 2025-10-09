@@ -1,3 +1,4 @@
+import { BehaviorSubject, timeout } from 'rxjs';
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeaders } from '@nestjs/swagger';
 import { Ctx, Payload } from '@nestjs/microservices';
@@ -18,7 +19,6 @@ import { SearchResponse } from 'src/examples/integrations/common';
 import { KafkaSearchRequest } from '../types/dto';
 import { DemoResponseDeserializer } from '../adapters/demo.response.deserializer';
 import { KafkaService } from '../services/kafka.service';
-import { BehaviorSubject, timeout } from 'rxjs';
 
 @SkipInterceptors({
   HttpAuthGuard: true,
@@ -80,7 +80,7 @@ export class HttpController {
     deserializer: new DemoResponseDeserializer(),
   })
   async eachMessage(@Payload() data: IKafkaMessage<MainResponse>, @Ctx() ctx: KafkaContext) {
-    this.logger.info('Get new KafkaRequest', {
+    this.logger.info('Kafka read message', {
       payload: {
         request: data,
         options: ctx.getMessageOptions(),
@@ -91,7 +91,7 @@ export class HttpController {
 
   async searchResponse(correlationId: string): Promise<IKafkaMessage<MainResponse>> {
     return new Promise((resolve, reject) => {
-      this.logger.info('Start waite response!', {
+      this.logger.info('Waiting kafka response', {
         payload: {
           correlationId,
         },
@@ -108,7 +108,7 @@ export class HttpController {
             }
           });
 
-          this.logger.info('Get response success!', {
+          this.logger.info('Kafka response success', {
             payload: {
               response: value,
             },
@@ -123,7 +123,7 @@ export class HttpController {
             }
           });
 
-          this.logger.error('Get response filed!', {
+          this.logger.error('Kafka response failed', {
             payload: {
               error,
             },

@@ -187,7 +187,7 @@ describe(GrpcPrometheus.name, () => {
     expect(spyIncrement).toHaveBeenCalledTimes(0);
   });
 
-  it('response filed with Unknown Error', async () => {
+  it('response failed with Unknown Error', async () => {
     const spyAdapter = jest.spyOn(headersAdapter, 'adapt');
 
     GrpcMetadataHelper.setAsyncContext(asyncContext, requestMetadata);
@@ -244,7 +244,7 @@ describe(GrpcPrometheus.name, () => {
     });
   });
 
-  it('response filed with RpcException', async () => {
+  it('response failed with RpcException', async () => {
     const spyAdapter = jest.spyOn(headersAdapter, 'adapt');
 
     GrpcMetadataHelper.setAsyncContext(asyncContext, requestMetadata);

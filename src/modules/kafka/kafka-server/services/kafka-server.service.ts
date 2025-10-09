@@ -7,12 +7,10 @@ import {
   Kafka,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, IConsumerPacket } from '../types/types';
+import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerBase } from './kafka-server.base';
-import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
 
 export class KafkaServerService extends KafkaServerBase {
   protected consumer: Consumer | null = null;
@@ -32,26 +30,15 @@ export class KafkaServerService extends KafkaServerBase {
     return [this.client, this.consumer, this.batchConsumer] as T;
   }
 
-  public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
-    try {
-      this.client = this.createClient();
-      await this.start(callback);
-    } catch (err) {
-      callback(err);
-    }
-  }
-
   public async close(): Promise<void> {
+    await super.close();
     await Promise.all([this.consumer?.disconnect(), this.batchConsumer?.disconnect()]);
     this.consumer = null;
     this.batchConsumer = null;
-    this.client = null;
   }
 
-  protected async start(callback: () => void): Promise<void> {
+  protected async start(): Promise<void> {
     await Promise.all([this.bindEachEvents(), this.bindBatchEvents()]);
-
-    callback();
   }
 
   protected async bindEachEvents(): Promise<void> {
@@ -59,7 +46,8 @@ export class KafkaServerService extends KafkaServerBase {
 
     if (!registeredPatterns.length) {
       this.logger.warn(
-        `Have not subscribers on eachMessage for ${this.serverName}. Use decorator EventKafkaMessage for subscribe if you need this process.`,
+        this.logTitle +
+          `Have not subscribers on ${ConsumerMode.EACH_MESSAGE}. Use decorator EventKafkaMessage for subscribe if you need this process.`,
       );
       return;
     }
@@ -86,9 +74,6 @@ export class KafkaServerService extends KafkaServerBase {
     await this.consumer.run(consumerRunOptions);
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {
@@ -123,7 +108,7 @@ export class KafkaServerService extends KafkaServerBase {
 
       await this.handleEvent(packet.pattern, packet, kafkaContext);
     } catch (error) {
-      this.logger.error(this.serverName + ' filed!', {
+      this.logger.error(this.logTitle + `handle ${ConsumerMode.EACH_MESSAGE} failed.`, {
         payload,
         error,
       });
@@ -143,7 +128,8 @@ export class KafkaServerService extends KafkaServerBase {
 
     if (!registeredPatterns.length) {
       this.logger.warn(
-        `Have not subscribers on eachBatch for ${this.serverName}. Use decorator EventKafkaMessage for subscribe if you need this process.`,
+        this.logTitle +
+          `Have not subscribers on ${ConsumerMode.EACH_BATCH}. Use decorator EventKafkaMessage for subscribe if you need this process.`,
       );
       return;
     }
@@ -170,9 +156,6 @@ export class KafkaServerService extends KafkaServerBase {
     return this.batchConsumer.run(consumerRunOptions);
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {
@@ -217,7 +200,7 @@ export class KafkaServerService extends KafkaServerBase {
         kafkaContext,
       );
     } catch (error) {
-      this.logger.error(ConsumerMode.EACH_BATCH + ' filed!', {
+      this.logger.error(this.logTitle + `handle ${ConsumerMode.EACH_BATCH} failed.`, {
         payload,
         error,
       });

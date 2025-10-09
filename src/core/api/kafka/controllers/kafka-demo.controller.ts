@@ -33,12 +33,12 @@ export class KafkaDemoController {
     deserializer: new DemoRequestDeserializer(),
   })
   async eachBatch(@Payload() data: IKafkaMessage<MainRequest>[], @Ctx() ctx: KafkaContext) {
-    const options = ctx.getMessageOptions();
+    const messageOptions = ctx.getMessageOptions();
 
-    this.logger.info('Get new KafkaRequest', {
+    this.logger.info('Kafka read batch message', {
       payload: {
         request: data,
-        options,
+        messageOptions,
       },
     });
 
@@ -48,7 +48,7 @@ export class KafkaDemoController {
       results.push(
         KafkaAsyncContext.instance.runWithContextAsync(
           () => {
-            return this.service.search(options[index].topic, request);
+            return this.service.search(messageOptions[index].topic, request);
           },
           {
             ...this.headerAdapter.adapt(request.headers ?? {}),

@@ -23,6 +23,7 @@ import { HttpController } from './controllers/http.controller';
               brokers: config.getKafkaBrokers(),
               clientId: config.getKafkaClientId(),
               useLogger: true,
+              connectionTimeout: 300,
             },
             producer: {
               retry: config.getKafkaProducerRetry(),

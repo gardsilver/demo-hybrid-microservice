@@ -43,6 +43,7 @@ import {
   KafkaMicroserviceBuilder,
   KAFKA_SERVER_HEADERS_ADAPTER_DI,
 } from 'src/modules/kafka/kafka-server';
+import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
 import { GLOBAL_ROUTE_PREFIX, AppConfig, AppKafkaConfig, KafkaServers } from 'src/core/app';
 import { MainModule } from 'src/main.module';
@@ -64,6 +65,7 @@ async function bootstrap(): Promise<void> {
         new RpcExceptionFormatter(),
         new RedisClientErrorFormatter(),
         new KafkaJsErrorObjectFormatter(),
+        new KafkaClientErrorObjectFormatter(),
       ],
       objectFormatters: [
         new MetadataObjectFormatter(),

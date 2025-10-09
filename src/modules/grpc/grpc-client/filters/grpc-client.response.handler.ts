@@ -6,8 +6,8 @@ import { TimeoutError } from 'src/modules/date-timestamp';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder, ILogFields, LogLevel } from 'src/modules/elk-logger';
 import { GrpcClientError, IGrpcClientError, isGrpcServiceError } from '../errors/grpc-client.error';
 import { GrpcClientTimeoutError } from '../errors/grpc-client.timeout.error';
-import { GrpcClientExternalException } from '../errors/grpc-client.external.error';
-import { GrpcClientInternalException } from '../errors/grpc-client.internal.error';
+import { GrpcClientExternalError } from '../errors/grpc-client.external.error';
+import { GrpcClientInternalError } from '../errors/grpc-client.internal.error';
 
 @Injectable()
 export class GrpcClientResponseHandler {
@@ -84,32 +84,28 @@ export class GrpcClientResponseHandler {
           GrpcStatus.UNAUTHENTICATED,
         ].includes(exception.code)
       ) {
-        resolvedError = new GrpcClientInternalException(exception.message, exception.code, exception);
+        resolvedError = new GrpcClientInternalError(exception.message, exception.code, exception);
       } else if (exception.code === GrpcStatus.NOT_FOUND) {
         resolvedError = null;
         logLevel = LogLevel.WARN;
       } else {
-        resolvedError = new GrpcClientExternalException(exception.message, exception.code, exception);
+        resolvedError = new GrpcClientExternalError(exception.message, exception.code, exception);
       }
     } else if (typeof exception === 'string') {
-      resolvedError = new GrpcClientExternalException(exception, undefined, undefined);
+      resolvedError = new GrpcClientExternalError(exception, undefined, undefined);
     } else if (typeof exception === 'object') {
-      resolvedError = new GrpcClientExternalException(
+      resolvedError = new GrpcClientExternalError(
         'message' in exception && typeof exception['message'] === 'string' ? exception['message'] : undefined,
         undefined,
         exception,
       );
     } else {
-      resolvedError = new GrpcClientExternalException(undefined, undefined, exception);
+      resolvedError = new GrpcClientExternalError(undefined, undefined, exception);
     }
 
     this.loggingResponse(
       resolvedError === null
-        ? new GrpcClientExternalException(
-            (exception as ServiceError).message,
-            (exception as ServiceError).code,
-            exception,
-          )
+        ? new GrpcClientExternalError((exception as ServiceError).message, (exception as ServiceError).code, exception)
         : resolvedError,
       {
         ...options,

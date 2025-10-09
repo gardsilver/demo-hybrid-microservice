@@ -5,7 +5,7 @@ import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { grpcMetadataFactory } from 'tests/modules/grpc/grpc-common';
 import { GrpcClientErrorFormatter } from './grpc-client.error.object-formatter';
 import { GrpcClientError } from '../../errors/grpc-client.error';
-import { GrpcClientExternalException } from '../../errors/grpc-client.external.error';
+import { GrpcClientExternalError } from '../../errors/grpc-client.external.error';
 
 describe(GrpcClientErrorFormatter.name, () => {
   let headers: IHeaders;
@@ -37,7 +37,7 @@ describe(GrpcClientErrorFormatter.name, () => {
     serverError.code = GrpcStatus.INTERNAL;
     serverError.metadata = metadata;
 
-    error = new GrpcClientExternalException('Tets Error', 'status', serverError);
+    error = new GrpcClientExternalError('Tets Error', 'status', serverError);
   });
 
   it('isInstanceOf', async () => {

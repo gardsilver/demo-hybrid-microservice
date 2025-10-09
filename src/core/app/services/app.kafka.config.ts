@@ -1,11 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigServiceHelper } from 'src/modules/common';
-import {
-  IKafkaConsumerOptions,
-  IKafkaHealthIndicatorOptions,
-  IKafkaProducerOptions,
-} from 'src/modules/kafka/kafka-common';
+import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 
 @Injectable()
 export class AppKafkaConfig {
@@ -52,27 +48,26 @@ export class AppKafkaConfig {
   getKafkaRetryStatusCodes(): Array<string | number> {
     return this.kafkaRetryStatusCodes;
   }
-
-  getKafkaProducerRetry(): IKafkaProducerOptions['retry'] {
+  getKafkaProducerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
-      timeout: 4_000,
-      delay: 500,
+      maxRetryTime: 1_000,
+      initialRetryTime: 200,
+      retries: 2,
     };
   }
 
-  getKafkaConsumerRetry(): IKafkaConsumerOptions['retry'] {
+  getKafkaConsumerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
-      timeout: 10_000,
-      delay: 1_000,
-      retryMaxCount: 20,
-      statusCodes: this.getKafkaRetryStatusCodes(),
+      maxRetryTime: 10_000,
+      initialRetryTime: 1_000,
+      retries: 20,
     };
   }
 
-  getKafkaHealthIndicatorRetry(): IKafkaHealthIndicatorOptions['retry'] {
+  getKafkaHealthIndicatorRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
-      timeout: 4_000,
-      delay: 500,
+      maxRetryTime: 4_000,
+      initialRetryTime: 500,
     };
   }
 }

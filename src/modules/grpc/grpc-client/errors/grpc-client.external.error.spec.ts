@@ -1,8 +1,8 @@
-import { GrpcClientExternalException } from './grpc-client.external.error';
+import { GrpcClientExternalError } from './grpc-client.external.error';
 
-describe(GrpcClientExternalException.name, () => {
+describe(GrpcClientExternalError.name, () => {
   it('default', async () => {
-    const error = new GrpcClientExternalException(undefined, undefined);
+    const error = new GrpcClientExternalError(undefined, undefined);
 
     expect({
       message: error.message,

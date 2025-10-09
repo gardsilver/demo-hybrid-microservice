@@ -288,20 +288,20 @@ describe(NestElkLoggerService.name, () => {
 
     describe('error', () => {
       it('error default', async () => {
-        logger.error('Test application filed', 'TestApplication');
+        logger.error('Test application failed', 'TestApplication');
 
         expect(spyFormatter).toHaveBeenCalledTimes(1);
         expect(spyRecordEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyLogWriter).toHaveBeenCalledTimes(1);
-        expect(spyLogWriter).toHaveBeenCalledWith('Test application filed\n');
+        expect(spyLogWriter).toHaveBeenCalledWith('Test application failed\n');
         expect(logger.getLastLogRecord()).toEqual({
           markers: [],
           businessData: {},
           payload: {},
           level: 'ERROR',
           module: 'TestApplication',
-          message: 'Test application filed',
+          message: 'Test application failed',
           traceId: mockUuid,
           spanId: mockUuid,
           parentSpanId: '',
@@ -312,13 +312,13 @@ describe(NestElkLoggerService.name, () => {
       it('error with stack', async () => {
         const stackTrace = 'Error: message\n    at <anonymous>:1:2';
 
-        logger.error('Test application filed', stackTrace);
+        logger.error('Test application failed', stackTrace);
 
         expect(spyFormatter).toHaveBeenCalledTimes(1);
         expect(spyRecordEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyLogWriter).toHaveBeenCalledTimes(1);
-        expect(spyLogWriter).toHaveBeenCalledWith('Test application filed\n');
+        expect(spyLogWriter).toHaveBeenCalledWith('Test application failed\n');
         expect(logger.getLastLogRecord()).toEqual({
           markers: [],
           businessData: {},
@@ -327,7 +327,7 @@ describe(NestElkLoggerService.name, () => {
           },
           level: 'ERROR',
           module: 'NestElkLoggerService',
-          message: 'Test application filed',
+          message: 'Test application failed',
           traceId: mockUuid,
           spanId: mockUuid,
           parentSpanId: '',
@@ -336,20 +336,20 @@ describe(NestElkLoggerService.name, () => {
       });
 
       it('error with message', async () => {
-        logger.error('Test application filed');
+        logger.error('Test application failed');
 
         expect(spyFormatter).toHaveBeenCalledTimes(1);
         expect(spyRecordEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyLogWriter).toHaveBeenCalledTimes(1);
-        expect(spyLogWriter).toHaveBeenCalledWith('Test application filed\n');
+        expect(spyLogWriter).toHaveBeenCalledWith('Test application failed\n');
         expect(logger.getLastLogRecord()).toEqual({
           markers: [],
           businessData: {},
           payload: {},
           level: 'ERROR',
           module: 'NestElkLoggerService',
-          message: 'Test application filed',
+          message: 'Test application failed',
           traceId: mockUuid,
           spanId: mockUuid,
           parentSpanId: '',
@@ -358,20 +358,20 @@ describe(NestElkLoggerService.name, () => {
       });
 
       it('error with message and undefined', async () => {
-        logger.error('Test application filed', undefined);
+        logger.error('Test application failed', undefined);
 
         expect(spyFormatter).toHaveBeenCalledTimes(1);
         expect(spyRecordEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyLogWriter).toHaveBeenCalledTimes(1);
-        expect(spyLogWriter).toHaveBeenCalledWith('Test application filed\n');
+        expect(spyLogWriter).toHaveBeenCalledWith('Test application failed\n');
         expect(logger.getLastLogRecord()).toEqual({
           markers: [],
           businessData: {},
           payload: {},
           level: 'ERROR',
           module: 'NestElkLoggerService',
-          message: 'Test application filed',
+          message: 'Test application failed',
           traceId: mockUuid,
           spanId: mockUuid,
           parentSpanId: '',
@@ -434,13 +434,13 @@ describe(NestElkLoggerService.name, () => {
       });
 
       it('error with message, stack and context', async () => {
-        logger.error('Test application filed', 'anyStackTrace', 'TestApplication');
+        logger.error('Test application failed', 'anyStackTrace', 'TestApplication');
 
         expect(spyFormatter).toHaveBeenCalledTimes(1);
         expect(spyRecordEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyEncodeFormatter).toHaveBeenCalledTimes(1);
         expect(spyLogWriter).toHaveBeenCalledTimes(1);
-        expect(spyLogWriter).toHaveBeenCalledWith('Test application filed\n');
+        expect(spyLogWriter).toHaveBeenCalledWith('Test application failed\n');
         expect(logger.getLastLogRecord()).toEqual({
           markers: [],
           businessData: {},
@@ -449,7 +449,7 @@ describe(NestElkLoggerService.name, () => {
           },
           level: 'ERROR',
           module: 'TestApplication',
-          message: 'Test application filed',
+          message: 'Test application failed',
           traceId: mockUuid,
           spanId: mockUuid,
           parentSpanId: '',

@@ -17,6 +17,7 @@ import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules
 import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { GrpcServerModule, RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
 import { HealthModule } from 'src/health';
 import { AppModule } from 'src/core/app';
@@ -47,6 +48,7 @@ import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
           new RpcExceptionFormatter(),
           new RedisClientErrorFormatter(),
           new KafkaJsErrorObjectFormatter(),
+          new KafkaClientErrorObjectFormatter(),
         ],
         objectFormatters: [
           new MetadataObjectFormatter(),

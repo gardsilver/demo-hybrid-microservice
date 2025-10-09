@@ -223,7 +223,7 @@ describe(GrpcLogging.name, () => {
     });
   });
 
-  it('logging filed', async () => {
+  it('logging failed', async () => {
     const spyAdapter = jest.spyOn(headersAdapter, 'adapt');
 
     GrpcMetadataHelper.setAsyncContext(asyncContext, requestMetadata);
@@ -247,11 +247,7 @@ describe(GrpcLogging.name, () => {
 
     handler.handle = jest.fn().mockImplementation(() => {
       return new Observable((subscriber) => {
-        try {
-          subscriber.error(error);
-        } catch (e) {
-          subscriber.error(e);
-        }
+        subscriber.error(error);
       });
     });
 

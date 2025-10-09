@@ -18,14 +18,13 @@ import { IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import {
   KafkaAsyncContext,
   KafkaClientOptionsBuilder,
-  KafkaOptionsBuilder,
   KafkaProducerOptionsBuilder,
 } from 'src/modules/kafka/kafka-common';
 import {
   IKafkaClientServiceOptions,
   IKafkaHeadersRequestBuilder,
   IKafkaRequest,
-  IKafkaRequestOptions,
+  IKafkaSendOptions,
   IProducerPacket,
   IProducerSerializer,
   ProducerMode,
@@ -44,24 +43,25 @@ export class KafkaClientProxy {
 
   constructor(
     options: IKafkaClientServiceOptions,
-    private readonly loggerBuilder: IElkLoggerServiceBuilder,
+    loggerBuilder: IElkLoggerServiceBuilder,
     private readonly serializer: IProducerSerializer,
     private readonly headerBuilder: IKafkaHeadersRequestBuilder,
   ) {
+    this.serverName = options.serverName;
+
     this.clientConfig = {
       ...KafkaClientOptionsBuilder.build(options.client, {
-        loggerBuilder: this.loggerBuilder,
+        loggerBuilder,
+        logTitle: options.logTitle ?? `Kafka Client [${this.serverName}]: `,
+        logFields: {
+          module: 'KafkaClient',
+        },
       }),
-      retry: options.client.retry ? KafkaOptionsBuilder.createRetryOptions(options.client.retry) : undefined,
     };
 
-    this.producerConfig = {
-      ...KafkaProducerOptionsBuilder.build(options.producer ?? {}),
-      retry: options.producer?.retry ? KafkaOptionsBuilder.createRetryOptions(options.producer.retry) : undefined,
-    };
+    this.producerConfig = KafkaProducerOptionsBuilder.build(options.producer);
     this.sendConfig = { ...options.send };
 
-    this.serverName = options.serverName;
     const postfixId = options.postfixId ?? '-client';
     this.brokers = this.clientConfig.brokers?.length ? this.clientConfig.brokers : [KAFKA_DEFAULT_BROKER];
     this.clientId = (this.clientConfig.clientId || KAFKA_DEFAULT_CLIENT) + postfixId;
@@ -113,7 +113,7 @@ export class KafkaClientProxy {
     return [this.client, this.producer] as T;
   }
 
-  public send<T = unknown>(request: IKafkaRequest<T>, options?: IKafkaRequestOptions): Observable<RecordMetadata[]> {
+  public send<T = unknown>(request: IKafkaRequest<T>, options?: IKafkaSendOptions): Observable<RecordMetadata[]> {
     if (!request || !request.topic || !request.data || (Array.isArray(request.data) && !request.data.length)) {
       return throwError(() => new InvalidMessageException());
     }
@@ -131,7 +131,7 @@ export class KafkaClientProxy {
 
   public sendBatch<T = unknown>(
     request: IKafkaRequest<T>[],
-    options?: IKafkaRequestOptions,
+    options?: IKafkaSendOptions,
   ): Observable<RecordMetadata[]> {
     if (!request || !request.length) {
       return throwError(() => new InvalidMessageException());
@@ -156,7 +156,7 @@ export class KafkaClientProxy {
 
   private async dispatchMessage<T = unknown>(
     request: IKafkaRequest<T>,
-    options?: IKafkaRequestOptions,
+    options?: IKafkaSendOptions,
   ): Promise<RecordMetadata[]> {
     const producerRecord = {
       topic: request.topic,
@@ -170,7 +170,7 @@ export class KafkaClientProxy {
 
   private async dispatchBatchMessage<T = unknown>(
     request: IKafkaRequest<T>[],
-    options?: IKafkaRequestOptions,
+    options?: IKafkaSendOptions,
   ): Promise<RecordMetadata[]> {
     const topicMessages: Promise<Message[]>[] = [];
 
@@ -195,7 +195,7 @@ export class KafkaClientProxy {
   private async requestAsMessages<T = unknown>(
     mode: ProducerMode,
     request: IKafkaRequest<T>,
-    options?: IKafkaRequestOptions,
+    options?: IKafkaSendOptions,
   ): Promise<Message[]> {
     const messages: Promise<Message>[] = [];
 
@@ -231,7 +231,7 @@ export class KafkaClientProxy {
   private async buildMessage<T = unknown>(
     mode: ProducerMode,
     packet: IProducerPacket<T>,
-    options?: IKafkaRequestOptions,
+    options?: IKafkaSendOptions,
   ): Promise<Message> {
     const serializer = options?.serializer ?? this.serializer;
     const headerBuilder = options?.headerBuilder ?? this.headerBuilder;

@@ -1,17 +1,10 @@
 import { logLevel } from 'kafkajs';
 import { UrlHelper } from 'src/modules/common';
-import { IElkLoggerServiceBuilder, ILogFields } from 'src/modules/elk-logger';
 import { KafkaClientConfig, IKafkaClientOptions } from '../types/types';
-import { KafkaElkLoggerBuilder } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder, KafkaElkLoggerBuilderOptions } from './kafka.ekf-logger.builder';
 
 export class KafkaClientOptionsBuilder {
-  public static build(
-    options: IKafkaClientOptions,
-    params?: {
-      loggerBuilder: IElkLoggerServiceBuilder;
-      logFields?: ILogFields;
-    },
-  ): KafkaClientConfig {
+  public static build(options: IKafkaClientOptions, params?: KafkaElkLoggerBuilderOptions): KafkaClientConfig {
     const brokers = options?.normalizeUrl
       ? options.brokers.map((url) => {
           const normalizeUrl = UrlHelper.normalize(url);
@@ -29,7 +22,7 @@ export class KafkaClientOptionsBuilder {
         ...options,
         normalizeUrl: undefined,
         useLogger: undefined,
-        retry: undefined,
+        logFilterParams: undefined,
       },
       brokers,
     };
@@ -40,7 +33,10 @@ export class KafkaClientOptionsBuilder {
       }
 
       kafkaClientConfig.logLevel = logLevel.INFO;
-      kafkaClientConfig.logCreator = KafkaElkLoggerBuilder.build(params);
+      kafkaClientConfig.logCreator = KafkaElkLoggerBuilder.build({
+        ...params,
+        logFilterParams: options.logFilterParams,
+      });
     } else {
       kafkaClientConfig.logLevel = logLevel.NOTHING;
       kafkaClientConfig.logCreator = KafkaElkLoggerBuilder.build();

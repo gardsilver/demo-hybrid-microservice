@@ -1,11 +1,12 @@
 import { KafkaOptions } from '@nestjs/microservices';
 import { IElkLoggerServiceBuilder, ILogFields, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
-import { IKafkaClientProxyBuilderOptions, IRetryOptions, KafkaRetryConfig } from '../types/types';
+import { IKafkaClientProxyBuilderOptions, KafkaRetryConfig } from '../types/types';
 import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
 import { KafkaConsumerOptionsBuilder } from './kafka.consumer-options.builder';
 import { KafkaProducerOptionsBuilder } from './kafka.producer-options.builder';
 import { KAFKA_CONNECTION_RESTART } from '../types/metrics';
+import { KafkaElkLoggerBuilderOptions } from './kafka.ekf-logger.builder';
 
 export class KafkaOptionsBuilder {
   private isStop: boolean = false;
@@ -13,6 +14,7 @@ export class KafkaOptionsBuilder {
   constructor(
     private readonly loggerBuilder: IElkLoggerServiceBuilder,
     private readonly prometheusManager: PrometheusManager,
+    private readonly kafkaLoggerBuilderOptions?: Omit<KafkaElkLoggerBuilderOptions, 'loggerBuilder'>,
   ) {}
 
   public stop(): void {
@@ -21,6 +23,7 @@ export class KafkaOptionsBuilder {
 
   public build(options: IKafkaClientProxyBuilderOptions): KafkaOptions['options'] {
     const clientOptions = KafkaClientOptionsBuilder.build(options.client, {
+      ...this.kafkaLoggerBuilderOptions,
       loggerBuilder: this.loggerBuilder,
     });
 
@@ -35,83 +38,64 @@ export class KafkaOptionsBuilder {
       },
       client: {
         ...clientOptions,
-        retry: options.client.retry ? KafkaOptionsBuilder.createRetryOptions(options.client.retry) : undefined,
       },
       consumer: options.consumer
         ? {
             ...KafkaConsumerOptionsBuilder.build(options.consumer),
-            retry: options.consumer.retry
-              ? this.createRetryOptionsWithRestartOnFailure(options.consumer.retry, {
-                  serverName: options.serverName,
-                  brokers,
-                  logFields: {
-                    module: 'KafkaConsumer',
-                    ...TraceSpanBuilder.build(),
-                  },
-                })
-              : undefined,
+            retry: this.createRetryOptionsWithRestartOnFailure(options.consumer.retry, {
+              serverName: options.serverName,
+              brokers,
+              logFields: {
+                module: 'KafkaConsumer',
+                ...TraceSpanBuilder.build(),
+              },
+            }),
           }
         : undefined,
       producer: options.producer
         ? {
             ...KafkaProducerOptionsBuilder.build(options.producer),
-            retry: options.producer.retry ? KafkaOptionsBuilder.createRetryOptions(options.producer.retry) : undefined,
           }
         : undefined,
     };
   }
 
   private createRetryOptionsWithRestartOnFailure(
-    options: IRetryOptions,
+    options: KafkaRetryConfig | undefined,
     params: {
       serverName: string;
       brokers: string[];
       logFields?: ILogFields;
     },
   ): KafkaRetryConfig {
-    const kafkaRetryConfig = KafkaOptionsBuilder.createRetryOptions(options);
-
-    if (kafkaRetryConfig === undefined) {
-      return kafkaRetryConfig;
-    }
+    const kafkaRetryConfig: KafkaRetryConfig = { ...options };
 
     const logger = this.loggerBuilder.build({ module: 'Kafka', ...params.logFields });
+    if (kafkaRetryConfig.restartOnFailure === undefined) {
+      kafkaRetryConfig.restartOnFailure = async (error: Error): Promise<boolean> => {
+        const errorType = error.name ?? error.constructor.name;
+        const isStop = this.isStop;
 
-    kafkaRetryConfig.restartOnFailure = async (error: Error): Promise<boolean> => {
-      const errorType = error.name ?? error.constructor.name;
-      const isStop = this.isStop || (options.statusCodes?.length && options.statusCodes.includes(errorType));
+        logger.error('Kafka restart on failure', {
+          payload: {
+            status: isStop ? 'stop reconnection' : 'reconnection',
+            serverName: params.serverName,
+            brokers: params.brokers,
+            error,
+          },
+        });
 
-      logger.error('Kafka restart on failure', {
-        payload: {
-          status: isStop ? 'stop reconnection' : 'reconnection',
-          serverName: params.serverName,
-          brokers: params.brokers,
-          error,
-        },
-      });
+        this.prometheusManager.counter().increment(KAFKA_CONNECTION_RESTART, {
+          labels: {
+            service: params.serverName,
+            errorType,
+          },
+        });
 
-      this.prometheusManager.counter().increment(KAFKA_CONNECTION_RESTART, {
-        labels: {
-          service: params.serverName,
-          errorType,
-        },
-      });
-
-      return !isStop;
-    };
-
-    return kafkaRetryConfig;
-  }
-
-  public static createRetryOptions(options: IRetryOptions): KafkaRetryConfig {
-    if (options.retry === false) {
-      return undefined;
+        return !isStop;
+      };
     }
 
-    return {
-      maxRetryTime: options.timeout,
-      initialRetryTime: options.delay,
-      retries: options.retryMaxCount,
-    };
+    return kafkaRetryConfig;
   }
 }

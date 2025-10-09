@@ -139,7 +139,7 @@ describe(GracefulShutdownService.name, () => {
       expect(spyEmit).toHaveBeenCalledWith(GracefulShutdownEvents.BEFORE_DESTROY);
       expect(spyTotalCountActiveMethods).toHaveBeenCalledTimes(1);
       expect(spyEmit).toHaveBeenCalledWith(GracefulShutdownEvents.AFTER_DESTROY);
-      expect(spyLoggerError).toHaveBeenCalledWith(GracefulShutdownMessages.PROCESS_MESSAGE + ': filed', {
+      expect(spyLoggerError).toHaveBeenCalledWith(GracefulShutdownMessages.PROCESS_MESSAGE + ': failed', {
         payload: {
           error: Error('Test error'),
         },

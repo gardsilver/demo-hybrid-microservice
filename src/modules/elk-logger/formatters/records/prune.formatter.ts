@@ -93,9 +93,9 @@ export class PruneFormatter implements ILogRecordFormatter {
         continue;
       }
 
-      const filedValue = data[fieldName];
+      const fieldValue = data[fieldName];
 
-      const parseValue = this.pruneValue(filedValue, markers, depth + 1, fieldName);
+      const parseValue = this.pruneValue(fieldValue, markers, depth + 1, fieldName);
 
       tgt[fieldName] = parseValue.value;
       markers = parseValue.markers;

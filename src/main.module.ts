@@ -17,15 +17,17 @@ import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules
 import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { GrpcServerModule, RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
 import { HealthModule } from 'src/health';
 import { AppModule } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
+import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
 import { PostgresModule } from 'src/core/repositories/postgres';
 import { ExampleHttpModule } from 'src/examples/integrations/http';
 import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
-import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
+import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
 
 @Module({
   imports: [
@@ -46,6 +48,7 @@ import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
           new RpcExceptionFormatter(),
           new RedisClientErrorFormatter(),
           new KafkaJsErrorObjectFormatter(),
+          new KafkaClientErrorObjectFormatter(),
         ],
         objectFormatters: [
           new MetadataObjectFormatter(),
@@ -82,6 +85,7 @@ import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
     PostgresModule,
     ExampleHttpModule,
     ExampleGrpcModule,
+    ExampleKafkaModule,
   ],
 })
 export class MainModule {}

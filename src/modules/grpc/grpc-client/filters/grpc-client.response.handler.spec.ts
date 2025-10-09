@@ -19,8 +19,8 @@ import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { grpcHeadersFactory, grpcMetadataFactory } from 'tests/modules/grpc/grpc-common';
 import { GrpcClientResponseHandler } from './grpc-client.response.handler';
 import { GrpcClientError } from '../errors/grpc-client.error';
-import { GrpcClientExternalException } from '../errors/grpc-client.external.error';
-import { GrpcClientInternalException } from '../errors/grpc-client.internal.error';
+import { GrpcClientExternalError } from '../errors/grpc-client.external.error';
+import { GrpcClientInternalError } from '../errors/grpc-client.internal.error';
 import { GrpcClientTimeoutError } from '../errors/grpc-client.timeout.error';
 
 describe(GrpcClientResponseHandler.name, () => {
@@ -111,7 +111,7 @@ describe(GrpcClientResponseHandler.name, () => {
       const result = responseHandler.handleError(grpcError, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException(grpcError.message, grpcError.code, grpcError));
+      expect(result).toEqual(new GrpcClientExternalError(grpcError.message, grpcError.code, grpcError));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
     });
 
@@ -121,7 +121,7 @@ describe(GrpcClientResponseHandler.name, () => {
       const result = responseHandler.handleError(grpcError, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientInternalException(grpcError.message, grpcError.code, grpcError));
+      expect(result).toEqual(new GrpcClientInternalError(grpcError.message, grpcError.code, grpcError));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
     });
 
@@ -132,7 +132,7 @@ describe(GrpcClientResponseHandler.name, () => {
 
       expect(result).toBeNull();
       expect(spyLoggingResponse).toHaveBeenCalledWith(
-        new GrpcClientExternalException(grpcError.message, grpcError.code, grpcError),
+        new GrpcClientExternalError(grpcError.message, grpcError.code, grpcError),
         { fieldsLogs, logLevel: LogLevel.WARN },
       );
     });
@@ -173,7 +173,7 @@ describe(GrpcClientResponseHandler.name, () => {
       const result = responseHandler.handleError('Test error', { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException('Test error', undefined));
+      expect(result).toEqual(new GrpcClientExternalError('Test error', undefined));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
     });
 
@@ -185,14 +185,14 @@ describe(GrpcClientResponseHandler.name, () => {
       result = responseHandler.handleError(error, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException(undefined, undefined, error));
+      expect(result).toEqual(new GrpcClientExternalError(undefined, undefined, error));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
 
       error = { error: 'Test error' };
       result = responseHandler.handleError(error, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException(undefined, undefined, error));
+      expect(result).toEqual(new GrpcClientExternalError(undefined, undefined, error));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
 
       jest.clearAllMocks();
@@ -201,7 +201,7 @@ describe(GrpcClientResponseHandler.name, () => {
       result = responseHandler.handleError(error, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException('Test error', undefined, error));
+      expect(result).toEqual(new GrpcClientExternalError('Test error', undefined, error));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
 
       jest.clearAllMocks();
@@ -210,7 +210,7 @@ describe(GrpcClientResponseHandler.name, () => {
       result = responseHandler.handleError(error, { fieldsLogs });
 
       expect(result instanceof GrpcClientError).toBeTruthy();
-      expect(result).toEqual(new GrpcClientExternalException('Test error', undefined, error));
+      expect(result).toEqual(new GrpcClientExternalError('Test error', undefined, error));
       expect(spyLoggingResponse).toHaveBeenCalledWith(result, { fieldsLogs });
     });
   });
@@ -283,7 +283,7 @@ describe(GrpcClientResponseHandler.name, () => {
       grpcError['code'] = GrpcStatus.INVALID_ARGUMENT;
       grpcError.stack = 'Error: message\n    at <anonymous>:1:2\n';
 
-      const error = new GrpcClientExternalException(grpcError.message, grpcError.code, grpcError);
+      const error = new GrpcClientExternalError(grpcError.message, grpcError.code, grpcError);
 
       responseHandler.loggingResponse(error, { fieldsLogs });
 
@@ -319,7 +319,7 @@ describe(GrpcClientResponseHandler.name, () => {
     });
 
     it('GrpcClientError with any', async () => {
-      const error = new GrpcClientExternalException(undefined, undefined, { status: 'error' });
+      const error = new GrpcClientExternalError(undefined, undefined, { status: 'error' });
 
       responseHandler.loggingResponse(error);
 
@@ -332,7 +332,7 @@ describe(GrpcClientResponseHandler.name, () => {
     });
 
     it('GrpcClientError with string', async () => {
-      const error = new GrpcClientExternalException(undefined, undefined, 'Test error');
+      const error = new GrpcClientExternalError(undefined, undefined, 'Test error');
 
       responseHandler.loggingResponse(error);
 

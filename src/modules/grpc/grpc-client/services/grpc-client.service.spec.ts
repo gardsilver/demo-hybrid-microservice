@@ -39,7 +39,7 @@ import {
   GRPC_EXTERNAL_REQUEST_FAILED,
   GRPC_EXTERNAL_REQUEST_RETRY,
 } from '../types/metrics';
-import { GrpcClientExternalException } from '../errors/grpc-client.external.error';
+import { GrpcClientExternalError } from '../errors/grpc-client.external.error';
 import { GrpcClientTimeoutError } from '../errors/grpc-client.timeout.error';
 import { isGrpcServiceError } from '../errors/grpc-client.error';
 import { GrpcClientConfigService } from './grpc-client.config.service';
@@ -309,8 +309,8 @@ describe(GrpcClientService.name, () => {
     }
 
     expect(response).toBeUndefined();
-    expect(exception instanceof GrpcClientExternalException).toBeTruthy();
-    expect(exception).toEqual(new GrpcClientExternalException('Test Error Server', GrpcStatus.INTERNAL, serverError));
+    expect(exception instanceof GrpcClientExternalError).toBeTruthy();
+    expect(exception).toEqual(new GrpcClientExternalError('Test Error Server', GrpcStatus.INTERNAL, serverError));
 
     expect(spyStartTimer).toHaveBeenCalledTimes(1);
     expect(spyIncrement).toHaveBeenCalledTimes(1);
@@ -411,7 +411,7 @@ describe(GrpcClientService.name, () => {
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 
-    const handleError = new GrpcClientExternalException('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
+    const handleError = new GrpcClientExternalError('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
 
     jest.spyOn(testService, 'main').mockImplementation(() => {
       return new Observable((observer) => {
@@ -509,7 +509,7 @@ describe(GrpcClientService.name, () => {
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 
-    const handleError = new GrpcClientExternalException('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
+    const handleError = new GrpcClientExternalError('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
 
     jest.spyOn(testService, 'main').mockImplementation(() => {
       return new Observable((observer) => {
@@ -600,7 +600,7 @@ describe(GrpcClientService.name, () => {
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 
-    const handleError = new GrpcClientExternalException('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
+    const handleError = new GrpcClientExternalError('Test Error Server', GrpcStatus.UNAVAILABLE, serverError);
 
     jest.spyOn(testService, 'main').mockImplementation(() => {
       return new Observable((observer) => {

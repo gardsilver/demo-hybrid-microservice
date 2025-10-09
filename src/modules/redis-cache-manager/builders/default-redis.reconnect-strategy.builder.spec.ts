@@ -67,7 +67,7 @@ describe('defaultRedisReconnectStrategyBuilder', () => {
       expect(reconnectStrategyFunction(0, cause)).toBe(200);
 
       expect(spyLog).toHaveBeenCalledTimes(1);
-      expect(spyLog).toHaveBeenCalledWith('Redis client reconnect filed', {
+      expect(spyLog).toHaveBeenCalledWith('Redis client reconnect failed', {
         payload: {
           retries: 0,
           cause,

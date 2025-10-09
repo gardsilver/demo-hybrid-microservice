@@ -42,7 +42,7 @@ export class KafkaErrorFilter {
       markers: [LoggerMarkers.KAFKA, LoggerMarkers.REQUEST, LoggerMarkers.FAILED],
     });
 
-    logger.error('Kafka request filed', {
+    logger.error('KAFKA handle message failed', {
       payload: {
         message,
         options,

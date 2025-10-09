@@ -138,7 +138,7 @@ describe(DatabaseConnectBuilder.build.name, () => {
     expect(spyQuery).toHaveBeenCalledWith('COMMIT;');
   });
 
-  it('build with migrations filed', async () => {
+  it('build with migrations failed', async () => {
     const error = new Error('Query Error');
 
     jest.spyOn(mockMigrations, 'up').mockImplementation(() => {

@@ -2,7 +2,6 @@ import { tap } from 'rxjs';
 import { HealthIndicatorResult } from '@nestjs/terminus';
 import { KafkaStatus } from '@nestjs/microservices';
 import { Admin } from '@nestjs/microservices/external/kafka.interface';
-import { promisesTimeout } from 'src/modules/date-timestamp';
 import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 import { KafkaServerService } from './kafka-server.service';
 
@@ -65,7 +64,7 @@ export class KafkaServerHealthIndicator {
         return KafkaStatus.DISCONNECTED;
       }
 
-      await promisesTimeout(this.options?.retry?.maxRetryTime ?? 500, admin.fetchTopicMetadata());
+      await admin.fetchTopicMetadata();
 
       return KafkaStatus.CONNECTED;
     } catch (error) {

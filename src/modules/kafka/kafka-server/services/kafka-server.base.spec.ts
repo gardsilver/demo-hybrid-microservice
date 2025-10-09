@@ -4,31 +4,48 @@ import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { KafkaStatus, MessageHandler, ReadPacket, Server, Transport } from '@nestjs/microservices';
 import { KAFKA_DEFAULT_BROKER, KAFKA_DEFAULT_CLIENT, KAFKA_DEFAULT_GROUP } from '@nestjs/microservices/constants';
-import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
+import {
+  ELK_LOGGER_SERVICE_BUILDER_DI,
+  ElkLoggerModule,
+  IElkLoggerService,
+  INestElkLoggerService,
+} from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { KafkaAsyncContextHeaderNames, KafkaHeadersToAsyncContextAdapter } from 'src/modules/kafka/kafka-common';
 import { MockKafka, MockConsumer } from 'tests/kafkajs';
 import { MockConfigService } from 'tests/nestjs';
-import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { kafkaMessageFactory, MockKafkaDeserializer, MockKafkaHeadersToAsyncContextAdapter } from 'tests/modules/kafka';
+import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
+import {
+  kafkaMessageFactory,
+  MockConsumerDeserializer,
+  MockKafkaHeadersToAsyncContextAdapter,
+} from 'tests/modules/kafka';
 import { ConsumerMode } from '../types/types';
-import { KafkaContext } from '../ctx-host/kafka.context';
-import { KafkaServerRequestDeserializer } from '../adapters/kafka-server.request.deserializer';
-import { KafkaServerBase } from './kafka-server.base';
 import { KAFKA_CONNECTION_STATUS } from '../types/metrics';
+import { KafkaContext } from '../ctx-host/kafka.context';
+import { ConsumerDeserializer } from '../adapters/consumer.deserializer';
+import { KafkaServerBase } from './kafka-server.base';
 
 jest.mock('kafkajs', () => {
   return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
 });
 
+let mockDelay = jest.fn();
+
+jest.mock('src/modules/date-timestamp', () => {
+  const actualDateTimestamp = jest.requireActual('src/modules/date-timestamp');
+
+  const mockDateTimestamp = Object.assign({}, actualDateTimestamp);
+
+  mockDateTimestamp.delay = jest.fn((ms, callback) => mockDelay(ms, callback));
+
+  return mockDateTimestamp;
+});
+
 describe(KafkaServerBase, () => {
   class TestKafkaServer extends KafkaServerBase {
-    public async close(): Promise<void> {}
-
-    protected async start(callback: () => void): Promise<void> {
-      callback();
-    }
+    protected async start(): Promise<void> {}
 
     protected async bindEachEvents(): Promise<void> {}
 
@@ -40,6 +57,7 @@ describe(KafkaServerBase, () => {
   }
 
   let logger: IElkLoggerService;
+  let nestLogger: INestElkLoggerService;
   let prometheusManager: PrometheusManager;
   let serverName: string;
   let server: TestKafkaServer;
@@ -47,8 +65,9 @@ describe(KafkaServerBase, () => {
   beforeEach(async () => {
     jest.clearAllMocks();
 
+    mockDelay = jest.fn(() => Promise.resolve());
     logger = new MockElkLoggerService();
-
+    nestLogger = new MockNestElkLoggerService();
     const module = await Test.createTestingModule({
       imports: [ConfigModule, ElkLoggerModule.forRoot(), PrometheusModule],
     })
@@ -60,6 +79,7 @@ describe(KafkaServerBase, () => {
       })
       .compile();
 
+    module.useLogger(nestLogger);
     prometheusManager = module.get(PrometheusManager);
   });
 
@@ -78,7 +98,7 @@ describe(KafkaServerBase, () => {
       expect(server['clientId']).toEqual(KAFKA_DEFAULT_CLIENT + '-server');
       expect(server['groupId']).toEqual(KAFKA_DEFAULT_GROUP + '-server');
       expect(server['headerAdapter'] instanceof KafkaHeadersToAsyncContextAdapter).toBeTruthy();
-      expect(server['deserializer'] instanceof KafkaServerRequestDeserializer).toBeTruthy();
+      expect(server['deserializer'] instanceof ConsumerDeserializer).toBeTruthy();
     });
 
     it('custom', async () => {
@@ -94,7 +114,7 @@ describe(KafkaServerBase, () => {
             groupId: 'groupId',
           },
           headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-          deserializer: new MockKafkaDeserializer(),
+          deserializer: new MockConsumerDeserializer(),
         },
         prometheusManager,
       );
@@ -105,7 +125,7 @@ describe(KafkaServerBase, () => {
       expect(server['clientId']).toEqual('clientId-postfixId');
       expect(server['groupId']).toEqual('groupId-postfixId');
       expect(server['headerAdapter'] instanceof MockKafkaHeadersToAsyncContextAdapter).toBeTruthy();
-      expect(server['deserializer'] instanceof MockKafkaDeserializer).toBeTruthy();
+      expect(server['deserializer'] instanceof MockConsumerDeserializer).toBeTruthy();
     });
   });
 
@@ -184,7 +204,7 @@ describe(KafkaServerBase, () => {
 
       expect(consumer instanceof MockConsumer).toBeTruthy();
       expect(consumer['config']).toEqual({
-        groupId: KAFKA_DEFAULT_GROUP + '-server',
+        groupId: KAFKA_DEFAULT_GROUP + '-server' + '-' + ConsumerMode.EACH_BATCH.toString(),
       });
       expect(spyOn).toHaveBeenCalledTimes(6);
 
@@ -199,14 +219,69 @@ describe(KafkaServerBase, () => {
     });
 
     it('listen', async () => {
+      let count = 0;
+      mockDelay.mockImplementation(async (ms, callback) => {
+        ++count;
+        if (count > 1) {
+          await server.close();
+        }
+        if (callback) {
+          callback();
+        }
+        return Promise.resolve();
+      });
+
+      // success
       const callback = jest.fn();
+      const spyStart = jest.fn();
+      server['start'] = spyStart;
+
+      const spyLogError = jest.spyOn(nestLogger, 'error');
+      const spyLogWarn = jest.spyOn(nestLogger, 'warn');
+
+      expect(server['client']).toBeNull();
 
       await server.listen(callback);
 
       expect(callback).toHaveBeenCalledWith();
+      expect(spyStart).toHaveBeenCalledTimes(1);
       expect(server['client'] instanceof MockKafka).toBeTruthy();
+      expect(spyLogError).toHaveBeenCalledTimes(0);
+      expect(spyLogWarn).toHaveBeenCalledTimes(0);
+      expect(count).toBe(0);
+
+      await server.close();
+
+      expect(server['client']).toBeNull();
+
+      // failed createClient
+      jest.clearAllMocks();
 
       const error = new Error('Test error');
+
+      const originalCreateClient = server['createClient'];
+
+      server['createClient'] = () => {
+        throw error;
+      };
+
+      await server.listen(callback);
+
+      expect(callback).toHaveBeenCalledWith(error);
+      expect(spyLogError).toHaveBeenCalledWith(
+        `Kafka Server [${serverName}]: ` + 'connection failed.',
+        error,
+        'KafkaServer',
+      );
+      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'failed.', undefined, 'KafkaServer');
+      expect(spyLogWarn).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'connection retry.', 'KafkaServer');
+      expect(count).toBe(2);
+
+      // failed start
+      jest.clearAllMocks();
+
+      count = 0;
+      server['createClient'] = originalCreateClient;
       server['start'] = jest.fn().mockImplementation(() => {
         throw error;
       });
@@ -214,6 +289,9 @@ describe(KafkaServerBase, () => {
       await server.listen(callback);
 
       expect(callback).toHaveBeenCalledWith(error);
+      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'failed.', error, 'KafkaServer');
+      expect(spyLogWarn).toHaveBeenCalledTimes(0);
+      expect(count).toBe(0);
     });
 
     it('handleEvent', async () => {
@@ -235,7 +313,8 @@ describe(KafkaServerBase, () => {
       await server.handleEvent('eachMessage', packet, mockContext);
 
       expect(spyLog).toHaveBeenCalledWith(
-        'There is no matching event handler defined in the remote service. Event pattern: eachMessage',
+        `Kafka Server [${serverName}]: ` +
+          'There is no matching event handler defined in the remote service. Event pattern: eachMessage',
       );
 
       server.getHandlerByPattern = () => {
@@ -315,7 +394,7 @@ describe(KafkaServerBase, () => {
         replyTopic: faker.string.alpha(4),
         replyPartition: faker.number.int(),
         headerAdapter: new MockKafkaHeadersToAsyncContextAdapter(),
-        deserializer: new MockKafkaDeserializer(),
+        deserializer: new MockConsumerDeserializer(),
       };
 
       handle.extras = extras;

@@ -1,37 +1,11 @@
-/*
 export class MockProducer {
-  public events = {
-    CONNECT: 'producer.connect',
-    DISCONNECT: 'producer.disconnect',
-    REQUEST: 'producer.network.request',
-    REQUEST_TIMEOUT: 'producer.network.request_timeout',
-    REQUEST_QUEUE_SIZE: 'producer.network.request_queue_size',
-  };
-  private _events = new Map();
-
   constructor(private config?) {}
   connect() {}
   send() {}
+  sendBatch() {}
   disconnect() {}
-  on(event, callback: () => void) {
-    let calls = [];
-    if (this._events.has(event)) {
-      calls = this._events.get(event);
-    }
-    calls.push(callback);
-
-    this._events.set(event, calls);
-  }
-
-  emit(event) {
-    const calls = this._events.has(event) ? this._events.get(event) : [];
-
-    calls.forEach((element) => {
-      element();
-    });
-  }
 }
-*/
+
 export class MockConsumer {
   public events = {
     HEARTBEAT: 'consumer.heartbeat',
@@ -78,11 +52,9 @@ export class MockConsumer {
 
 export class MockKafka {
   constructor(private config?) {}
-  /*
   producer(config?) {
     return new MockProducer(config);
   }
-    */
   consumer(config?) {
     return new MockConsumer(config);
   }

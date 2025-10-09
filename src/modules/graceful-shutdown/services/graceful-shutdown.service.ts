@@ -99,7 +99,7 @@ export class GracefulShutdownService implements BeforeApplicationShutdown {
           },
         });
       } else {
-        this.logger.error(GracefulShutdownMessages.PROCESS_MESSAGE + ': filed', {
+        this.logger.error(GracefulShutdownMessages.PROCESS_MESSAGE + ': failed', {
           payload: {
             error,
           },

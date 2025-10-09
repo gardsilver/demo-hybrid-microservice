@@ -13,7 +13,12 @@ export class KafkaMicroserviceBuilder {
     server: KafkaServerService;
     serverHealthIndicator: KafkaServerHealthIndicator;
   } {
-    const optionsBuilder = new KafkaOptionsBuilder(options.loggerBuilder, options.prometheusManager);
+    const optionsBuilder = new KafkaOptionsBuilder(options.loggerBuilder, options.prometheusManager, {
+      logTitle: `Kafka Server [${options.kafkaOptions.serverName}]: `,
+      logFields: {
+        module: 'KafkaServer',
+      },
+    });
     const kafkaOptions = optionsBuilder.build(options.kafkaOptions);
     const server = new KafkaServerService(
       {
@@ -26,10 +31,7 @@ export class KafkaMicroserviceBuilder {
 
     const healthIndicator = new KafkaServerHealthIndicator(options.kafkaOptions.serverName, server, {
       useAdmin: options.kafkaOptions.healthIndicatorOptions?.useAdmin,
-      retry:
-        options.kafkaOptions.healthIndicatorOptions?.retry === undefined
-          ? undefined
-          : optionsBuilder.createRetryOptions(options.kafkaOptions.healthIndicatorOptions?.retry),
+      retry: options.kafkaOptions.healthIndicatorOptions?.retry,
     });
 
     options.kafkaStatusService.addKafkaServices(

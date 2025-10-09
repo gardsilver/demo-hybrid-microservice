@@ -12,3 +12,4 @@ export * from './builders/kafka.client-options.builder';
 export * from './builders/kafka.consumer-options.builder';
 export * from './builders/kafka.producer-options.builder';
 export * from './builders/kafka-options.builder';
+export * from './builders/kafka.headers.builder';

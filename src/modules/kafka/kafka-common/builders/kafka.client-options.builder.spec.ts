@@ -3,13 +3,14 @@ import { logLevel } from 'kafkajs';
 import { UrlHelper } from 'src/modules/common';
 import { IElkLoggerService, IElkLoggerServiceBuilder, ILogFields } from 'src/modules/elk-logger';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { IKafkaClientOptions } from '../types/types';
+import { IKafkaClientOptions, KafkaRetryConfig } from '../types/types';
 import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
 import { KafkaElkLoggerBuilder } from './kafka.ekf-logger.builder';
 
 describe(KafkaClientOptionsBuilder.name, () => {
   let spyLog;
   let mockHost: string;
+  let retry: Omit<KafkaRetryConfig, 'restartOnFailure'>;
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let logFields: ILogFields;
@@ -26,6 +27,12 @@ describe(KafkaClientOptionsBuilder.name, () => {
       build: () => logger,
     };
 
+    retry = {
+      maxRetryTime: faker.number.int(),
+      initialRetryTime: faker.number.int(),
+      retries: faker.number.int(),
+    };
+
     logFields = {
       module: 'TestService',
     };
@@ -35,9 +42,7 @@ describe(KafkaClientOptionsBuilder.name, () => {
       normalizeUrl: true,
       useLogger: true,
       retry: {
-        timeout: faker.number.int(),
-        delay: faker.number.int(),
-        retryMaxCount: faker.number.int(),
+        ...retry,
       },
       clientId: faker.string.alpha(10),
     };
@@ -59,7 +64,6 @@ describe(KafkaClientOptionsBuilder.name, () => {
       brokers: [mockHost],
       normalizeUrl: undefined,
       useLogger: undefined,
-      retry: undefined,
       logLevel: logLevel.INFO,
     });
     expect(typeof optionsTgt.logCreator).toBe('function');
@@ -77,6 +81,25 @@ describe(KafkaClientOptionsBuilder.name, () => {
     });
 
     expect(optionsTgt.brokers).toEqual(options.brokers);
+  });
+
+  it('build with custom log filters', async () => {
+    options.logFilterParams = [
+      {
+        namespace: faker.string.alpha(5),
+      },
+    ];
+
+    KafkaClientOptionsBuilder.build(options, {
+      loggerBuilder,
+      logFields,
+    });
+
+    expect(spyLog).toHaveBeenCalledWith({
+      loggerBuilder,
+      logFields,
+      logFilterParams: options.logFilterParams,
+    });
   });
 
   it('build without logger', async () => {

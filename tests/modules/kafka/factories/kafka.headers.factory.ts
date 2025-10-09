@@ -20,9 +20,10 @@ export const kafkaHeadersFactory = Factory.define<
   }
 
   if ('replyPartition' in transientParams) {
-    tgt[KafkaAsyncContextHeaderNames.REPLY_PARTITION] = transientParams.replyPartition
-      ? transientParams.replyPartition.toString()
-      : faker.number.int(10).toString();
+    tgt[KafkaAsyncContextHeaderNames.REPLY_PARTITION] =
+      transientParams.replyPartition !== undefined
+        ? transientParams.replyPartition.toString()
+        : faker.number.int(10).toString();
   }
 
   if (transientParams?.asArray) {

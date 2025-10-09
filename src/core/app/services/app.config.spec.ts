@@ -12,19 +12,11 @@ describe(AppConfig.name, () => {
       getGrpcHost: appConfig.getGrpcHost(),
       getGrpcPort: appConfig.getGrpcPort(),
       getCorsOptions: appConfig.getCorsOptions(),
-      getKafkaBrokers: appConfig.getKafkaBrokers(),
-      getKafkaClientId: appConfig.getKafkaClientId(),
-      getKafkaGroupId: appConfig.getKafkaGroupId(),
-      getKafkaRetryStatusCodes: appConfig.getKafkaRetryStatusCodes(),
     }).toEqual({
       getServicePort: 3000,
       getGrpcHost: '0.0.0.0',
       getGrpcPort: 0,
       getCorsOptions: { origin: '*' },
-      getKafkaBrokers: [],
-      getKafkaClientId: undefined,
-      getKafkaGroupId: undefined,
-      getKafkaRetryStatusCodes: [],
     });
   });
 
@@ -34,10 +26,6 @@ describe(AppConfig.name, () => {
       GRPC_HOST: '127.0.0.1',
       GRPC_PORT: '1002',
       CORS_OPTIONS: '{}',
-      KAFKA_BROKERS: 'broker1,broker2',
-      KAFKA_RETRY_STATUS_CODES: 'timeout,23',
-      KAFKA_CLIENT_ID: 'kafka-client',
-      KAFKA_GROUP_ID: 'kafka-group',
     }) as ConfigService;
     const appConfig = new AppConfig(config);
 
@@ -46,19 +34,11 @@ describe(AppConfig.name, () => {
       getGrpcHost: appConfig.getGrpcHost(),
       getGrpcPort: appConfig.getGrpcPort(),
       getCorsOptions: appConfig.getCorsOptions(),
-      getKafkaBrokers: appConfig.getKafkaBrokers(),
-      getKafkaClientId: appConfig.getKafkaClientId(),
-      getKafkaGroupId: appConfig.getKafkaGroupId(),
-      getKafkaRetryStatusCodes: appConfig.getKafkaRetryStatusCodes(),
     }).toEqual({
       getServicePort: 1001,
       getGrpcHost: '127.0.0.1',
       getGrpcPort: 1002,
       getCorsOptions: {},
-      getKafkaBrokers: ['broker1', 'broker2'],
-      getKafkaClientId: 'kafka-client',
-      getKafkaGroupId: 'kafka-group',
-      getKafkaRetryStatusCodes: ['timeout', 23],
     });
   });
 

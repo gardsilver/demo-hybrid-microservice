@@ -3,12 +3,12 @@ import { Test } from '@nestjs/testing';
 import { AccessRoles, AUTH_SERVICE_DI, AuthStatus, IAuthInfo, IAuthService } from 'src/modules/auth';
 import { GrpcClientService } from 'src/modules/grpc/grpc-client';
 import { GrpcService } from './grpc.service';
-import { SearchRequest } from '../types/dto';
+import { GrpcSearchRequest } from '../types/dto';
 
 describe(GrpcService.name, () => {
   let jwtToken: string;
 
-  let request: SearchRequest;
+  let request: GrpcSearchRequest;
   let authInfo: IAuthInfo;
 
   let authService: IAuthService;

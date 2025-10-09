@@ -1,16 +1,16 @@
 import { faker } from '@faker-js/faker';
 import { KafkaMessage } from 'kafkajs';
 import { kafkaMessageFactory } from 'tests/modules/kafka';
-import { KafkaServerRequestDeserializer } from './kafka-server.request.deserializer';
+import { ConsumerDeserializer } from './consumer.deserializer';
 import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 
-describe(KafkaServerRequestDeserializer.name, () => {
+describe(ConsumerDeserializer.name, () => {
   let topic: string;
   let kafkaMessage: KafkaMessage;
-  let deserializer: KafkaServerRequestDeserializer;
+  let deserializer: ConsumerDeserializer;
 
   beforeEach(async () => {
-    deserializer = new KafkaServerRequestDeserializer();
+    deserializer = new ConsumerDeserializer();
 
     topic = faker.string.alpha(10);
 

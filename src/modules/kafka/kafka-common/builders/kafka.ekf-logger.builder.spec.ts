@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker';
 import { LogEntry, logLevel } from 'kafkajs';
 import { Test } from '@nestjs/testing';
 import {
@@ -8,7 +9,7 @@ import {
   ILogFields,
 } from 'src/modules/elk-logger';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { KafkaElkLoggerBuilder } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder, kafkaLogFilter } from './kafka.ekf-logger.builder';
 
 describe(KafkaElkLoggerBuilder.name, () => {
   const logFields: ILogFields = {
@@ -118,6 +119,23 @@ describe(KafkaElkLoggerBuilder.name, () => {
       });
     });
 
+    it('use filter', async () => {
+      entry.level = logLevel.DEBUG;
+
+      kafkaLogger = KafkaElkLoggerBuilder.build({
+        loggerBuilder,
+        logFilterParams: [
+          {
+            namespace: entry.namespace,
+          },
+        ],
+      });
+
+      kafkaLogger(entry.level)(entry);
+
+      expect(spyOnLogger).toHaveBeenCalledTimes(0);
+    });
+
     it('DEBUG', async () => {
       entry.level = logLevel.DEBUG;
 
@@ -200,6 +218,42 @@ describe(KafkaElkLoggerBuilder.name, () => {
       expect(spyOnLogger).toHaveBeenCalledWith(LogLevel.ERROR, `Undefined kafka error`, {
         payload: entry,
       });
+    });
+  });
+
+  describe('kafkaLogFilter', () => {
+    it('not use', async () => {
+      expect(kafkaLogFilter(entry, [])).toBeFalsy();
+    });
+
+    it('filter by namespace', async () => {
+      expect(kafkaLogFilter(entry, [{ namespace: entry.namespace }])).toBeTruthy();
+      expect(kafkaLogFilter(entry, [{ namespace: faker.string.alpha(3) }])).toBeFalsy();
+    });
+
+    it('filter by message', async () => {
+      const logFilterParams = [{ namespace: entry.namespace, message: 'Test message' }];
+
+      expect(kafkaLogFilter(entry, logFilterParams)).toBeFalsy();
+
+      entry.log = {
+        ...entry.log,
+        message: 'Test message',
+      };
+      expect(kafkaLogFilter(entry, logFilterParams)).toBeTruthy();
+
+      entry.log = {
+        ...entry.log,
+        message: 'Test message: failed',
+      };
+      expect(kafkaLogFilter(entry, logFilterParams)).toBeTruthy();
+
+      entry.log = {
+        ...entry.log,
+        message: 'test message: failed',
+      };
+
+      expect(kafkaLogFilter(entry, logFilterParams)).toBeFalsy();
     });
   });
 });

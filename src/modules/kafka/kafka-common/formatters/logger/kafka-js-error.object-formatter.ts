@@ -16,9 +16,13 @@ import {
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
+export const isKafkaJsError = (error: unknown): error is KafkaJSError | KafkaJSAggregateError => {
+  return error instanceof KafkaJSError || error instanceof KafkaJSAggregateError;
+};
+
 export class KafkaJsErrorObjectFormatter extends BaseErrorObjectFormatter<KafkaJSError | KafkaJSAggregateError> {
   isInstanceOf(obj: unknown): obj is KafkaJSError | KafkaJSAggregateError {
-    return obj instanceof KafkaJSError || obj instanceof KafkaJSAggregateError;
+    return isKafkaJsError(obj);
   }
 
   transform(from: KafkaJSError | KafkaJSAggregateError): IKeyValue<unknown> {

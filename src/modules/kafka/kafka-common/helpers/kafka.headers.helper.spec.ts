@@ -85,6 +85,18 @@ describe(KafkaHeadersHelper.name, () => {
         replyTopic: ts.replyTopic,
         replyPartition: ts.replyPartition,
       });
+
+      headers[KafkaAsyncContextHeaderNames.REPLY_PARTITION] = undefined;
+
+      expect(KafkaHeadersHelper.toAsyncContext(headers)).toEqual({
+        traceId: ts.traceId,
+        spanId: mockId,
+        initialSpanId: ts.spanId,
+        parentSpanId: ts.spanId,
+        correlationId: ts.correlationId,
+        requestId: ts.requestId,
+        replyTopic: ts.replyTopic,
+      });
     });
 
     it('as zipkin', async () => {

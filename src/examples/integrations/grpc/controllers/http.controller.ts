@@ -5,7 +5,7 @@ import { GeneralAsyncContext, IGeneralAsyncContext, SkipInterceptors } from 'src
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { HttpAuthInfo, HttpGeneralAsyncContext } from 'src/modules/http/http-server';
 import { SearchResponse } from 'src/examples/integrations/common';
-import { SearchRequest } from '../types/dto';
+import { GrpcSearchRequest } from '../types/dto';
 import { GrpcService } from '../services/grpc.service';
 
 @SkipInterceptors({
@@ -25,7 +25,7 @@ export class HttpController {
 
   @Post('find')
   async find(
-    @Body() request: SearchRequest,
+    @Body() request: GrpcSearchRequest,
     @HttpGeneralAsyncContext() context: IGeneralAsyncContext,
     @HttpAuthInfo() authInfo: IAuthInfo,
   ): Promise<SearchResponse> {

@@ -26,32 +26,32 @@ import {
   ConsumerConfig,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
+import { TraceSpanBuilder } from 'src/modules/elk-logger';
+import { delay } from 'src/modules/date-timestamp';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
   IKafkaHeadersToAsyncContextAdapter,
+  KafkaAsyncContext,
   KafkaHeadersHelper,
   KafkaHeadersToAsyncContextAdapter,
 } from 'src/modules/kafka/kafka-common';
-import {
-  ConsumerMode,
-  IConsumerRequestDeserializer,
-  IEventKafkaMessageOptions,
-  IKafkaMessageOptions,
-} from '../types/types';
-import { KafkaServerRequestDeserializer } from '../adapters/kafka-server.request.deserializer';
 import { KafkaContext } from '../ctx-host/kafka.context';
-import { KAFKA_CONNECTION_STATUS } from '../types/metrics';
+import { ConsumerMode, IConsumerDeserializer, IEventKafkaMessageOptions, IKafkaMessageOptions } from '../types/types';
+import { KAFKA_CONNECTION_STATUS, KAFKA_SERVER_START_FAILED } from '../types/metrics';
+import { ConsumerDeserializer } from '../adapters/consumer.deserializer';
 
 export abstract class KafkaServerBase extends Server {
   public transportId: TransportId = Transport.KAFKA;
 
   protected logger = new Logger('KafkaServer');
+  protected isStop: boolean = false;
   protected serverName: string;
+  protected logTitle: string;
   protected client: Kafka | null = null;
   protected brokers: string[] | BrokersFunction;
   protected clientId: string;
   protected groupId: string;
-  declare protected deserializer: IConsumerRequestDeserializer;
+  declare protected deserializer: IConsumerDeserializer;
   protected readonly eachMessageHandlers: string[] = [];
   protected readonly batchMessageHandlers: string[] = [];
   protected readonly headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
@@ -59,6 +59,7 @@ export abstract class KafkaServerBase extends Server {
   constructor(
     protected readonly options: Required<KafkaOptions>['options'] & {
       serverName: string;
+      logTitle?: string;
       headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
     },
     protected readonly prometheusManager: PrometheusManager,
@@ -71,10 +72,11 @@ export abstract class KafkaServerBase extends Server {
 
     this.brokers = clientOptions.brokers?.length ? clientOptions.brokers : [KAFKA_DEFAULT_BROKER];
     this.serverName = this.options.serverName;
+    this.logTitle = this.options?.logTitle ?? `Kafka Server [${this.serverName}]: `;
     this.clientId = (clientOptions.clientId || KAFKA_DEFAULT_CLIENT) + postfixId;
     this.groupId = (consumerOptions.groupId || KAFKA_DEFAULT_GROUP) + postfixId;
 
-    this.deserializer = this.options?.deserializer ?? new KafkaServerRequestDeserializer();
+    this.deserializer = this.options?.deserializer ?? new ConsumerDeserializer();
     this.headerAdapter = this.options?.headerAdapter ?? new KafkaHeadersToAsyncContextAdapter();
   }
 
@@ -122,6 +124,69 @@ export abstract class KafkaServerBase extends Server {
     }
   }
 
+  public async close(): Promise<void> {
+    this.isStop = true;
+    this.client = null;
+  }
+
+  public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
+    this.isStop = false;
+
+    await this.run(callback);
+  }
+
+  protected abstract start(): Promise<void>;
+
+  @KafkaAsyncContext.define(() => ({
+    ...TraceSpanBuilder.build(),
+  }))
+  protected async run(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
+    let isConnection: boolean = false;
+
+    this.logger.log(this.logTitle + 'start');
+
+    while (!(isConnection || this.isStop)) {
+      try {
+        this.client = this.createClient();
+        isConnection = true;
+      } catch (error) {
+        this.logger.error(this.logTitle + 'connection failed.', error);
+
+        this.prometheusManager.counter().increment(KAFKA_SERVER_START_FAILED, {
+          labels: {
+            service: this.serverName,
+            errorType: error.name ?? error.constructor.name,
+          },
+        });
+
+        await delay(this.options.client?.connectionTimeout ?? 10_000, () => {
+          if (this.isStop) {
+            this.logger.error(this.logTitle + 'failed.');
+            callback(error);
+          } else {
+            this.logger.warn(this.logTitle + 'connection retry.');
+          }
+        });
+      }
+    }
+
+    if (!this.isStop && isConnection) {
+      this.logger.log(this.logTitle + 'start consumers.');
+
+      try {
+        await this.start();
+
+        this.logger.log(this.logTitle + 'success.');
+
+        callback();
+      } catch (error) {
+        this.logger.error(this.logTitle + 'failed.', error);
+
+        callback(error);
+      }
+    }
+  }
+
   protected createClient(): Kafka {
     return new KafkaJs(
       Object.assign(
@@ -140,7 +205,7 @@ export abstract class KafkaServerBase extends Server {
 
   protected async createConsumer(mode: ConsumerMode, topics: string[]): Promise<Consumer> {
     const consumerOptions = Object.assign(this.options.consumer || {}, {
-      groupId: this.groupId,
+      groupId: this.groupId + '-' + mode.toString(),
     });
     const consumer = this.client.consumer(consumerOptions);
     this.registerConsumerEventListeners(consumer, mode, topics);
@@ -149,18 +214,6 @@ export abstract class KafkaServerBase extends Server {
 
     return consumer;
   }
-
-  public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
-    try {
-      this.client = this.createClient();
-      await this.start(callback);
-    } catch (err) {
-      callback(err);
-    }
-  }
-
-  public abstract close(): Promise<void>;
-  protected abstract start(callback: () => void): Promise<void>;
 
   protected updateStatus(status: KafkaStatus, mode: ConsumerMode, topics: string[]): void {
     this._status$.next(status);
@@ -190,7 +243,7 @@ export abstract class KafkaServerBase extends Server {
     const handler = this.getHandlerByPattern(pattern);
 
     if (!handler) {
-      this.logger.error(NO_EVENT_HANDLER`${pattern}`);
+      this.logger.error(this.logTitle + NO_EVENT_HANDLER`${pattern}`);
       return;
     }
 
@@ -214,7 +267,7 @@ export abstract class KafkaServerBase extends Server {
     messageOptions: IKafkaMessageOptions;
     adapters: {
       headerAdapter: IKafkaHeadersToAsyncContextAdapter;
-      deserializer: IConsumerRequestDeserializer;
+      deserializer: IConsumerDeserializer;
     };
   } {
     const eventKafkaMessageOptions = {

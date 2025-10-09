@@ -43,7 +43,7 @@ import { KafkaClientModule } from 'src/modules/kafka/kafka-client';
 
 ## `IProducerSerializer`
 
-Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: массивы сериализует в `json`-строку, для объекты приводит к строке (`obj.toString()`).
+Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: массивы сериализует в `json`-строку, объекты приводит к строке (`obj.toString()`).
 
 ## `KafkaClientErrorHandler`
 

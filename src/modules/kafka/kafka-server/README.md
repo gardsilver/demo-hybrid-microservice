@@ -92,6 +92,7 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'sr
 | Метрика| Метки |Описание|
 |---|---|---|
 |`KAFKA_CONNECTION_STATUS`|**labelNames** `[service', 'topics', 'method', 'status']`| Количество изменений статуса соединения с **Kafka**. |
+|`KAFKA_SERVER_START_FAILED`|**labelNames** `['service', 'errorType'']`| Количество ошибок подключения к **Kafka** на старте приложения. |
 |`KAFKA_HANDLE_MESSAGE`|**labelNames** `['service', 'topics', 'method']`| Количество полученных сообщений **Kafka**. |
 |`KAFKA_HANDLE_MESSAGE_FAILED`|**labelNames** `['service', 'topics', 'method', 'errorType']`| Количество не обработанных сообщений **Kafka** из-за возникновения ошибок. |
 

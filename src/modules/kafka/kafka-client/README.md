@@ -25,7 +25,7 @@ import { KafkaClientModule } from 'src/modules/kafka/kafka-client';
 ....
 ```
 
-Аналогично **Kafka Server** в `KafkaClientModule.register` можно будет указать адаптеры `serializer` и `headerBuilder` которые будут применяться при отправке запроса (при этом всегда в опциях запроса можно указать другие адаптеры).
+Аналогично **Kafka Server** в `KafkaClientModule.register` можно будет указать универсальные адаптеры `serializer` и `headerBuilder`, которые будут применяться при отправке запроса (при этом всегда в опциях запроса можно указать другие адаптеры).
 
 После успешного подключения будут доступны следующие сервисы:
 
@@ -43,7 +43,7 @@ import { KafkaClientModule } from 'src/modules/kafka/kafka-client';
 
 ## `IProducerSerializer`
 
-Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: массивы сериализует в` json`-строку, для объекты приводит к строке (`obj.toString()`).
+Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: массивы сериализует в `json`-строку, для объекты приводит к строке (`obj.toString()`).
 
 ## `KafkaClientErrorHandler`
 

@@ -76,11 +76,11 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'sr
 
 Настроить `deserializer` можно очень гибко:
 
-- Реализовать универсальный `deserializer` и подключить его глобально через `KafkaMicroserviceBuilder.setup`.
+- Реализовать универсальный `deserializer` и подключить его через `KafkaMicroserviceBuilder.setup`.
 
 Доступ к `serverName` и `topic` в `deserializer` будет всегда (**@see** `options: IKafkaMessageOptions`), поэтому можно организовать выбор способа десериализации для `KafkaMessage`.
 
-- Задать через декоратор `EventKafkaMessage`. В этом случае глобальный будет проигнорирован.
+- Задать через декоратор `EventKafkaMessage`. В этом случае универсальный будет проигнорирован.
 - Или воспользоваться стандартными механизмами `NodeJs` и реализовать **Middleware**, **Interceptors**, **Pipe**.
 
 ### KafkaErrorFilter

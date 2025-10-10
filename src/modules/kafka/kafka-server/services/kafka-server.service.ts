@@ -7,6 +7,8 @@ import {
   Kafka,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
+import { TraceSpanBuilder } from 'src/modules/elk-logger';
+import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, IConsumerPacket } from '../types/types';
 import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
 import { KafkaContext } from '../ctx-host/kafka.context';
@@ -37,6 +39,20 @@ export class KafkaServerService extends KafkaServerBase {
     this.batchConsumer = null;
   }
 
+  protected async connect(): Promise<void> {
+    await super.connect();
+
+    const eachTopics = [...this.eachMessageHandlers];
+    if (eachTopics.length) {
+      this.consumer = await this.createConsumer(ConsumerMode.EACH_MESSAGE, eachTopics);
+    }
+
+    const batchTopics = [...this.batchMessageHandlers];
+    if (batchTopics.length) {
+      this.batchConsumer = await this.createConsumer(ConsumerMode.EACH_BATCH, batchTopics);
+    }
+  }
+
   protected async start(): Promise<void> {
     await Promise.all([this.bindEachEvents(), this.bindBatchEvents()]);
   }
@@ -51,8 +67,6 @@ export class KafkaServerService extends KafkaServerBase {
       );
       return;
     }
-
-    this.consumer = await this.createConsumer(ConsumerMode.EACH_MESSAGE, registeredPatterns);
 
     const consumerSubscribeOptions = this.options.subscribe || {};
 
@@ -74,6 +88,9 @@ export class KafkaServerService extends KafkaServerBase {
     await this.consumer.run(consumerRunOptions);
   }
 
+  @KafkaAsyncContext.define(() => ({
+    ...TraceSpanBuilder.build(),
+  }))
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {
@@ -134,8 +151,6 @@ export class KafkaServerService extends KafkaServerBase {
       return;
     }
 
-    this.batchConsumer = await this.createConsumer(ConsumerMode.EACH_BATCH, registeredPatterns);
-
     const consumerSubscribeOptions = this.options.subscribe || {};
 
     await this.batchConsumer.subscribe({
@@ -156,6 +171,9 @@ export class KafkaServerService extends KafkaServerBase {
     return this.batchConsumer.run(consumerRunOptions);
   }
 
+  @KafkaAsyncContext.define(() => ({
+    ...TraceSpanBuilder.build(),
+  }))
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {

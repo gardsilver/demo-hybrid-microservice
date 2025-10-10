@@ -93,8 +93,8 @@ describe(KafkaServerService.name, () => {
     let [client, eachConsumer, batchConsumer] = server.unwrap();
     expect(client).toBeDefined();
     expect(client instanceof MockKafka).toBeTruthy();
-    expect(eachConsumer).toBe(null);
-    expect(batchConsumer).toBe(null);
+    expect(eachConsumer).toBeNull();
+    expect(batchConsumer).toBeNull();
 
     await server.close();
 

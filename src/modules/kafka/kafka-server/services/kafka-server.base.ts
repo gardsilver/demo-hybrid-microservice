@@ -137,17 +137,21 @@ export abstract class KafkaServerBase extends Server {
 
   protected abstract start(): Promise<void>;
 
+  protected async connect(): Promise<void> {
+    this.client = this.createClient();
+  }
+
   @KafkaAsyncContext.define(() => ({
     ...TraceSpanBuilder.build(),
   }))
   protected async run(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
     let isConnection: boolean = false;
 
-    this.logger.log(this.logTitle + 'start');
+    this.logger.log(this.logTitle + 'starting server.');
 
     while (!(isConnection || this.isStop)) {
       try {
-        this.client = this.createClient();
+        await this.connect();
         isConnection = true;
       } catch (error) {
         this.logger.error(this.logTitle + 'connection failed.', error);
@@ -161,7 +165,7 @@ export abstract class KafkaServerBase extends Server {
 
         await delay(this.options.client?.connectionTimeout ?? 10_000, () => {
           if (this.isStop) {
-            this.logger.error(this.logTitle + 'failed.');
+            this.logger.error(this.logTitle + 'server failed.');
             callback(error);
           } else {
             this.logger.warn(this.logTitle + 'connection retry.');
@@ -171,16 +175,16 @@ export abstract class KafkaServerBase extends Server {
     }
 
     if (!this.isStop && isConnection) {
-      this.logger.log(this.logTitle + 'start consumers.');
+      this.logger.log(this.logTitle + 'starting consumers.');
 
       try {
         await this.start();
 
-        this.logger.log(this.logTitle + 'success.');
+        this.logger.log(this.logTitle + 'server start success.');
 
         callback();
       } catch (error) {
-        this.logger.error(this.logTitle + 'failed.', error);
+        this.logger.error(this.logTitle + 'server failed.', error);
 
         callback(error);
       }

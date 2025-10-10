@@ -273,7 +273,7 @@ describe(KafkaServerBase, () => {
         error,
         'KafkaServer',
       );
-      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'failed.', undefined, 'KafkaServer');
+      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'server failed.', undefined, 'KafkaServer');
       expect(spyLogWarn).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'connection retry.', 'KafkaServer');
       expect(count).toBe(2);
 
@@ -289,7 +289,7 @@ describe(KafkaServerBase, () => {
       await server.listen(callback);
 
       expect(callback).toHaveBeenCalledWith(error);
-      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'failed.', error, 'KafkaServer');
+      expect(spyLogError).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'server failed.', error, 'KafkaServer');
       expect(spyLogWarn).toHaveBeenCalledTimes(0);
       expect(count).toBe(0);
     });

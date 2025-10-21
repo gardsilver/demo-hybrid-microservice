@@ -1,26 +1,18 @@
-import { ValidationErrorItem } from 'sequelize';
-import { Metadata } from '@grpc/grpc-js';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GeneralAsyncContextFormatter } from 'src/modules/common';
 import { ElkLoggerModule } from 'src/modules/elk-logger';
-import { RedisCacheManagerModule, RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
+import { RedisCacheManagerModule } from 'src/modules/redis-cache-manager';
 import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
-import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
-import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
-import { HttpExceptionFormatter, HttpServerModule } from 'src/modules/http/http-server';
-import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
-import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules/grpc/grpc-client';
-import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
-import { GrpcServerModule, RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
+import { HttpServerModule } from 'src/modules/http/http-server';
+import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
-import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
 import { HealthModule } from 'src/health';
-import { AppModule } from 'src/core/app';
+import { AppModule, ErrorFormattersService, IgnoreObjectsService, ObjectFormattersService } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
 import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
@@ -34,27 +26,22 @@ import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
     ConfigModule.forRoot({ envFilePath: ['.env', '.default.env'], isGlobal: true, cache: true }),
     AppModule,
     ElkLoggerModule.forRoot({
+      imports: [AppModule],
       providers: [GeneralAsyncContextFormatter, HttpSecurityHeadersFormatter],
       formattersOptions: {
         sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
-        ignoreObjects: [ValidationErrorItem, Metadata, new KafkaJsMessagesObjectFormatter()],
-        exceptionFormatters: [
-          new DataBaseErrorFormatter(),
-          new AxiosErrorFormatter(),
-          new HttpClientErrorFormatter(),
-          new HttpExceptionFormatter(),
-          new GrpcServiceErrorFormatter(),
-          new GrpcClientErrorFormatter(),
-          new RpcExceptionFormatter(),
-          new RedisClientErrorFormatter(),
-          new KafkaJsErrorObjectFormatter(),
-          new KafkaClientErrorObjectFormatter(),
-        ],
-        objectFormatters: [
-          new MetadataObjectFormatter(),
-          new KafkaJsMessagesObjectFormatter(),
-          new ValidationErrorItemObjectFormatter(),
-        ],
+        ignoreObjects: {
+          inject: [IgnoreObjectsService],
+          useFactory: (ignoreObjectsService: IgnoreObjectsService) => ignoreObjectsService.getCheckObjects(),
+        },
+        exceptionFormatters: {
+          inject: [ErrorFormattersService],
+          useFactory: (errorFormattersService: ErrorFormattersService) => errorFormattersService.getFormatters(),
+        },
+        objectFormatters: {
+          inject: [ObjectFormattersService],
+          useFactory: (objectFormattersService: ObjectFormattersService) => objectFormattersService.getFormatters(),
+        },
       },
       formatters: {
         inject: [GeneralAsyncContextFormatter, HttpSecurityHeadersFormatter],

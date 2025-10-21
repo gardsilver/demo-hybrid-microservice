@@ -60,10 +60,10 @@ export class AppModule()
 |`imports`| Подключение дополнительных модулей, если providers из них могут быть нужны для inject | |
 |`providers`| Включение дополнительных providers, если нужны для inject | |
 | `defaultFields` | Позволяет задать базовые значения полей лога, которые всегда буду добавляться к конечной записи лога. | `defaultFields: { index: 'My Application' } as ILogFields` - добавит ко всем логам дополнительное поле `index` |
-| `formattersOptions.ignoreObjects` | Массив `Type @nestjs/common` или `AbstractCheckObject src/modules/common` для задания исключений в алгоритме приведения неизвестных объектов к виду `IKeyValue`. <br> По умолчанию в список исключений добавлены `Error`, `DateTimestamp` (**@see** `src/modules/date-timestamp`) и `MomentCheckObject` (**@see** `src/modules/common`)|  |
+| `formattersOptions.ignoreObjects` | Массив `CheckObjectsType` (**@see** `src/modules/common`) для задания исключений в алгоритме приведения неизвестных объектов к виду `IKeyValue`. <br> По умолчанию в список исключений добавлены `Error`, `DateTimestamp` (**@see** `src/modules/date-timestamp`) и `MomentCheckObject` (**@see** `src/modules/common`). <br> Здесь следует указывать `CheckObjectsType`, для которых не предусмотрены специализированные `formattersOptions.objectFormatters` |  |
 | `formattersOptions.sortFields` | Массив `string` - имена полей `ILogRecord`. Все поля в конечной записи лога будут отсортированы в указанном порядке |  |
 | `formattersOptions.exceptionFormatters` | Массив `IErrorFormatter` - набор пользовательских форматеров для различных типов ошибок. |  |
-| `formattersOptions.objectFormatters` | Массив `IObjectFormatter` - набор пользовательских форматеров для различных объектов  |
+| `formattersOptions.objectFormatters` | Массив `IObjectFormatter` - набор пользовательских форматеров для различных объектов  |  |
 | `formatters` | Задает массив дополнительных форматеров для `ILogRecord` которые будут применены перед формированием конечной записи лога. <br> По умолчанию включены следующие форматеры: `CircularFormatter`, `ObjectFormatter`, `PruneFormatter`, `SortFieldsFormatter`. |  |
 | `encoders` | Задает массив дополнительных форматеров, которые будут применены после приведения `ILogRecord` к  **json-строке**. <br> По умолчанию включены следующие форматеры: `PruneEncoder`. |  |
 

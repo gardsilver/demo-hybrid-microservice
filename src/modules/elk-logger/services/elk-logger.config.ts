@@ -1,12 +1,9 @@
 import { openSync } from 'fs';
-import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DATE_BASE_FORMAT, DateTimestamp } from 'src/modules/date-timestamp';
 import { CheckObjectsType, ConfigServiceHelper, MomentCheckObject, isObjectInstanceOf } from 'src/modules/common';
 import { LogFormat, LogLevel, ILogFields } from '../types/elk-logger.types';
-import { ELK_IGNORE_FORMATTER_OBJECTS_DI, ELK_SORT_FIELDS_DI, ELK_DEFAULT_FIELDS_DI } from '../types/tokens';
 
-@Injectable()
 export class ElkLoggerConfig {
   private formatLogRecord: LogFormat;
   private ignoreModules: string[];
@@ -14,14 +11,14 @@ export class ElkLoggerConfig {
   private timestampFormat: string;
   private storeFilePath: string;
   private fileDescriptor: number;
-  private readonly ignoreObjects: Array<CheckObjectsType>;
+  private readonly ignoreObjects: CheckObjectsType[];
   private readonly sortFields: string[];
 
   constructor(
     configService: ConfigService,
-    @Inject(ELK_IGNORE_FORMATTER_OBJECTS_DI) ignoreObjects: Array<CheckObjectsType>,
-    @Inject(ELK_SORT_FIELDS_DI) sortFields: string[],
-    @Inject(ELK_DEFAULT_FIELDS_DI) private readonly defaultFields?: ILogFields,
+    ignoreObjects: CheckObjectsType[],
+    sortFields: string[],
+    private readonly defaultFields?: ILogFields,
   ) {
     this.initByEnvs(configService);
 

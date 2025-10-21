@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { DateTimestamp } from 'src/modules/date-timestamp';
-import { LoggerMarkers } from 'src/modules/common';
+import { CheckObjectsType, LoggerMarkers } from 'src/modules/common';
 import { MockConfigService } from 'tests/nestjs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
 import { FormattersFactory } from '../formatters/formatters.factory';
@@ -13,6 +13,7 @@ import {
   ILogRecordEncodeFormatter,
   ILogRecordFormatter,
   LogLevel,
+  ObjectFormatter,
 } from '../types/elk-logger.types';
 import { ElkLoggerConfig } from './elk-logger.config';
 import { ElkLoggerService } from './elk-logger.service';
@@ -20,6 +21,7 @@ import {
   ELK_DEFAULT_FIELDS_DI,
   ELK_IGNORE_FORMATTER_OBJECTS_DI,
   ELK_LOGGER_SERVICE_DI,
+  ELK_OBJECT_FORMATTERS_DI,
   ELK_SORT_FIELDS_DI,
 } from '../types/tokens';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
@@ -53,6 +55,10 @@ describe(ElkLoggerService.name, () => {
           useValue: [],
         },
         {
+          provide: ELK_OBJECT_FORMATTERS_DI,
+          useValue: [],
+        },
+        {
           provide: ELK_SORT_FIELDS_DI,
           useValue: [],
         },
@@ -67,7 +73,30 @@ describe(ElkLoggerService.name, () => {
             },
           },
         },
-        ElkLoggerConfig,
+        {
+          provide: ElkLoggerConfig,
+          inject: [
+            ConfigService,
+            ELK_IGNORE_FORMATTER_OBJECTS_DI,
+            ELK_OBJECT_FORMATTERS_DI,
+            ELK_SORT_FIELDS_DI,
+            ELK_DEFAULT_FIELDS_DI,
+          ],
+          useFactory: (
+            configService: ConfigService,
+            ignoreObjects: CheckObjectsType[],
+            objectFormatters: ObjectFormatter[],
+            sortFields: string[],
+            defaultFields?: ILogFields,
+          ) => {
+            return new ElkLoggerConfig(
+              configService,
+              [].concat(ignoreObjects, objectFormatters),
+              sortFields,
+              defaultFields,
+            );
+          },
+        },
         {
           provide: FormattersFactory,
           useValue: {

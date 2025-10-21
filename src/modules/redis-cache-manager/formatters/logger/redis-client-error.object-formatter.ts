@@ -1,7 +1,9 @@
 import { ReconnectStrategyError, MultiErrorReply } from '@redis/client';
+import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
+@Injectable()
 export class RedisClientErrorFormatter extends BaseErrorObjectFormatter<ReconnectStrategyError | MultiErrorReply> {
   isInstanceOf(obj: unknown): obj is ReconnectStrategyError | MultiErrorReply {
     return obj instanceof ReconnectStrategyError || obj instanceof MultiErrorReply;

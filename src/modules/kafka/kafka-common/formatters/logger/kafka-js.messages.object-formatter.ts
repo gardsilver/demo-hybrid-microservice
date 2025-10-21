@@ -1,3 +1,4 @@
+import { Injectable } from '@nestjs/common';
 import {
   EachBatchPayload,
   EachMessagePayload,
@@ -97,6 +98,7 @@ export const isEachBatchPayload = (obj: unknown): obj is EachBatchPayload => {
   return true;
 };
 
+@Injectable()
 export class KafkaJsMessagesObjectFormatter extends ObjectFormatter<
   EachMessagePayload | EachBatchPayload | KafkaMessage | Batch
 > {

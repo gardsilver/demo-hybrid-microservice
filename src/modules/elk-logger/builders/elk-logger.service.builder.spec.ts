@@ -1,32 +1,34 @@
 import { randomUUID } from 'crypto';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { CheckObjectsType } from 'src/modules/common';
 import { MockEncodeFormatter, MockFormatter } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
-import { ElkLoggerServiceBuilder } from './elk-logger.service.builder';
-import { ObjectFormatterBuilder } from './object-formatter.builder';
+import {
+  ELK_DEFAULT_FIELDS_DI,
+  ELK_FEATURE_ENCODERS_DI,
+  ELK_FEATURE_FORMATTERS_DI,
+  ELK_IGNORE_FORMATTER_OBJECTS_DI,
+  ELK_OBJECT_FORMATTERS_DI,
+  ELK_SORT_FIELDS_DI,
+} from '../types/tokens';
+import { ILogFields, ObjectFormatter } from '../types/elk-logger.types';
 import { RecordEncodeFormattersFactory } from '../formatters/record-encode.formatters.factory';
 import { FullFormatter } from '../formatters/record-encodes/full.formatter';
 import { SimpleFormatter } from '../formatters/record-encodes/simple.formatter';
 import { ShortFormatter } from '../formatters/record-encodes/short.formatter';
 import { FormattersFactory } from '../formatters/formatters.factory';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
-import {
-  ELK_DEFAULT_FIELDS_DI,
-  ELK_FEATURE_ENCODERS_DI,
-  ELK_FEATURE_FORMATTERS_DI,
-  ELK_IGNORE_FORMATTER_OBJECTS_DI,
-  ELK_SORT_FIELDS_DI,
-} from '../types/tokens';
 import { CircularFormatter } from '../formatters/records/circular.formatter';
-import { ObjectFormatter } from '../formatters/records/object.formatter';
+import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/object.formatter';
 import { PruneFormatter } from '../formatters/records/prune.formatter';
 import { PruneConfig } from '../formatters/prune.config';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
 import { ElkLoggerService } from '../services/elk-logger.service';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
-import { ILogFields } from '../types/elk-logger.types';
+import { ElkLoggerServiceBuilder } from './elk-logger.service.builder';
+import { ObjectFormatterBuilder } from './object-formatter.builder';
 
 describe(ElkLoggerServiceBuilder.name, () => {
   let mockUuid;
@@ -47,6 +49,10 @@ describe(ElkLoggerServiceBuilder.name, () => {
           useValue: [],
         },
         {
+          provide: ELK_OBJECT_FORMATTERS_DI,
+          useValue: [],
+        },
+        {
           provide: ELK_SORT_FIELDS_DI,
           useValue: [],
         },
@@ -60,7 +66,30 @@ describe(ElkLoggerServiceBuilder.name, () => {
             },
           },
         },
-        ElkLoggerConfig,
+        {
+          provide: ElkLoggerConfig,
+          inject: [
+            ConfigService,
+            ELK_IGNORE_FORMATTER_OBJECTS_DI,
+            ELK_OBJECT_FORMATTERS_DI,
+            ELK_SORT_FIELDS_DI,
+            ELK_DEFAULT_FIELDS_DI,
+          ],
+          useFactory: (
+            configService: ConfigService,
+            ignoreObjects: CheckObjectsType[],
+            objectFormatters: ObjectFormatter[],
+            sortFields: string[],
+            defaultFields?: ILogFields,
+          ) => {
+            return new ElkLoggerConfig(
+              configService,
+              [].concat(ignoreObjects, objectFormatters),
+              sortFields,
+              defaultFields,
+            );
+          },
+        },
         PruneConfig,
         FullFormatter,
         SimpleFormatter,
@@ -69,7 +98,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
         RecordEncodeFormattersFactory,
         CircularFormatter,
         {
-          provide: ObjectFormatter,
+          provide: RecordObjectFormatter,
           inject: [ElkLoggerConfig],
           useFactory: (loggerConfig: ElkLoggerConfig) => {
             return ObjectFormatterBuilder.build(loggerConfig);

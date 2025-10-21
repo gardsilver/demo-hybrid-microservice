@@ -7,10 +7,12 @@ import {
   ValidationError,
   ValidationErrorItem,
 } from 'sequelize';
+import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
+@Injectable()
 export class DataBaseErrorFormatter extends BaseErrorObjectFormatter<BaseError | ValidationErrorItem> {
   isInstanceOf(obj: unknown): obj is BaseError | ValidationErrorItem {
     return obj instanceof BaseError || obj instanceof ValidationErrorItem;

@@ -45,8 +45,8 @@ describe(NestElkLoggerServiceBuilder.name, () => {
           module: 'TestModule',
           index: 'MyApplications',
         } as ILogFields,
-        formatters: [new MockFormatter()],
-        encoders: [new MockEncodeFormatter()],
+        formatters: () => [new MockFormatter()],
+        encoders: () => [new MockEncodeFormatter()],
       });
 
       const elkLoggerConfig = services.elkLoggerConfig;

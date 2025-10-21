@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { GrpcClientError } from '../../errors/grpc-client.error';
 
+@Injectable()
 export class GrpcClientErrorFormatter extends BaseErrorObjectFormatter<GrpcClientError> {
   isInstanceOf(obj: unknown): obj is GrpcClientError {
     return obj instanceof GrpcClientError;

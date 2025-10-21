@@ -1,23 +1,26 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
+import { CheckObjectsType } from 'src/modules/common';
 import { MockConfigService } from 'tests/nestjs';
 import { MockEncodeFormatter, MockFormatter } from 'tests/modules/elk-logger';
-import { ObjectFormatterBuilder } from '../builders/object-formatter.builder';
-import { FormattersFactory } from '../formatters/formatters.factory';
-import { ElkLoggerConfig } from '../services/elk-logger.config';
-import { CircularFormatter } from '../formatters/records/circular.formatter';
-import { ObjectFormatter } from './records/object.formatter';
-import { PruneFormatter } from '../formatters/records/prune.formatter';
-import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
-import { PruneEncoder } from '../formatters/encodes/prune.encoder';
-import { PruneConfig } from './prune.config';
 import {
   ELK_DEFAULT_FIELDS_DI,
   ELK_FEATURE_ENCODERS_DI,
   ELK_FEATURE_FORMATTERS_DI,
   ELK_IGNORE_FORMATTER_OBJECTS_DI,
+  ELK_OBJECT_FORMATTERS_DI,
   ELK_SORT_FIELDS_DI,
 } from '../types/tokens';
+import { ObjectFormatter, ILogFields } from '../types/elk-logger.types';
+import { ObjectFormatterBuilder } from '../builders/object-formatter.builder';
+import { FormattersFactory } from '../formatters/formatters.factory';
+import { ElkLoggerConfig } from '../services/elk-logger.config';
+import { CircularFormatter } from '../formatters/records/circular.formatter';
+import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/object.formatter';
+import { PruneFormatter } from '../formatters/records/prune.formatter';
+import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
+import { PruneEncoder } from '../formatters/encodes/prune.encoder';
+import { PruneConfig } from './prune.config';
 
 describe(FormattersFactory.name, () => {
   let formattersFactory: FormattersFactory;
@@ -34,6 +37,10 @@ describe(FormattersFactory.name, () => {
           useValue: [],
         },
         {
+          provide: ELK_OBJECT_FORMATTERS_DI,
+          useValue: [],
+        },
+        {
           provide: ELK_SORT_FIELDS_DI,
           useValue: [],
         },
@@ -41,7 +48,30 @@ describe(FormattersFactory.name, () => {
           provide: ELK_DEFAULT_FIELDS_DI,
           useValue: {},
         },
-        ElkLoggerConfig,
+        {
+          provide: ElkLoggerConfig,
+          inject: [
+            ConfigService,
+            ELK_IGNORE_FORMATTER_OBJECTS_DI,
+            ELK_OBJECT_FORMATTERS_DI,
+            ELK_SORT_FIELDS_DI,
+            ELK_DEFAULT_FIELDS_DI,
+          ],
+          useFactory: (
+            configService: ConfigService,
+            ignoreObjects: CheckObjectsType[],
+            objectFormatters: ObjectFormatter[],
+            sortFields: string[],
+            defaultFields?: ILogFields,
+          ) => {
+            return new ElkLoggerConfig(
+              configService,
+              [].concat(ignoreObjects, objectFormatters),
+              sortFields,
+              defaultFields,
+            );
+          },
+        },
         PruneConfig,
         {
           provide: ELK_FEATURE_FORMATTERS_DI,
@@ -53,7 +83,7 @@ describe(FormattersFactory.name, () => {
         },
         CircularFormatter,
         {
-          provide: ObjectFormatter,
+          provide: RecordObjectFormatter,
           inject: [ElkLoggerConfig],
           useFactory: (loggerConfig: ElkLoggerConfig) => {
             return ObjectFormatterBuilder.build(loggerConfig);
@@ -78,7 +108,7 @@ describe(FormattersFactory.name, () => {
 
     expect(formatters.length).toEqual(5);
     expect(formatters[0] instanceof CircularFormatter).toBeTruthy();
-    expect(formatters[1] instanceof ObjectFormatter).toBeTruthy();
+    expect(formatters[1] instanceof RecordObjectFormatter).toBeTruthy();
     expect(formatters[2] instanceof MockFormatter).toBeTruthy();
     expect(formatters[3] instanceof PruneFormatter).toBeTruthy();
     expect(formatters[4] instanceof SortFieldsFormatter).toBeTruthy();

@@ -1,7 +1,5 @@
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
-import { ValidationErrorItem } from 'sequelize';
-import { Metadata } from '@grpc/grpc-js';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
@@ -54,7 +52,6 @@ async function bootstrap(): Promise<void> {
     configService: initConfigService,
     formattersOptions: {
       sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
-      ignoreObjects: [ValidationErrorItem, Metadata, new KafkaJsMessagesObjectFormatter()],
       exceptionFormatters: [
         new DataBaseErrorFormatter(),
         new AxiosErrorFormatter(),
@@ -73,10 +70,9 @@ async function bootstrap(): Promise<void> {
         new ValidationErrorItemObjectFormatter(),
       ],
     },
-    formatters: [
-      new GeneralAsyncContextFormatter(),
-      new HttpSecurityHeadersFormatter(new ElkLoggerConfig(initConfigService, [], [])),
-    ],
+    formatters: (elkLoggerConfig: ElkLoggerConfig) => {
+      return [new GeneralAsyncContextFormatter(), new HttpSecurityHeadersFormatter(elkLoggerConfig)];
+    },
   });
 
   const app = await NestFactory.create<NestExpressApplication>(MainModule, { logger: nestLogger, bufferLogs: true });

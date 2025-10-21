@@ -1,8 +1,10 @@
+import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { HttpClientError } from '../../errors/http-client.error';
 
+@Injectable()
 export class HttpClientErrorFormatter extends BaseErrorObjectFormatter<HttpClientError> {
   isInstanceOf(obj: unknown): obj is HttpClientError {
     return obj instanceof HttpClientError;

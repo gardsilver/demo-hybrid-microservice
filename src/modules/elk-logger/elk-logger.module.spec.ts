@@ -45,7 +45,9 @@ describe(ElkLoggerModule.name, () => {
             index: 'custom field',
           } as ILogFields,
           formattersOptions: {
-            ignoreObjects: [TestConfig],
+            ignoreObjects: {
+              useFactory: () => [TestConfig],
+            },
             sortFields: ['index'],
           },
           formatters: {

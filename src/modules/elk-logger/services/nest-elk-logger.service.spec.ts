@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
+import { CheckObjectsType } from 'src/modules/common';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
@@ -12,11 +13,19 @@ import {
   ELK_DEFAULT_FIELDS_DI,
   ELK_IGNORE_FORMATTER_OBJECTS_DI,
   ELK_NEST_LOGGER_SERVICE_DI,
+  ELK_OBJECT_FORMATTERS_DI,
   ELK_SORT_FIELDS_DI,
 } from '../types/tokens';
 import { FormattersFactory } from '../formatters/formatters.factory';
 import { RecordEncodeFormattersFactory } from '../formatters/record-encode.formatters.factory';
-import { ILogRecordFormatter, IEncodeFormatter, ILogRecordEncodeFormatter, LogLevel } from '../types/elk-logger.types';
+import {
+  ILogRecordFormatter,
+  IEncodeFormatter,
+  ILogRecordEncodeFormatter,
+  LogLevel,
+  ILogFields,
+  ObjectFormatter,
+} from '../types/elk-logger.types';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 
 jest.mock('fs', () => ({
@@ -58,6 +67,10 @@ describe(NestElkLoggerService.name, () => {
           useValue: [],
         },
         {
+          provide: ELK_OBJECT_FORMATTERS_DI,
+          useValue: [],
+        },
+        {
           provide: ELK_SORT_FIELDS_DI,
           useValue: [],
         },
@@ -65,7 +78,30 @@ describe(NestElkLoggerService.name, () => {
           provide: ELK_DEFAULT_FIELDS_DI,
           useValue: {},
         },
-        ElkLoggerConfig,
+        {
+          provide: ElkLoggerConfig,
+          inject: [
+            ConfigService,
+            ELK_IGNORE_FORMATTER_OBJECTS_DI,
+            ELK_OBJECT_FORMATTERS_DI,
+            ELK_SORT_FIELDS_DI,
+            ELK_DEFAULT_FIELDS_DI,
+          ],
+          useFactory: (
+            configService: ConfigService,
+            ignoreObjects: CheckObjectsType[],
+            objectFormatters: ObjectFormatter[],
+            sortFields: string[],
+            defaultFields?: ILogFields,
+          ) => {
+            return new ElkLoggerConfig(
+              configService,
+              [].concat(ignoreObjects, objectFormatters),
+              sortFields,
+              defaultFields,
+            );
+          },
+        },
         {
           provide: FormattersFactory,
           useValue: {

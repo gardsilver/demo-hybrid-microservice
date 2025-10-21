@@ -13,10 +13,19 @@ export interface IElkLoggerModuleOptions {
   providers?: Provider[];
   defaultFields?: ILogFields;
   formattersOptions?: {
-    ignoreObjects?: Array<CheckObjectsType>;
+    ignoreObjects?:
+      | ServiceClassProvider<CheckObjectsType[]>
+      | ServiceValueProvider<CheckObjectsType[]>
+      | ServiceFactoryProvider<CheckObjectsType[]>;
     sortFields?: string[];
-    exceptionFormatters?: ErrorFormatter[];
-    objectFormatters?: ObjectFormatter[];
+    exceptionFormatters?:
+      | ServiceClassProvider<ErrorFormatter[]>
+      | ServiceValueProvider<ErrorFormatter[]>
+      | ServiceFactoryProvider<ErrorFormatter[]>;
+    objectFormatters?:
+      | ServiceClassProvider<ObjectFormatter[]>
+      | ServiceValueProvider<ObjectFormatter[]>
+      | ServiceFactoryProvider<ObjectFormatter[]>;
   };
   formatters?:
     | ServiceClassProvider<ILogRecordFormatter[]>

@@ -3,11 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
 import { MockConfigService } from 'tests/nestjs';
 import { PruneEncoder } from './prune.encoder';
-import { ELK_DEFAULT_FIELDS_DI, ELK_IGNORE_FORMATTER_OBJECTS_DI, ELK_SORT_FIELDS_DI } from '../../types/tokens';
+import {
+  ELK_DEFAULT_FIELDS_DI,
+  ELK_IGNORE_FORMATTER_OBJECTS_DI,
+  ELK_OBJECT_FORMATTERS_DI,
+  ELK_SORT_FIELDS_DI,
+} from '../../types/tokens';
 import { ElkLoggerConfig } from '../../services/elk-logger.config';
 import { PruneConfig } from '../prune.config';
-import { LogFormat } from '../../types/elk-logger.types';
+import { ILogFields, LogFormat } from '../../types/elk-logger.types';
 import { PruneMessages } from '../../types/prune.types';
+import { CheckObjectsType } from 'src/modules/common';
+import { ObjectFormatter } from '../records/object.formatter';
 
 describe(PruneEncoder.name, () => {
   let loggerConfig: ElkLoggerConfig;
@@ -28,6 +35,10 @@ describe(PruneEncoder.name, () => {
           useValue: [],
         },
         {
+          provide: ELK_OBJECT_FORMATTERS_DI,
+          useValue: [],
+        },
+        {
           provide: ELK_SORT_FIELDS_DI,
           useValue: [],
         },
@@ -41,7 +52,30 @@ describe(PruneEncoder.name, () => {
             },
           },
         },
-        ElkLoggerConfig,
+        {
+          provide: ElkLoggerConfig,
+          inject: [
+            ConfigService,
+            ELK_IGNORE_FORMATTER_OBJECTS_DI,
+            ELK_OBJECT_FORMATTERS_DI,
+            ELK_SORT_FIELDS_DI,
+            ELK_DEFAULT_FIELDS_DI,
+          ],
+          useFactory: (
+            configService: ConfigService,
+            ignoreObjects: CheckObjectsType[],
+            objectFormatters: ObjectFormatter[],
+            sortFields: string[],
+            defaultFields?: ILogFields,
+          ) => {
+            return new ElkLoggerConfig(
+              configService,
+              [].concat(ignoreObjects, objectFormatters),
+              sortFields,
+              defaultFields,
+            );
+          },
+        },
         PruneConfig,
         PruneEncoder,
       ],

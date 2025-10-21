@@ -1,8 +1,10 @@
 import { AxiosError, isAxiosError } from 'axios';
+import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
 import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 
+@Injectable()
 export class AxiosErrorFormatter extends BaseErrorObjectFormatter<AxiosError> {
   isInstanceOf(obj: unknown): obj is AxiosError {
     return isAxiosError(obj);

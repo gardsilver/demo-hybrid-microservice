@@ -150,8 +150,7 @@ export class AppService {
     constructor(
         @Inject(ELK_LOGGER_SERVICE_BUILDER_DI)
         private readonly loggerBuilder: IElkLoggerServiceBuilder,
-    );
-
+    ){};
 
     run(): void {
         const logger = this.loggerBuilder..build({ ... });
@@ -162,6 +161,52 @@ export class AppService {
 ```
 
 Метод `IElkLoggerServiceBuilder.build` позволяет задать базовые значения полей лога, которые всегда будут добавляться сервисом `logger` к конечной записи лога. Они будут объединены с `defaultFields` (которые задаются через `ElkLoggerModule.forRoot`) и с `IOptionLog` (которые передаются в момент вызова метода логирования сервиса `logger`).
+
+Альтернативным способом использования `IElkLoggerService` является применение декоратора `ElkLoggerOnMethod`, который позволяет настраивать логирование вызова метода и его результата.
+
+```typescript
+import { Inject, Injectable } from '@nestjs/common';
+import { ElkLoggerOnMethod } from 'src/modules/elk-logger';
+
+@Injectable()
+export class AppService {
+  @ElkLoggerOnMethod({
+    fields: (args) => {
+      return {
+        payload: {
+          args: ...args,
+        },
+      };
+    },
+    before: false,
+    after: ({ result }) => {
+      return {
+        message: 'AppService.run success',
+        data: {
+          payload: {
+            result,
+          },
+        },
+      };
+    },
+    throw: ({ error }) => {
+      return {
+        message: 'AppService.run failed',
+        data: {
+          payload: {
+            error,
+          },
+        },
+      };
+    },
+  })
+  run(...args) {
+    ...
+
+    return ...;
+  }
+}
+```
 
 ## Дополнительные возможности
 

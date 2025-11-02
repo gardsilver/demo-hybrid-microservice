@@ -32,6 +32,7 @@ import { NestElkLoggerService } from './services/nest-elk-logger.service';
 import { ElkLoggerServiceBuilder } from './builders/elk-logger.service.builder';
 import { ObjectFormatterBuilder } from './builders/object-formatter.builder';
 import { ErrorFormatter, ILogFields, ObjectFormatter } from './types/elk-logger.types';
+import { ElkLoggerEventService } from './services/elk-logger.event-service';
 
 @Module({})
 export class ElkLoggerModule {
@@ -132,6 +133,7 @@ export class ElkLoggerModule {
         providerType: options?.encoders,
         defaultType: { useValue: [] },
       }),
+      ElkLoggerEventService,
     ];
 
     if (options?.providers?.length) {

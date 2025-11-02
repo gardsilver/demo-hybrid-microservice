@@ -2,6 +2,8 @@ export * from './types/trace-span';
 export * from './types/elk-logger.types';
 export * from './types/tokens';
 export * from './types/elk-logger.module.options';
+export * from './types/decorators.type';
+export * from './decorators/elk-logger.on-method';
 export * from './helpers/trace-span.helper';
 export * from './helpers/log-fields.helper';
 export * from './builders/trace-span.builder';

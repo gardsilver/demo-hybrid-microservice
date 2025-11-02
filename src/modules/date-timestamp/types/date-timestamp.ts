@@ -175,8 +175,7 @@ export class DateTimestamp {
       }
 
       this.setCorrectly = true;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
+    } catch {
       this.setCorrectly = false;
 
       if (this.throwOnError) {

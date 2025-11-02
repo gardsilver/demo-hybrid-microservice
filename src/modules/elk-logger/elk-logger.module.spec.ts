@@ -10,9 +10,9 @@ import {
   ILogFields,
   INestElkLoggerService,
 } from './types/elk-logger.types';
+import { ELK_LOGGER_SERVICE_DI, ELK_NEST_LOGGER_SERVICE_DI, ELK_LOGGER_SERVICE_BUILDER_DI } from './types/tokens';
 import { PruneConfig } from './formatters/prune.config';
 import { ElkLoggerConfig } from './services/elk-logger.config';
-import { ELK_LOGGER_SERVICE_DI, ELK_NEST_LOGGER_SERVICE_DI, ELK_LOGGER_SERVICE_BUILDER_DI } from './types/tokens';
 
 class TestFormatter extends MockFormatter {
   constructor(private readonly testService: TestService) {

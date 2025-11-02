@@ -16,13 +16,13 @@ export class UserService {
   ) {}
 
   @ElkLoggerOnMethod({
-    fields: (options) => {
-      const identity = options.methodsArgs[0] as undefined as IIdentityUser;
+    fields: ({ methodsArgs } ) => {
+      const identity = methodsArgs[0] as undefined as IIdentityUser;
 
       return {
         markers: [LoggerMarkers.DB],
         payload: {
-          request: identity,
+          request: methodsArgs,
           filter: {
             where: {
               ...(identity?.id ? { id: identity?.id } : identity),

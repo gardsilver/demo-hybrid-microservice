@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test } from '@nestjs/testing';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { DateTimestamp } from 'src/modules/date-timestamp';
 import { ElkLoggerEventService } from '../services/elk-logger.event-service';
 import { ElkLoggerOnMethod } from './elk-logger.on-method';
 import { IElkLoggerEvent, ITargetLoggerOnMethod } from '../types/decorators.type';
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
 import { TraceSpanBuilder } from '../builders/trace-span.builder';
 import { ILogFields } from '../types/elk-logger.types';
 
@@ -21,6 +22,8 @@ describe(ElkLoggerOnMethod.name, () => {
     mockContext = {
       ...TraceSpanBuilder.build(),
     };
+
+    jest.spyOn(DateTimestamp.prototype, 'diff').mockImplementation(() => 20_000);
 
     fields = {
       index: 'TestApplications',
@@ -94,6 +97,7 @@ describe(ElkLoggerOnMethod.name, () => {
           fields: {},
           data: {
             payload: {
+              duration: 20,
               result,
             },
           },
@@ -132,6 +136,7 @@ describe(ElkLoggerOnMethod.name, () => {
           fields: {},
           data: {
             payload: {
+              duration: 20,
               error: mockError,
             },
           },
@@ -291,7 +296,7 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(1);
-      expect(spyAfter).toHaveBeenCalledWith({ result, fields, methodsArgs: ['success'] });
+      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, fields, methodsArgs: ['success'] });
 
       expect(spyThrow).toHaveBeenCalledTimes(0);
     });
@@ -318,7 +323,7 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyAfter).toHaveBeenCalledTimes(0);
 
       expect(spyThrow).toHaveBeenCalledTimes(1);
-      expect(spyThrow).toHaveBeenCalledWith({ error: result, fields, methodsArgs: ['success'] });
+      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, fields, methodsArgs: ['success'] });
     });
   });
 
@@ -378,6 +383,7 @@ describe(ElkLoggerOnMethod.name, () => {
           fields: {},
           data: {
             payload: {
+              duration: 20,
               result,
             },
           },
@@ -416,6 +422,7 @@ describe(ElkLoggerOnMethod.name, () => {
           fields: {},
           data: {
             payload: {
+              duration: 20,
               error: mockError,
             },
           },
@@ -575,7 +582,7 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(1);
-      expect(spyAfter).toHaveBeenCalledWith({ result, fields, methodsArgs: ['success'] });
+      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, fields, methodsArgs: ['success'] });
 
       expect(spyThrow).toHaveBeenCalledTimes(0);
     });
@@ -602,7 +609,7 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyAfter).toHaveBeenCalledTimes(0);
 
       expect(spyThrow).toHaveBeenCalledTimes(1);
-      expect(spyThrow).toHaveBeenCalledWith({ error: result, fields, methodsArgs: ['success'] });
+      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, fields, methodsArgs: ['success'] });
     });
   });
 });

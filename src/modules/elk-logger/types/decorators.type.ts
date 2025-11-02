@@ -26,6 +26,7 @@ export interface IElkLoggerOnMethod {
     | (Omit<IElkLoggerPrams, 'fields'> | false)
     | ((options: {
         result?: any;
+        duration?: number;
         fields?: ILogFields;
         methodsArgs?: any[];
       }) => Omit<IElkLoggerPrams, 'fields'> | false);
@@ -34,6 +35,7 @@ export interface IElkLoggerOnMethod {
     | (Omit<IElkLoggerPrams, 'fields'> | false)
     | ((options: {
         error: unknown;
+        duration?: number;
         fields?: ILogFields;
         methodsArgs?: any[];
       }) => Omit<IElkLoggerPrams, 'fields'> | false);

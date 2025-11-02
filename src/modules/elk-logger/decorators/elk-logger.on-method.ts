@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { ElkLoggerEventService } from '../services/elk-logger.event-service';
 import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerPrams, ITargetLoggerOnMethod } from '../types/decorators.type';
 import { ILogFields } from '../types/elk-logger.types';
@@ -72,6 +73,8 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
         },
       );
 
+      const start = new DateTimestamp();
+
       try {
         ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, { ...params, loggerPrams: beforeCall });
 
@@ -82,14 +85,21 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           return new Promise(async (resolve, reject) => {
             try {
               const promiseResult = await response;
+              const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
 
               const afterCall = useLoggerPrams(
                 eventData.after,
-                { result: promiseResult, fields, methodsArgs: args },
+                {
+                  result: promiseResult,
+                  duration,
+                  fields,
+                  methodsArgs: args,
+                },
                 {
                   fields,
                   data: {
                     payload: {
+                      duration,
                       result: promiseResult,
                     },
                   },
@@ -100,13 +110,21 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
 
               resolve(promiseResult);
             } catch (error) {
+              const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+
               const throwCall = useLoggerPrams(
                 eventData.throw,
-                { error, fields, methodsArgs: args },
+                {
+                  error,
+                  duration,
+                  fields,
+                  methodsArgs: args,
+                },
                 {
                   fields,
                   data: {
                     payload: {
+                      duration,
                       error,
                     },
                   },
@@ -120,13 +138,21 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           });
         }
 
+        const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+
         const afterCall = useLoggerPrams(
           eventData.after,
-          { result: response, fields, methodsArgs: args },
+          {
+            result: response,
+            duration,
+            fields,
+            methodsArgs: args,
+          },
           {
             fields,
             data: {
               payload: {
+                duration,
                 result: response,
               },
             },
@@ -137,13 +163,21 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
 
         return response;
       } catch (exception) {
+        const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+
         const throwCall = useLoggerPrams(
           eventData.throw,
-          { error: exception, fields, methodsArgs: args },
+          {
+            error: exception,
+            duration,
+            fields,
+            methodsArgs: args,
+          },
           {
             fields,
             data: {
               payload: {
+                duration,
                 error: exception,
               },
             },

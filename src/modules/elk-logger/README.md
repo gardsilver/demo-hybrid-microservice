@@ -171,10 +171,10 @@ import { ElkLoggerOnMethod } from 'src/modules/elk-logger';
 @Injectable()
 export class AppService {
   @ElkLoggerOnMethod({
-    fields: (args) => {
+    fields: ({ methodsArgs }) => {
       return {
         payload: {
-          args: ...args,
+          args: methodsArgs,
         },
       };
     },

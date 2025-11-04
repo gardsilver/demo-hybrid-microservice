@@ -3,7 +3,7 @@ import { BaseHeadersHelper, IHeaders, IKeyValue } from 'src/modules/common';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from '../types/general.async-context';
 
-export class HttHeadersHelper {
+export abstract class HttHeadersHelper {
   public static normalize<H = IKeyValue>(headers: H): IHeaders {
     return BaseHeadersHelper.normalize(headers);
   }

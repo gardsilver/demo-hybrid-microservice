@@ -2,7 +2,14 @@ import { Histogram } from 'prom-client';
 import { Inject, Injectable } from '@nestjs/common';
 import { LoggerMarkers } from 'src/modules/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
-import { MetricType, IHistogramService, IHistogramMetricConfig, PrometheusLabels } from '../types/types';
+import {
+  MetricType,
+  IHistogramService,
+  IHistogramMetricConfig,
+  PrometheusLabels,
+  IHistogramParams,
+  IParamsPrometheusLabels,
+} from '../types/types';
 import { PrometheusMetricBuilder } from '../builders/prometheus-metric.builder';
 
 @Injectable()
@@ -12,13 +19,7 @@ export class PrometheusHistogramService implements IHistogramService {
     private readonly metricBuilder: PrometheusMetricBuilder,
   ) {}
 
-  observe(
-    metricConfig: IHistogramMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void {
+  observe(metricConfig: IHistogramMetricConfig, params: IHistogramParams): void {
     const logger = this.loggerBuilder.build({ module: `${PrometheusHistogramService.name}.${this.observe.name}` });
 
     const metric = this.metricBuilder.build(metricConfig, MetricType.HISTOGRAM) as Histogram;
@@ -43,9 +44,7 @@ export class PrometheusHistogramService implements IHistogramService {
 
   startTimer(
     metricConfig: IHistogramMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-    },
+    params?: Partial<IParamsPrometheusLabels>,
   ): (labels?: PrometheusLabels) => number {
     const logger = this.loggerBuilder.build({ module: `${PrometheusHistogramService.name}.${this.startTimer.name}` });
 

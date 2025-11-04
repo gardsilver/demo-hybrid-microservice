@@ -4,7 +4,7 @@ import { DatabaseHelper } from './database.helper';
 class Post {
   constructor(public message: string) {}
 
-  static [Symbol.hasInstance](instance): boolean {
+  public static [Symbol.hasInstance](instance): boolean {
     return instance instanceof Model;
   }
 

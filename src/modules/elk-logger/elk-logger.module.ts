@@ -36,7 +36,7 @@ import { ElkLoggerEventService } from './services/elk-logger.event-service';
 
 @Module({})
 export class ElkLoggerModule {
-  static forRoot(options?: IElkLoggerModuleOptions): DynamicModule {
+  public static forRoot(options?: IElkLoggerModuleOptions): DynamicModule {
     let imports: ImportsType = [ConfigModule];
 
     if (options?.imports?.length) {

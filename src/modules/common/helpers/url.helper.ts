@@ -1,4 +1,4 @@
-export class UrlHelper {
+export abstract class UrlHelper {
   public static getPort(provideUrl: URL): string | false {
     let port: string;
 

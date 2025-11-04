@@ -34,7 +34,7 @@ export interface INestElkLoggerServiceBuilderOption extends Pick<IElkLoggerModul
   };
 }
 
-export class NestElkLoggerServiceBuilder {
+export abstract class NestElkLoggerServiceBuilder {
   public static build(options?: INestElkLoggerServiceBuilderOption): INestElkLoggerService {
     const { elkLoggerConfig, recordEncodeFormattersFactory, formattersFactory } =
       NestElkLoggerServiceBuilder.buildService({

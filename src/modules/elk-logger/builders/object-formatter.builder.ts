@@ -5,7 +5,7 @@ import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/
 import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { ObjectFormatter, ErrorFormatter } from '../types/elk-logger.types';
 
-export class ObjectFormatterBuilder {
+export abstract class ObjectFormatterBuilder {
   public static build(
     elkLoggerConfig: ElkLoggerConfig,
     options?: {

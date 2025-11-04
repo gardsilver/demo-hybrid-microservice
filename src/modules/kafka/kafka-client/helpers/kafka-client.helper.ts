@@ -1,7 +1,7 @@
 import { Message, ProducerRecord } from '@nestjs/microservices/external/kafka.interface';
 import { IKafkaRequestOptions, IKafkaSendOptions } from '../types/types';
 
-export class KafkaClientHelper {
+export abstract class KafkaClientHelper {
   public static mergeRequestOptions(
     globalOptions: Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>,
     options?: IKafkaRequestOptions,

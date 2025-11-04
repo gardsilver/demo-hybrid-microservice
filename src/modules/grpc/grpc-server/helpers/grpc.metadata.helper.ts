@@ -3,7 +3,7 @@ import { IAsyncContext } from 'src/modules/async-context';
 import { IAuthInfo } from 'src/modules/auth';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from 'src/modules/http/http-server';
 
-export class GrpcMetadataHelper {
+export abstract class GrpcMetadataHelper {
   public static setAuthInfo(authIfo: IAuthInfo, metadata: Metadata) {
     metadata[METADATA_AUTH_INFO_KEY] = authIfo;
   }

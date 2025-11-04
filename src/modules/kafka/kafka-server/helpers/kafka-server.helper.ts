@@ -1,7 +1,7 @@
 import { ArgumentsHost } from '@nestjs/common';
 import { KafkaContext } from '../ctx-host/kafka.context';
 
-export class KafkaServerHelper {
+export abstract class KafkaServerHelper {
   public static isKafka(context: ArgumentsHost): boolean {
     if (context.getType() !== 'rpc') {
       return false;

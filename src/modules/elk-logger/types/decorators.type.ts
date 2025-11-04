@@ -6,9 +6,10 @@ export enum IElkLoggerEvent {
   BEFORE_CALL,
   AFTER_CALL,
   THROW_CALL,
+  FINALLY_CALL,
 }
 
-export interface IElkLoggerPrams {
+export interface IElkLoggerParams {
   fields?: ILogFields;
   level?: LogLevel;
   message?: string;
@@ -19,31 +20,29 @@ export interface IElkLoggerOnMethod {
   fields?: ILogFields | ((options: { methodsArgs?: any[] }) => ILogFields);
 
   before?:
-    | (Omit<IElkLoggerPrams, 'fields'> | false)
-    | ((options: { fields?: ILogFields; methodsArgs?: any[] }) => Omit<IElkLoggerPrams, 'fields'> | false);
+    | (Omit<IElkLoggerParams, 'fields'> | false)
+    | ((options: { methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
 
   after?:
-    | (Omit<IElkLoggerPrams, 'fields'> | false)
-    | ((options: {
-        result?: any;
-        duration?: number;
-        fields?: ILogFields;
-        methodsArgs?: any[];
-      }) => Omit<IElkLoggerPrams, 'fields'> | false);
+    | (Omit<IElkLoggerParams, 'fields'> | false)
+    | ((options: { result?: any; duration?: number; methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
 
   throw?:
-    | (Omit<IElkLoggerPrams, 'fields'> | false)
+    | (Omit<IElkLoggerParams, 'fields'> | false)
     | ((options: {
         error: unknown;
         duration?: number;
-        fields?: ILogFields;
         methodsArgs?: any[];
-      }) => Omit<IElkLoggerPrams, 'fields'> | false);
+      }) => Omit<IElkLoggerParams, 'fields'> | false);
+
+  finally?:
+    | (Omit<IElkLoggerParams, 'fields'> | false)
+    | ((options: { duration?: number; methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
 }
 
 export interface ITargetLoggerOnMethod {
   instanceName: string;
   methodName: string;
   context?: IGeneralAsyncContext;
-  loggerPrams: IElkLoggerPrams | false;
+  loggerPrams: IElkLoggerParams | false;
 }

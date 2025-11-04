@@ -6,8 +6,8 @@ import {
   MetricType,
   ICounterService,
   ICounterMetricConfig,
-  PrometheusLabels,
   ICounterMetricValues,
+  ICounterParams,
 } from '../types/types';
 import { PrometheusMetricBuilder } from '../builders/prometheus-metric.builder';
 
@@ -18,13 +18,7 @@ export class PrometheusCounterService implements ICounterService {
     private readonly metricBuilder: PrometheusMetricBuilder,
   ) {}
 
-  public increment(
-    metricConfig: ICounterMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-      value?: number;
-    },
-  ): void {
+  public increment(metricConfig: ICounterMetricConfig, params?: ICounterParams): void {
     const logger = this.loggerBuilder.build({ module: `${PrometheusCounterService.name}.${this.increment.name}` });
 
     const metric = this.metricBuilder.build(metricConfig, MetricType.COUNTER) as Counter;

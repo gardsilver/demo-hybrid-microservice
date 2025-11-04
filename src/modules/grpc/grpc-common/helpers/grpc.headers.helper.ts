@@ -1,6 +1,6 @@
 import { BaseHeadersHelper, IHeaders, IKeyValue } from 'src/modules/common';
 
-export class GrpcHeadersHelper {
+export abstract class GrpcHeadersHelper {
   public static normalize<H = IKeyValue>(headers: H): IHeaders {
     const tgt: IHeaders = {};
 

@@ -21,7 +21,7 @@ import {
 } from '../types/constants';
 import { DateTimestamp } from '../types/date-timestamp';
 
-export class DateTimestampHelper {
+export abstract class DateTimestampHelper {
   public static toTimestamp(dateTimestamp: DateTimestamp): Timestamp {
     return {
       seconds: Long.fromValue(dateTimestamp.getUnix()).div(MILLISECONDS_IN_SECOND),

@@ -1,6 +1,6 @@
 import { IKeyValue, IHeaders } from '../types/types';
 
-export class BaseHeadersHelper {
+export abstract class BaseHeadersHelper {
   public static normalize<H = IKeyValue>(headers: H): IHeaders {
     const tgt: IHeaders = {};
     for (const [k, v] of Object.entries(headers)) {

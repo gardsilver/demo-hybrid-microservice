@@ -3,7 +3,7 @@ import { UrlHelper } from 'src/modules/common';
 import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcClientProxyBuilderOptions } from '../types/types';
 
-export class GrpcClientBuilder {
+export abstract class GrpcClientBuilder {
   public static buildGrpcOptions(options: IGrpcClientProxyBuilderOptions): GrpcOptions {
     GrpcProtoPathHelper.existPaths(options.baseDir);
 

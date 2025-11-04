@@ -1,6 +1,6 @@
 import { KafkaConsumerConfig, IKafkaConsumerOptions } from '../types/types';
 
-export class KafkaConsumerOptionsBuilder {
+export abstract class KafkaConsumerOptionsBuilder {
   public static build(options: IKafkaConsumerOptions): KafkaConsumerConfig {
     return {
       ...options,

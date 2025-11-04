@@ -3,7 +3,7 @@ import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { KafkaAsyncContextHeaderNames } from '../types/constants';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
 
-export class KafkaHeadersHelper extends HttHeadersHelper {
+export abstract class KafkaHeadersHelper extends HttHeadersHelper {
   public static nameAsHeaderName(name: string, useZipkin?: boolean): string {
     return (
       {

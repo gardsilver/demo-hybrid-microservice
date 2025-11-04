@@ -10,7 +10,7 @@ import { TerminusModule } from '@nestjs/terminus';
 
 @Module({})
 export class AuthModule {
-  static forRoot(options?: AuthModuleOptions): DynamicModule {
+  public static forRoot(options?: AuthModuleOptions): DynamicModule {
     return {
       module: AuthModule,
       global: true,

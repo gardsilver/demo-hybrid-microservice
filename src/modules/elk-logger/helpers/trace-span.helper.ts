@@ -1,12 +1,12 @@
 import { randomUUID } from 'crypto';
 import { ITraceSpan } from '../types/trace-span';
 
-export class TraceSpanHelper {
-  static generateRandomValue(): string {
+export abstract class TraceSpanHelper {
+  public static generateRandomValue(): string {
     return randomUUID();
   }
 
-  static toZipkinFormat(ts: ITraceSpan): ITraceSpan {
+  public static toZipkinFormat(ts: ITraceSpan): ITraceSpan {
     return {
       traceId: ts?.traceId ? TraceSpanHelper.formatToZipkin(ts?.traceId) : ts?.traceId,
       spanId: ts?.spanId ? TraceSpanHelper.formatToZipkin(ts?.spanId) : ts?.spanId,
@@ -15,7 +15,7 @@ export class TraceSpanHelper {
     };
   }
 
-  static toGuidFormat(ts: ITraceSpan): ITraceSpan {
+  public static toGuidFormat(ts: ITraceSpan): ITraceSpan {
     return {
       traceId: ts?.traceId ? TraceSpanHelper.formatToGuid(ts?.traceId) : ts?.traceId,
       spanId: ts?.spanId ? TraceSpanHelper.formatToGuid(ts?.spanId) : ts?.spanId,
@@ -24,11 +24,11 @@ export class TraceSpanHelper {
     };
   }
 
-  static formatToZipkin(value: string): string {
+  public static formatToZipkin(value: string): string {
     return value.replace(/[^0-9a-z]/gi, '');
   }
 
-  static formatToGuid(value: string): string {
+  public static formatToGuid(value: string): string {
     const zipkin = TraceSpanHelper.formatToZipkin(value);
 
     return (

@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { join, normalize, sep } from 'path';
 
-export class GrpcProtoPathHelper {
+export abstract class GrpcProtoPathHelper {
   public static existPaths(paths: string | string[]) {
     const checkPaths: string[] = typeof paths === 'string' ? [paths] : paths;
 

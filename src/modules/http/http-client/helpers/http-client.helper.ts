@@ -6,7 +6,7 @@ import { IHttpClientError } from '../errors/http-client.error';
 import { IHttpRequestOptions, IHttpRequest } from '../types/types';
 import { HTTP_CLIENT_DEFAULT_OPTIONS } from '../types/constants';
 
-export class HttpClientHelper {
+export abstract class HttpClientHelper {
   public static canRetry<T, D>(error: IHttpClientError<T, D>, options?: IHttpRequestOptions): boolean {
     if (options?.retryOptions?.statusCodes?.length) {
       return options?.retryOptions?.statusCodes.includes(error.statusCode);

@@ -10,7 +10,7 @@ import { DatabaseConnectBuilder } from './builders/database.connect.builder';
 
 @Module({})
 export class DatabaseModule {
-  static forRoot(options?: IModelConfig): DynamicModule {
+  public static forRoot(options?: IModelConfig): DynamicModule {
     return {
       module: DatabaseModule,
       global: true,

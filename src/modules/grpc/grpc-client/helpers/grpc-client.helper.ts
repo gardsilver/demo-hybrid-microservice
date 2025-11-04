@@ -2,7 +2,7 @@ import { IGrpcClientError } from '../errors/grpc-client.error';
 import { GRPC_CLIENT_DEFAULT_OPTIONS } from '../types/constants';
 import { IGrpcRequestOptions } from '../types/types';
 
-export class GrpcClientHelper {
+export abstract class GrpcClientHelper {
   public static canRetry(error: IGrpcClientError, options?: IGrpcRequestOptions): boolean {
     if (options?.retryOptions?.statusCodes?.length) {
       return options?.retryOptions?.statusCodes.includes(error.statusCode);

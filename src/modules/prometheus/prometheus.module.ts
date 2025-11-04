@@ -14,6 +14,7 @@ import { PrometheusGaugeService } from './services/prometheus-gauge.service';
 import { PrometheusHistogramService } from './services/prometheus-histogram.service';
 import { PrometheusSummaryService } from './services/prometheus-summary.service';
 import { PrometheusManager } from './services/prometheus.manager';
+import { PrometheusEventService } from './services/prometheus.event-service';
 
 @Module({
   imports: [ConfigModule, ElkLoggerModule],
@@ -37,6 +38,7 @@ import { PrometheusManager } from './services/prometheus.manager';
       useClass: PrometheusSummaryService,
     },
     PrometheusManager,
+    PrometheusEventService,
   ],
   exports: [
     PROMETHEUS_COUNTER_SERVICE_DI,

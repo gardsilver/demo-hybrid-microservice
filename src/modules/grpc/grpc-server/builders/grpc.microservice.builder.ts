@@ -6,7 +6,7 @@ import { UrlHelper } from 'src/modules/common';
 import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 
-export class GrpcMicroserviceBuilder {
+export abstract class GrpcMicroserviceBuilder {
   public static setup(
     app: NestExpressApplication,
     options: IGrpcMicroserviceBuilderOptions,

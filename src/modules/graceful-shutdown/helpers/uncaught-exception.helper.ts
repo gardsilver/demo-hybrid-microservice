@@ -4,8 +4,8 @@ import { PrometheusLabels } from 'src/modules/prometheus';
 const TYPE_REG_EXP = new RegExp('^(\\S*):.+$');
 const SOURCE_REG_EXP = new RegExp('^at\\s+((()(\\S+:\\d+:\\d+))|((\\S+.\\S+)\\s+\\((\\S+:\\d+:\\d+)\\)))$');
 
-export class UncaughtExceptionHelper {
-  static getRejectionLabels(reason: unknown): PrometheusLabels {
+export abstract class UncaughtExceptionHelper {
+  public static getRejectionLabels(reason: unknown): PrometheusLabels {
     if (typeof reason === 'string') {
       return { reason };
     }
@@ -20,7 +20,7 @@ export class UncaughtExceptionHelper {
     return {};
   }
 
-  static getUncaughtExceptionLabels(error): PrometheusLabels {
+  public static getUncaughtExceptionLabels(error): PrometheusLabels {
     const labels = <PrometheusLabels>{};
 
     const type = typeof error;
@@ -66,13 +66,13 @@ export class UncaughtExceptionHelper {
     };
   }
 
-  static extractType(typeInfo: string): string {
+  public static extractType(typeInfo: string): string {
     const search = typeInfo.match(TYPE_REG_EXP);
 
     return search !== null && search.length > 0 ? search[1] : undefined;
   }
 
-  static extractSourceInfo(sourceInfo: string): PrometheusLabels {
+  public static extractSourceInfo(sourceInfo: string): PrometheusLabels {
     const search = sourceInfo.match(SOURCE_REG_EXP);
 
     if (!search?.length) {

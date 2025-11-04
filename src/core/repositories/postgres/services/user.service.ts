@@ -2,11 +2,18 @@ import { Inject, Injectable } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { LoggerMarkers } from 'src/modules/common';
 import { ElkLoggerOnMethod } from 'src/modules/elk-logger';
-import { PrometheusManager } from 'src/modules/prometheus';
+import { PrometheusManager, PrometheusMetricConfigOnService, PrometheusOnMethod } from 'src/modules/prometheus';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED, DatabaseHelper } from 'src/modules/database';
 import { IIdentityUser, IUser } from '../types/types';
 import { UserModel } from '../models/user.model';
 
+@PrometheusMetricConfigOnService({
+  labels: {
+    service: 'UserService',
+  },
+  counter: DB_QUERY_FAILED,
+  histogram: DB_QUERY_DURATIONS,
+})
 @Injectable()
 export class UserService {
   constructor(
@@ -15,8 +22,26 @@ export class UserService {
     private readonly repository: typeof UserModel,
   ) {}
 
+  @PrometheusOnMethod({
+    labels: ({ labels }) => {
+      return {
+        ...labels,
+        method: 'findUser',
+      };
+    },
+    before: {
+      histogram: {
+        startTimer: {},
+      },
+    },
+    throw: {
+      counter: {
+        increment: {},
+      },
+    },
+  })
   @ElkLoggerOnMethod({
-    fields: ({ methodsArgs } ) => {
+    fields: ({ methodsArgs }) => {
       const identity = methodsArgs[0] as undefined as IIdentityUser;
 
       return {
@@ -61,27 +86,13 @@ export class UserService {
     },
   })
   public async findUser(identity: IIdentityUser): Promise<IUser> {
-    const labels = {
-      service: 'UserService',
-      method: 'findUser',
-    };
     const filter = identity?.id ? { id: identity?.id } : identity;
-    const end = this.prometheusManager.histogram().startTimer(DB_QUERY_DURATIONS, { labels });
+    const model = await this.repository.findOne({
+      where: {
+        ...filter,
+      },
+    });
 
-    try {
-      const model = await this.repository.findOne({
-        where: {
-          ...filter,
-        },
-      });
-
-      return model;
-    } catch (error) {
-      this.prometheusManager.counter().increment(DB_QUERY_FAILED, { labels });
-
-      throw error;
-    } finally {
-      end();
-    }
+    return model;
   }
 }

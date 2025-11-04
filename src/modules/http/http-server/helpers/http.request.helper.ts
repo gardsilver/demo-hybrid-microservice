@@ -3,7 +3,7 @@ import { IAsyncContext } from 'src/modules/async-context';
 import { IAuthInfo } from 'src/modules/auth';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from '../types/constants';
 
-export class HttpRequestHelper {
+export abstract class HttpRequestHelper {
   public static setAuthInfo(authIfo: IAuthInfo, request: Request) {
     request[METADATA_AUTH_INFO_KEY] = authIfo;
   }

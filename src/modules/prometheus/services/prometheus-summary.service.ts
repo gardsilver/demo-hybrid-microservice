@@ -2,7 +2,14 @@ import { Summary } from 'prom-client';
 import { Inject, Injectable } from '@nestjs/common';
 import { LoggerMarkers } from 'src/modules/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
-import { MetricType, ISummaryService, ISummaryMetricConfig, PrometheusLabels } from '../types/types';
+import {
+  MetricType,
+  ISummaryService,
+  ISummaryMetricConfig,
+  PrometheusLabels,
+  ISummaryParams,
+  IParamsPrometheusLabels,
+} from '../types/types';
 import { PrometheusMetricBuilder } from '../builders/prometheus-metric.builder';
 
 @Injectable()
@@ -12,13 +19,7 @@ export class PrometheusSummaryService implements ISummaryService {
     private readonly metricBuilder: PrometheusMetricBuilder,
   ) {}
 
-  observe(
-    metricConfig: ISummaryMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void {
+  observe(metricConfig: ISummaryMetricConfig, params: ISummaryParams): void {
     const logger = this.loggerBuilder.build({ module: `${PrometheusSummaryService.name}.${this.observe.name}` });
 
     const metric = this.metricBuilder.build(metricConfig, MetricType.SUMMARY) as Summary;
@@ -43,9 +44,7 @@ export class PrometheusSummaryService implements ISummaryService {
 
   startTimer(
     metricConfig: ISummaryMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-    },
+    params?: Partial<IParamsPrometheusLabels>,
   ): (labels?: PrometheusLabels) => number {
     const logger = this.loggerBuilder.build({ module: `${PrometheusSummaryService.name}.${this.startTimer.name}` });
 

@@ -1,11 +1,11 @@
 import { Test } from '@nestjs/testing';
-import { ElkLoggerEventService } from './elk-logger.event-service';
 import { ConfigService } from '@nestjs/config';
 import { MockConfigService } from 'tests/nestjs';
-import { IElkLoggerService, IElkLoggerServiceBuilder, ILogFields, LogLevel } from '../types/elk-logger.types';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
+import { IElkLoggerService, IElkLoggerServiceBuilder, ILogFields, LogLevel } from '../types/elk-logger.types';
 import { ELK_LOGGER_SERVICE_BUILDER_DI } from '../types/tokens';
 import { IElkLoggerEvent } from '../types/decorators.type';
+import { ElkLoggerEventService } from './elk-logger.event-service';
 
 describe(ElkLoggerEventService.name, () => {
   let logger: IElkLoggerService;
@@ -187,7 +187,19 @@ describe(ElkLoggerEventService.name, () => {
         },
       });
 
-      expect(spyLogger).toHaveBeenCalledTimes(3);
+      ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, {
+        instanceName: 'instanceName',
+        methodName: 'methodName',
+        loggerPrams: {
+          data: {
+            payload: {
+              status: 'complete',
+            },
+          },
+        },
+      });
+
+      expect(spyLogger).toHaveBeenCalledTimes(4);
       expect(spyLogger).toHaveBeenCalledWith(LogLevel.INFO, 'instanceName.methodName called', {
         payload: {
           details: 'start process',
@@ -198,9 +210,15 @@ describe(ElkLoggerEventService.name, () => {
           status: 'ok',
         },
       });
-      expect(spyLogger).toHaveBeenCalledWith(LogLevel.ERROR, 'instanceName.methodName filed', {
+      expect(spyLogger).toHaveBeenCalledWith(LogLevel.ERROR, 'instanceName.methodName failed', {
         payload: {
           status: 'error',
+        },
+      });
+
+      expect(spyLogger).toHaveBeenCalledWith(LogLevel.DEBUG, 'instanceName.methodName complete', {
+        payload: {
+          status: 'complete',
         },
       });
     });
@@ -239,7 +257,7 @@ describe(ElkLoggerEventService.name, () => {
         instanceName: 'instanceName',
         methodName: 'methodName',
         loggerPrams: {
-          message: 'filed process',
+          message: 'failed process',
           data: {
             payload: {
               status: 'error',
@@ -248,7 +266,20 @@ describe(ElkLoggerEventService.name, () => {
         },
       });
 
-      expect(spyLogger).toHaveBeenCalledTimes(3);
+      ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, {
+        instanceName: 'instanceName',
+        methodName: 'methodName',
+        loggerPrams: {
+          message: 'complete process',
+          data: {
+            payload: {
+              status: 'complete',
+            },
+          },
+        },
+      });
+
+      expect(spyLogger).toHaveBeenCalledTimes(4);
       expect(spyLogger).toHaveBeenCalledWith(LogLevel.INFO, 'start process', {
         payload: {
           details: 'start process',
@@ -259,9 +290,14 @@ describe(ElkLoggerEventService.name, () => {
           status: 'ok',
         },
       });
-      expect(spyLogger).toHaveBeenCalledWith(LogLevel.ERROR, 'filed process', {
+      expect(spyLogger).toHaveBeenCalledWith(LogLevel.ERROR, 'failed process', {
         payload: {
           status: 'error',
+        },
+      });
+      expect(spyLogger).toHaveBeenCalledWith(LogLevel.DEBUG, 'complete process', {
+        payload: {
+          status: 'complete',
         },
       });
     });

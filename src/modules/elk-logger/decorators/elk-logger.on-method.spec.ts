@@ -78,7 +78,7 @@ describe(ElkLoggerOnMethod.name, () => {
       result = service.runOk('success');
 
       expect(result).toBe('success');
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: {
@@ -103,9 +103,14 @@ describe(ElkLoggerOnMethod.name, () => {
           },
         },
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -117,7 +122,7 @@ describe(ElkLoggerOnMethod.name, () => {
       }
 
       expect(result).toEqual(mockError);
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: {
@@ -142,6 +147,11 @@ describe(ElkLoggerOnMethod.name, () => {
           },
         },
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
   });
 
@@ -152,6 +162,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: false,
         after: false,
         throw: false,
+        finally: false,
       })
       runOk(status: string) {
         return status;
@@ -162,6 +173,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: () => false,
         after: () => false,
         throw: () => false,
+        finally: () => false,
       })
       runError(status: string) {
         throw mockError;
@@ -192,7 +204,7 @@ describe(ElkLoggerOnMethod.name, () => {
       result = service.runOk('success');
 
       expect(result).toBe('success');
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: false,
@@ -202,9 +214,14 @@ describe(ElkLoggerOnMethod.name, () => {
         ...params,
         loggerPrams: false,
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -216,13 +233,18 @@ describe(ElkLoggerOnMethod.name, () => {
       }
 
       expect(result).toEqual(mockError);
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: false,
       });
 
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.THROW_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
         ...params,
         loggerPrams: false,
       });
@@ -234,12 +256,14 @@ describe(ElkLoggerOnMethod.name, () => {
     let spyBefore;
     let spyAfter;
     let spyThrow;
+    let spyFinally;
 
     beforeAll(async () => {
       spyFields = jest.fn().mockImplementation(() => fields);
       spyBefore = jest.fn();
       spyAfter = jest.fn();
       spyThrow = jest.fn();
+      spyFinally = jest.fn();
     });
 
     class TestService {
@@ -248,6 +272,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: (args) => spyBefore(args),
         after: (args) => spyAfter(args),
         throw: (args) => spyThrow(args),
+        finally: (args) => spyFinally(args),
       })
       runOk(status: string) {
         return status;
@@ -258,6 +283,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: (args) => spyBefore(args),
         after: (args) => spyAfter(args),
         throw: (args) => spyThrow(args),
+        finally: (args) => spyFinally(args),
       })
       runError(status: string) {
         throw mockError;
@@ -293,15 +319,18 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyFields).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyBefore).toHaveBeenCalledTimes(1);
-      expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
+      expect(spyBefore).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(1);
-      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, fields, methodsArgs: ['success'] });
+      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, methodsArgs: ['success'] });
 
       expect(spyThrow).toHaveBeenCalledTimes(0);
+
+      expect(spyFinally).toHaveBeenCalledTimes(1);
+      expect(spyFinally).toHaveBeenCalledWith({ duration: 20, methodsArgs: ['success'] });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -318,12 +347,15 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyFields).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyBefore).toHaveBeenCalledTimes(1);
-      expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
+      expect(spyBefore).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(0);
 
       expect(spyThrow).toHaveBeenCalledTimes(1);
-      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, fields, methodsArgs: ['success'] });
+      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, methodsArgs: ['success'] });
+
+      expect(spyFinally).toHaveBeenCalledTimes(1);
+      expect(spyFinally).toHaveBeenCalledWith({ duration: 20, methodsArgs: ['success'] });
     });
   });
 
@@ -364,7 +396,7 @@ describe(ElkLoggerOnMethod.name, () => {
       result = await service.runOk('success');
 
       expect(result).toBe('success');
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: {
@@ -389,9 +421,14 @@ describe(ElkLoggerOnMethod.name, () => {
           },
         },
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -403,7 +440,7 @@ describe(ElkLoggerOnMethod.name, () => {
       }
 
       expect(result).toEqual(mockError);
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: {
@@ -428,6 +465,11 @@ describe(ElkLoggerOnMethod.name, () => {
           },
         },
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
   });
 
@@ -438,6 +480,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: false,
         after: false,
         throw: false,
+        finally: false,
       })
       async runOk(status: string) {
         return status;
@@ -448,6 +491,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: () => false,
         after: () => false,
         throw: () => false,
+        finally: () => false,
       })
       async runError(status: string) {
         throw mockError;
@@ -478,7 +522,7 @@ describe(ElkLoggerOnMethod.name, () => {
       result = await service.runOk('success');
 
       expect(result).toBe('success');
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: false,
@@ -488,9 +532,14 @@ describe(ElkLoggerOnMethod.name, () => {
         ...params,
         loggerPrams: false,
       });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -502,13 +551,18 @@ describe(ElkLoggerOnMethod.name, () => {
       }
 
       expect(result).toEqual(mockError);
-      expect(spyEmit).toHaveBeenCalledTimes(2);
+      expect(spyEmit).toHaveBeenCalledTimes(3);
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.BEFORE_CALL, {
         ...params,
         loggerPrams: false,
       });
 
       expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.THROW_CALL, {
+        ...params,
+        loggerPrams: false,
+      });
+
+      expect(spyEmit).toHaveBeenCalledWith(IElkLoggerEvent.FINALLY_CALL, {
         ...params,
         loggerPrams: false,
       });
@@ -520,12 +574,14 @@ describe(ElkLoggerOnMethod.name, () => {
     let spyBefore;
     let spyAfter;
     let spyThrow;
+    let spyFinally;
 
     beforeAll(async () => {
       spyFields = jest.fn().mockImplementation(() => fields);
       spyBefore = jest.fn();
       spyAfter = jest.fn();
       spyThrow = jest.fn();
+      spyFinally = jest.fn();
     });
 
     class TestService {
@@ -534,6 +590,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: (args) => spyBefore(args),
         after: (args) => spyAfter(args),
         throw: (args) => spyThrow(args),
+        finally: (args) => spyFinally(args),
       })
       async runOk(status: string) {
         return status;
@@ -544,6 +601,7 @@ describe(ElkLoggerOnMethod.name, () => {
         before: (args) => spyBefore(args),
         after: (args) => spyAfter(args),
         throw: (args) => spyThrow(args),
+        finally: (args) => spyFinally(args),
       })
       async runError(status: string) {
         throw mockError;
@@ -579,15 +637,18 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyFields).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyBefore).toHaveBeenCalledTimes(1);
-      expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
+      expect(spyBefore).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(1);
-      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, fields, methodsArgs: ['success'] });
+      expect(spyAfter).toHaveBeenCalledWith({ result, duration: 20, methodsArgs: ['success'] });
 
       expect(spyThrow).toHaveBeenCalledTimes(0);
+
+      expect(spyFinally).toHaveBeenCalledTimes(1);
+      expect(spyFinally).toHaveBeenCalledWith({ duration: 20, methodsArgs: ['success'] });
     });
 
-    it('filed', async () => {
+    it('failed', async () => {
       params.methodName = 'runError';
 
       let result = undefined;
@@ -604,12 +665,15 @@ describe(ElkLoggerOnMethod.name, () => {
       expect(spyFields).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyBefore).toHaveBeenCalledTimes(1);
-      expect(spyBefore).toHaveBeenCalledWith({ fields, methodsArgs: ['success'] });
+      expect(spyBefore).toHaveBeenCalledWith({ methodsArgs: ['success'] });
 
       expect(spyAfter).toHaveBeenCalledTimes(0);
 
       expect(spyThrow).toHaveBeenCalledTimes(1);
-      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, fields, methodsArgs: ['success'] });
+      expect(spyThrow).toHaveBeenCalledWith({ error: result, duration: 20, methodsArgs: ['success'] });
+
+      expect(spyFinally).toHaveBeenCalledTimes(1);
+      expect(spyFinally).toHaveBeenCalledWith({ duration: 20, methodsArgs: ['success'] });
     });
   });
 });

@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { IHeaders } from 'src/modules/common';
 import { HttHeadersHelper } from '../../http-common';
 
-export class HttpResponseHelper {
+export abstract class HttpResponseHelper {
   public static addHeaders(headers: IHeaders, response: Response): void {
     const resHeaders = HttHeadersHelper.normalize(response.getHeaders());
 

@@ -11,10 +11,10 @@ import { IMigration, IModelConfig } from '../types/types';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED } from '../types/metrics';
 import { DatabaseConnectOptionsBuilder } from './database.connect-options.builder';
 
-export class DatabaseConnectBuilder {
+export abstract class DatabaseConnectBuilder {
   private static db: Sequelize;
 
-  static async build(
+  public static async build(
     loggerBuilder: IElkLoggerServiceBuilder,
     prometheusManager: PrometheusManager,
     config: DatabaseConfig,

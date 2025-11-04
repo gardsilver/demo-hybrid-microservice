@@ -8,8 +8,8 @@ export interface IConnectOptions
     'dialect' | 'host' | 'port' | 'schema' | 'database' | 'username' | 'password' | 'logging' | 'benchmark'
   > {}
 
-export class DatabaseConnectOptionsBuilder {
-  static build(config: DatabaseConfig, logger: IElkLoggerService): IConnectOptions {
+export abstract class DatabaseConnectOptionsBuilder {
+  public static build(config: DatabaseConfig, logger: IElkLoggerService): IConnectOptions {
     return {
       dialect: config.getDialect() as undefined as Dialect,
       host: config.getHost(),

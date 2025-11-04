@@ -1,8 +1,8 @@
 import { merge } from 'ts-deepmerge';
 import { ILogFields } from '../types/elk-logger.types';
 
-export class LogFieldsHelper {
-  static merge(src: ILogFields, add: ILogFields): ILogFields {
+export abstract class LogFieldsHelper {
+  public static merge(src: ILogFields, add: ILogFields): ILogFields {
     const module = src?.module;
     const tgt = {
       ...merge(
@@ -28,7 +28,7 @@ export class LogFieldsHelper {
     return LogFieldsHelper.filterMarkers(tgt);
   }
 
-  static filterMarkers(logFields: ILogFields): ILogFields {
+  public static filterMarkers(logFields: ILogFields): ILogFields {
     const tgt = Object.assign({}, logFields);
 
     if (logFields.markers?.length) {

@@ -1,7 +1,7 @@
 import { InjectionToken, Provider } from '@nestjs/common';
 import { ServiceClassProvider, ServiceValueProvider, ServiceFactoryProvider } from '../types/interfaces';
 
-export class ProviderBuilder {
+export abstract class ProviderBuilder {
   public static build<T>(
     di: InjectionToken,
     params?: {

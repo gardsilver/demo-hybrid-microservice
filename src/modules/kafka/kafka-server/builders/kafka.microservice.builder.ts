@@ -5,7 +5,7 @@ import { IKafkaMicroserviceBuilderOptions } from '../types/types';
 import { KafkaServerHealthIndicator } from '../services/kafka-server.health-indicator';
 import { KafkaServerService } from '../services/kafka-server.service';
 
-export class KafkaMicroserviceBuilder {
+export abstract class KafkaMicroserviceBuilder {
   public static setup<T = unknown>(
     app: NestExpressApplication,
     options: IKafkaMicroserviceBuilderOptions<T>,

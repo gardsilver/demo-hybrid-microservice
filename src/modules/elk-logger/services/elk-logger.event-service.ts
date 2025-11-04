@@ -3,18 +3,20 @@ import { OnApplicationShutdown, Inject, Injectable } from '@nestjs/common';
 import { GeneralAsyncContext } from 'src/modules/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI } from '../types/tokens';
 import { IElkLoggerServiceBuilder, LogLevel } from '../types/elk-logger.types';
-import { IElkLoggerEvent, IElkLoggerPrams, ITargetLoggerOnMethod } from '../types/decorators.type';
+import { IElkLoggerEvent, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
 
 const defaultLevel = {
   [IElkLoggerEvent.BEFORE_CALL]: LogLevel.INFO,
   [IElkLoggerEvent.AFTER_CALL]: LogLevel.INFO,
   [IElkLoggerEvent.THROW_CALL]: LogLevel.ERROR,
+  [IElkLoggerEvent.FINALLY_CALL]: LogLevel.DEBUG,
 };
 
 const defaultMessage = {
   [IElkLoggerEvent.BEFORE_CALL]: '[[method]] called',
   [IElkLoggerEvent.AFTER_CALL]: '[[method]] success',
-  [IElkLoggerEvent.THROW_CALL]: '[[method]] filed',
+  [IElkLoggerEvent.THROW_CALL]: '[[method]] failed',
+  [IElkLoggerEvent.FINALLY_CALL]: '[[method]] complete',
 };
 
 @Injectable()
@@ -56,7 +58,7 @@ export class ElkLoggerEventService implements OnApplicationShutdown {
       return;
     }
 
-    const loggerPrams: IElkLoggerPrams = param.loggerPrams;
+    const loggerPrams: IElkLoggerParams = param.loggerPrams;
     const methodName = `${param.instanceName}.${param.methodName}`;
 
     const logger = this.loggerBuilder.build({

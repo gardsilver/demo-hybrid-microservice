@@ -73,7 +73,7 @@ export interface KafkaElkLoggerBuilderOptions {
   logFields?: ILogFields;
   logFilterParams?: IKafkaLogFilterParams[];
 }
-export class KafkaElkLoggerBuilder {
+export abstract class KafkaElkLoggerBuilder {
   public static build(params?: KafkaElkLoggerBuilderOptions): logCreator {
     if (!params?.loggerBuilder) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

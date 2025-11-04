@@ -15,47 +15,36 @@ export interface IMetricConfig {
   labelNames: string[];
 }
 
+export interface IParamsPrometheusLabels {
+  labels: PrometheusLabels;
+}
+
+export interface IParamsPrometheusValue {
+  value: number;
+}
+
 export interface ICounterMetricConfig extends IMetricConfig {}
 export interface ICounterMetricValues {
   name: string;
   help: string;
-  values: {
-    labels: PrometheusLabels;
-    value: number;
-  }[];
+  values: (IParamsPrometheusLabels & IParamsPrometheusValue)[];
 }
+export interface ICounterParams extends Partial<IParamsPrometheusLabels & IParamsPrometheusValue> {}
 
 export interface ICounterService {
-  increment(
-    metricConfig: ICounterMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-      value?: number;
-    },
-  ): void;
+  increment(metricConfig: ICounterMetricConfig, params?: ICounterParams): void;
 
   get(metricConfig: ICounterMetricConfig): Promise<ICounterMetricValues>;
 }
 
 export interface IGaugeMetricConfig extends IMetricConfig {}
 export interface IGaugeMetricValues extends ICounterMetricValues {}
+export interface IGaugeParams extends ICounterParams {}
 
 export interface IGaugeService {
-  increment(
-    metricConfig: IGaugeMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void;
+  increment(metricConfig: IGaugeMetricConfig, params?: IGaugeParams): void;
 
-  decrement(
-    metricConfig: IGaugeMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void;
+  decrement(metricConfig: IGaugeMetricConfig, params?: IGaugeParams): void;
 
   get(metricConfig: IGaugeMetricConfig): Promise<IGaugeMetricValues>;
 }
@@ -63,41 +52,27 @@ export interface IGaugeService {
 export interface IHistogramMetricConfig extends IMetricConfig {
   buckets?: number[];
 }
+export interface IHistogramParams extends Partial<IParamsPrometheusLabels>, IParamsPrometheusValue {}
 
 export interface IHistogramService {
-  observe(
-    metricConfig: IHistogramMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void;
+  observe(metricConfig: IHistogramMetricConfig, params: IHistogramParams): void;
 
   startTimer(
     metricConfig: IHistogramMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-    },
+    params?: Partial<IParamsPrometheusLabels>,
   ): (labels?: PrometheusLabels) => number;
 }
 
 export interface ISummaryMetricConfig extends IMetricConfig {
   percentiles?: number[];
 }
+export interface ISummaryParams extends IHistogramParams {}
 
 export interface ISummaryService {
-  observe(
-    metricConfig: ISummaryMetricConfig,
-    params: {
-      labels?: PrometheusLabels;
-      value: number;
-    },
-  ): void;
+  observe(metricConfig: ISummaryMetricConfig, params: ISummaryParams): void;
 
   startTimer(
     metricConfig: ISummaryMetricConfig,
-    params?: {
-      labels?: PrometheusLabels;
-    },
+    params?: Partial<IParamsPrometheusLabels>,
   ): (labels?: PrometheusLabels) => number;
 }

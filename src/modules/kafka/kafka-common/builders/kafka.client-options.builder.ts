@@ -3,7 +3,7 @@ import { UrlHelper } from 'src/modules/common';
 import { KafkaClientConfig, IKafkaClientOptions } from '../types/types';
 import { KafkaElkLoggerBuilder, KafkaElkLoggerBuilderOptions } from './kafka.ekf-logger.builder';
 
-export class KafkaClientOptionsBuilder {
+export abstract class KafkaClientOptionsBuilder {
   public static build(options: IKafkaClientOptions, params?: KafkaElkLoggerBuilderOptions): KafkaClientConfig {
     const brokers = options?.normalizeUrl
       ? options.brokers.map((url) => {

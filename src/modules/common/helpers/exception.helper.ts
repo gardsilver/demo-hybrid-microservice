@@ -1,4 +1,4 @@
-export class ExceptionHelper {
+export abstract class ExceptionHelper {
   public static stackFormat(stack?: unknown) {
     if (!stack) {
       return stack;

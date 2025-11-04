@@ -14,7 +14,7 @@ import { GracefulShutdownHealthIndicatorService } from './services/graceful-shut
 
 @Module({})
 export class GracefulShutdownModule {
-  static forRoot(): DynamicModule {
+  public static forRoot(): DynamicModule {
     return {
       module: GracefulShutdownModule,
       global: true,

@@ -2,7 +2,7 @@ import { Model } from 'sequelize-typescript';
 import { Type } from '@nestjs/common';
 import { IKeyValue, isStaticMethod } from 'src/modules/common';
 
-export class DatabaseHelper {
+export abstract class DatabaseHelper {
   public static modelToLogFormat(model: object) {
     return model && model instanceof Model ? model?.toJSON() : model;
   }

@@ -3,8 +3,8 @@ import { HttpStatus } from '@nestjs/common';
 import { LogLevel } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 
-export class HttpLoggerHelper {
-  static requestAsLogFormat(request: Request) {
+export abstract class HttpLoggerHelper {
+  public static requestAsLogFormat(request: Request) {
     const headers = HttHeadersHelper.normalize(request.headers);
 
     return {
@@ -17,7 +17,7 @@ export class HttpLoggerHelper {
     };
   }
 
-  static responseAsLogFormat(response: Response, data?: unknown) {
+  public static responseAsLogFormat(response: Response, data?: unknown) {
     const headers = HttHeadersHelper.normalize(response.getHeaders());
 
     return {
@@ -27,7 +27,7 @@ export class HttpLoggerHelper {
     };
   }
 
-  static httpStatusToLogLevel(status: HttpStatus): LogLevel {
+  public static httpStatusToLogLevel(status: HttpStatus): LogLevel {
     switch (status) {
       case HttpStatus.CREATED:
       case HttpStatus.OK:

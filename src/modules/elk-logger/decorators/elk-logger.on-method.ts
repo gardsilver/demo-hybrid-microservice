@@ -2,26 +2,27 @@
 import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { ElkLoggerEventService } from '../services/elk-logger.event-service';
-import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerPrams, ITargetLoggerOnMethod } from '../types/decorators.type';
+import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
 import { ILogFields } from '../types/elk-logger.types';
 
-const useLoggerPrams = (
-  loggerPramsBuilder:
-    | ((Omit<IElkLoggerPrams, 'fields'> | false) | ((options: any) => Omit<IElkLoggerPrams, 'fields'> | false))
+const useLoggerParams = (
+  loggerParamsBuilder:
+    | ((Omit<IElkLoggerParams, 'fields'> | false) | ((options: any) => Omit<IElkLoggerParams, 'fields'> | false))
     | undefined,
   optionsBuilder: any,
-  defaultValue: IElkLoggerPrams,
-): IElkLoggerPrams | false => {
-  if (loggerPramsBuilder === undefined) {
-    return defaultValue;
+  defaultValue: IElkLoggerParams,
+  undefinedAsFalse?: boolean,
+): IElkLoggerParams | false => {
+  if (loggerParamsBuilder === undefined) {
+    return undefinedAsFalse ? false : defaultValue;
   }
 
-  let result: IElkLoggerPrams | false;
+  let result: IElkLoggerParams | false;
 
-  if (typeof loggerPramsBuilder === 'function') {
-    result = loggerPramsBuilder(optionsBuilder);
+  if (typeof loggerParamsBuilder === 'function') {
+    result = loggerParamsBuilder(optionsBuilder);
   } else {
-    result = loggerPramsBuilder;
+    result = loggerParamsBuilder;
   }
 
   if (result !== false) {
@@ -49,7 +50,7 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
 
       const params: ITargetLoggerOnMethod = {
         instanceName: target.constructor.name,
-        methodName: originalMethod.name,
+        methodName: propertyKey.toString(),
         context,
         loggerPrams: false,
       };
@@ -60,9 +61,9 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           : eventData.fields
         : {};
 
-      const beforeCall = useLoggerPrams(
+      const beforeCall = useLoggerParams(
         eventData.before,
-        { fields, methodsArgs: args },
+        { methodsArgs: args },
         {
           fields,
           data: {
@@ -74,103 +75,22 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
       );
 
       const start = new DateTimestamp();
+      let duration: number;
+      let response;
+
+      ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, { ...params, loggerPrams: beforeCall });
 
       try {
-        ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, { ...params, loggerPrams: beforeCall });
-
-        const response = originalMethod.apply(this, args);
-
-        if (response instanceof Promise) {
-          // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
-          return new Promise(async (resolve, reject) => {
-            try {
-              const promiseResult = await response;
-              const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
-
-              const afterCall = useLoggerPrams(
-                eventData.after,
-                {
-                  result: promiseResult,
-                  duration,
-                  fields,
-                  methodsArgs: args,
-                },
-                {
-                  fields,
-                  data: {
-                    payload: {
-                      duration,
-                      result: promiseResult,
-                    },
-                  },
-                },
-              );
-
-              ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, { ...params, loggerPrams: afterCall });
-
-              resolve(promiseResult);
-            } catch (error) {
-              const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
-
-              const throwCall = useLoggerPrams(
-                eventData.throw,
-                {
-                  error,
-                  duration,
-                  fields,
-                  methodsArgs: args,
-                },
-                {
-                  fields,
-                  data: {
-                    payload: {
-                      duration,
-                      error,
-                    },
-                  },
-                },
-              );
-
-              ElkLoggerEventService.emit(IElkLoggerEvent.THROW_CALL, { ...params, loggerPrams: throwCall });
-              // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-              reject(error);
-            }
-          });
-        }
-
-        const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
-
-        const afterCall = useLoggerPrams(
-          eventData.after,
-          {
-            result: response,
-            duration,
-            fields,
-            methodsArgs: args,
-          },
-          {
-            fields,
-            data: {
-              payload: {
-                duration,
-                result: response,
-              },
-            },
-          },
-        );
-
-        ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, { ...params, loggerPrams: afterCall });
-
-        return response;
+        response = originalMethod.apply(this, args);
+        duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
       } catch (exception) {
-        const duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+        duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
 
-        const throwCall = useLoggerPrams(
+        const throwCall = useLoggerParams(
           eventData.throw,
           {
             error: exception,
             duration,
-            fields,
             methodsArgs: args,
           },
           {
@@ -187,7 +107,125 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
         ElkLoggerEventService.emit(IElkLoggerEvent.THROW_CALL, { ...params, loggerPrams: throwCall });
 
         throw exception;
+      } finally {
+        if (!(response instanceof Promise)) {
+          const finallyCall = useLoggerParams(
+            eventData.finally,
+            {
+              duration,
+              methodsArgs: args,
+            },
+            {
+              fields,
+              data: {
+                payload: {
+                  duration,
+                },
+              },
+            },
+            true,
+          );
+
+          ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, { ...params, loggerPrams: finallyCall });
+        }
       }
+
+      if (!(response instanceof Promise)) {
+        const afterCall = useLoggerParams(
+          eventData.after,
+          {
+            result: response,
+            duration,
+            methodsArgs: args,
+          },
+          {
+            fields,
+            data: {
+              payload: {
+                duration,
+                result: response,
+              },
+            },
+          },
+        );
+
+        ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, { ...params, loggerPrams: afterCall });
+
+        return response;
+      }
+
+      // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
+      return new Promise(async (resolve, reject) => {
+        try {
+          const promiseResult = await response;
+          duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+
+          const afterCall = useLoggerParams(
+            eventData.after,
+            {
+              result: promiseResult,
+              duration,
+              methodsArgs: args,
+            },
+            {
+              fields,
+              data: {
+                payload: {
+                  duration,
+                  result: promiseResult,
+                },
+              },
+            },
+          );
+
+          ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, { ...params, loggerPrams: afterCall });
+
+          resolve(promiseResult);
+        } catch (error) {
+          duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+
+          const throwCall = useLoggerParams(
+            eventData.throw,
+            {
+              error,
+              duration,
+              methodsArgs: args,
+            },
+            {
+              fields,
+              data: {
+                payload: {
+                  duration,
+                  error,
+                },
+              },
+            },
+          );
+          ElkLoggerEventService.emit(IElkLoggerEvent.THROW_CALL, { ...params, loggerPrams: throwCall });
+
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+          reject(error);
+        } finally {
+          const finallyCall = useLoggerParams(
+            eventData.finally,
+            {
+              duration,
+              methodsArgs: args,
+            },
+            {
+              fields,
+              data: {
+                payload: {
+                  duration,
+                },
+              },
+            },
+            true,
+          );
+
+          ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, { ...params, loggerPrams: finallyCall });
+        }
+      });
     };
 
     return descriptor;

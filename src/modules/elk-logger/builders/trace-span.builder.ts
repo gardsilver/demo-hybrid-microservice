@@ -1,8 +1,8 @@
 import { ITraceSpan } from '../types/trace-span';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 
-export class TraceSpanBuilder {
-  static build(ts?: Partial<ITraceSpan>): ITraceSpan {
+export abstract class TraceSpanBuilder {
+  public static build(ts?: Partial<ITraceSpan>): ITraceSpan {
     const spanId = ts?.spanId ?? TraceSpanHelper.generateRandomValue();
 
     return {

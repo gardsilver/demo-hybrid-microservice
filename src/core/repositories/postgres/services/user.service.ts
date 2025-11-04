@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { LoggerMarkers } from 'src/modules/common';
 import { ElkLoggerOnMethod } from 'src/modules/elk-logger';
-import { PrometheusManager, PrometheusMetricConfigOnService, PrometheusOnMethod } from 'src/modules/prometheus';
+import { PrometheusMetricConfigOnService, PrometheusOnMethod } from 'src/modules/prometheus';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED, DatabaseHelper } from 'src/modules/database';
 import { IIdentityUser, IUser } from '../types/types';
 import { UserModel } from '../models/user.model';
@@ -17,7 +17,6 @@ import { UserModel } from '../models/user.model';
 @Injectable()
 export class UserService {
   constructor(
-    private readonly prometheusManager: PrometheusManager,
     @Inject(getModelToken(UserModel))
     private readonly repository: typeof UserModel,
   ) {}

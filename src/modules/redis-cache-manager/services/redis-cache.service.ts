@@ -16,7 +16,7 @@ export class RedisCacheService {
   async set<T extends object = object>(
     key: string,
     value: T | string,
-    options?: { adapter: IRedisCacheAdapter<T> | false; ttl?: number },
+    options?: { adapter?: IRedisCacheAdapter<T> | false; ttl?: number },
   ): Promise<void | never> {
     if (options?.adapter === false) {
       if (typeof value === 'string') {

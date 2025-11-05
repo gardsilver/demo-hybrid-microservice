@@ -27,6 +27,10 @@
 - `del` - удаляет сохраненные данные в хэше.
 - `clear` - удаляет все сохраненные данные в хэше.
 
+## Декоратор `RedisCacheOnAsyncMethod`
+
+Для кэширования результата асинхронного метода можно использовать декоратор `RedisCacheOnAsyncMethod`.
+
 ## `JsonRedisCacheAdapter`
 
 Реализует интерфейс `encode`/`decode` (`JSON.parse`/`JSON.stringify`).

@@ -125,7 +125,7 @@ import { PROMETHEUS_SUMMARY_SERVICE_DI, ISummaryService} from 'src/modules/prome
 ...
 ```
 
-### Декораторы `PrometheusMetricConfigOnService` и `PrometheusOnMethod`
+## Декораторы `PrometheusMetricConfigOnService` и `PrometheusOnMethod`
 
 Также можно использовать декораторы для фиксации метрик выполнения отдельных процессов.
 При использовании метрики длительностей (`Histogram` или `Summary`) с помощью метода `startTimer` (можно задать в опции `before`), фиксация завершения процесса (вызов `end`) будет происходить автоматически на этапе `finally`.

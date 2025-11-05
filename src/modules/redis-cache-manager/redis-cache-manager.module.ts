@@ -17,6 +17,7 @@ import { RedisCacheManagerConfig } from './services/redis-cache-manager.config';
 import { defaultRedisReconnectStrategyBuilder } from './builders/default-redis.reconnect-strategy.builder';
 import { RedisCacheService } from './services/redis-cache.service';
 import { JsonRedisCacheAdapter } from './adapters/json-redis.cache-adapter';
+import { RedisCacheInstanceService } from './services/redis-cache.instance-service';
 
 @Module({})
 export class RedisCacheManagerModule {
@@ -27,7 +28,12 @@ export class RedisCacheManagerModule {
       imports = imports.concat(options?.imports);
     }
 
-    let providers: Provider[] = [RedisCacheManagerConfig, JsonRedisCacheAdapter, RedisCacheService];
+    let providers: Provider[] = [
+      RedisCacheManagerConfig,
+      JsonRedisCacheAdapter,
+      RedisCacheService,
+      RedisCacheInstanceService,
+    ];
 
     if (options?.providers?.length) {
       providers = providers.concat(options?.providers);

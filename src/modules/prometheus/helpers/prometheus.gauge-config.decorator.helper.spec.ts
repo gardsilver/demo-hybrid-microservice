@@ -161,5 +161,23 @@ describe(PrometheusGaugeConfigDecoratorHelper.name, () => {
         },
       },
     });
+
+    config.increment = true;
+    config.decrement = true;
+    result = PrometheusGaugeConfigDecoratorHelper.build(config, defaultOptions, defaultLabels);
+    expect(result).toEqual({
+      increment: {
+        metricConfig: mockConfig,
+        params: {
+          labels: mockLabel,
+        },
+      },
+      decrement: {
+        metricConfig: mockConfig,
+        params: {
+          labels: mockLabel,
+        },
+      },
+    });
   });
 });

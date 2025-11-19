@@ -105,7 +105,7 @@ export class KafkaClientProxy {
 
   /**
    * Returns an instance of the underlying [server/broker, Producer] instance
-   * */
+   */
   public unwrap<T = [Kafka, Producer]>(): T {
     if (!this.client) {
       throw new Error('Not initialized. Please call the "connect/send" method before accessing the server.');

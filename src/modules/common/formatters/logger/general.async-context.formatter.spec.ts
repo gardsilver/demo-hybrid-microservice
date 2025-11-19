@@ -1,7 +1,6 @@
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
 import { ILogRecord, LogLevel, TraceSpanBuilder } from 'src/modules/elk-logger';
-import { EmptyAsyncContextError } from 'src/modules/async-context';
 import { GeneralAsyncContextFormatter } from './general.async-context.formatter';
 import { IGeneralAsyncContext } from '../../types/general.async-context.type';
 import { LoggerMarkers } from '../../types/logger.markers';
@@ -37,22 +36,6 @@ describe(GeneralAsyncContextFormatter.name, () => {
   it('init', async () => {
     expect(formatter).toBeDefined();
     expect(formatter.priority()).toEqual(0);
-  });
-
-  it('Empty GeneralAsyncContext', async () => {
-    const spyOnExtend = jest.spyOn(GeneralAsyncContext.instance, 'extend').mockImplementation(() => {
-      throw new EmptyAsyncContextError();
-    });
-
-    const copy = merge({}, mockLogRecord);
-
-    expect(copy).toEqual(mockLogRecord);
-
-    const format = formatter.transform(mockLogRecord);
-
-    expect(spyOnExtend).toHaveBeenCalledTimes(1);
-    expect(copy).toEqual(mockLogRecord);
-    expect(format).toEqual(mockLogRecord);
   });
 
   it('add GeneralAsyncContext', async () => {

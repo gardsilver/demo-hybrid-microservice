@@ -118,5 +118,16 @@ describe(PrometheusCounterConfigDecoratorHelper.name, () => {
         },
       },
     });
+
+    config.increment = true;
+    result = PrometheusCounterConfigDecoratorHelper.build(config, defaultOptions, defaultLabels);
+    expect(result).toEqual({
+      increment: {
+        metricConfig: mockConfig,
+        params: {
+          labels: mockLabel,
+        },
+      },
+    });
   });
 });

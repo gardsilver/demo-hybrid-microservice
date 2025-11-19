@@ -22,27 +22,27 @@ export interface IPrometheusParams<M extends IMetricConfig, P> {
 }
 
 export interface ICounterConfig<P = ICounterParams> {
-  increment?: Partial<IPrometheusParams<ICounterMetricConfig, P>> | false;
+  increment?: Partial<IPrometheusParams<ICounterMetricConfig, P>> | boolean;
 }
 
 export interface IGaugeConfig<P = IGaugeParams> {
-  increment?: Partial<IPrometheusParams<IGaugeMetricConfig, P>> | false;
+  increment?: Partial<IPrometheusParams<IGaugeMetricConfig, P>> | boolean;
 
-  decrement?: Partial<IPrometheusParams<IGaugeMetricConfig, P>> | false;
+  decrement?: Partial<IPrometheusParams<IGaugeMetricConfig, P>> | boolean;
 }
 
 export interface IHistogramConfig {
-  observe?: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | false;
+  observe?: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | boolean;
 
-  startTimer?: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | false;
+  startTimer?: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | boolean;
 
   end?: Partial<IParamsPrometheusLabels> | false;
 }
 
 export interface ISummaryConfig {
-  observe?: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | false;
+  observe?: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | boolean;
 
-  startTimer?: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | false;
+  startTimer?: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | boolean;
 
   end?: Partial<IParamsPrometheusLabels> | false;
 }
@@ -132,9 +132,9 @@ export interface IPrometheusOnMethod {
 }
 
 export interface ITargetPrometheusOnMethod {
-  instanceName: string;
-  methodName: string;
+  service: string;
+  method: string;
   context?: IGeneralAsyncContext;
-  flush?: boolean;
+  clear?: boolean;
   prometheusEventConfig: IPrometheusEventConfig | false;
 }

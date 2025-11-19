@@ -30,7 +30,7 @@ const COMPILE_PARAMS = [
     '--ts_proto_opt=useDate=true',
  ];
 
-function cleareCompiledDir() {
+function clearCompiledDir() {
     fs.rmSync(path.join(__dirname, DIST_DIR), {
         recursive: true,
         force: true,
@@ -69,7 +69,7 @@ async function compileProtos() {
 }
 
 (async () => {
-    cleareCompiledDir();
+    clearCompiledDir();
     await compileProtos();
     console.log('\x1b[32m%s\x1b[0m', 'Proto compiled!')
 })();

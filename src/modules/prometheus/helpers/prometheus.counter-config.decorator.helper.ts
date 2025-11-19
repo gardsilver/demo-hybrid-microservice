@@ -1,4 +1,4 @@
-import { ICounterConfig } from '../types/decorators.type';
+import { ICounterConfig, IPrometheusParams } from '../types/decorators.type';
 import { ICounterMetricConfig, ICounterParams, PrometheusLabels } from '../types/types';
 import { PrometheusDecoratorHelper } from './prometheus.decorator.helper';
 
@@ -8,21 +8,31 @@ export abstract class PrometheusCounterConfigDecoratorHelper {
     defaultOptions: false | ICounterMetricConfig,
     defaultLabels: PrometheusLabels | false,
   ): false | ICounterConfig {
-    if (!config || !config.increment) {
+    if (!config) {
       return false;
     }
 
-    return {
-      increment: {
-        metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-          config.increment.metricConfig,
-          defaultOptions,
-          'Для метрики Counter.increment не задан ICounterMetricConfig!\n' +
-            'Задайте опцию counter.increment.metricConfig или определите counter в декораторе PrometheusMetricConfigOnService.',
-        ),
-        params: PrometheusCounterConfigDecoratorHelper.buildParams(config.increment.params, defaultLabels),
-      },
-    };
+    let configIncrement: Partial<IPrometheusParams<ICounterMetricConfig, ICounterParams>>;
+
+    if (typeof config.increment === 'boolean') {
+      configIncrement = config.increment ? {} : undefined;
+    } else {
+      configIncrement = config.increment;
+    }
+
+    return configIncrement
+      ? {
+          increment: {
+            metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
+              configIncrement.metricConfig,
+              defaultOptions,
+              'Для метрики Counter.increment не задан ICounterMetricConfig!\n' +
+                'Задайте опцию counter.increment.metricConfig или определите counter в декораторе PrometheusMetricConfigOnService.',
+            ),
+            params: PrometheusCounterConfigDecoratorHelper.buildParams(configIncrement.params, defaultLabels),
+          },
+        }
+      : false;
   }
 
   private static buildParams(

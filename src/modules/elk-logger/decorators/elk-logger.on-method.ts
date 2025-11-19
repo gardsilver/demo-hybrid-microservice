@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
-import { ElkLoggerEventService } from '../services/elk-logger.event-service';
-import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
 import { ILogFields } from '../types/elk-logger.types';
+import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
+import { ElkLoggerOptions, getElkLoggerOptions } from './elk-logger.on-service';
+import { ElkLoggerEventService } from '../services/elk-logger.event-service';
+import { LogFieldsHelper } from '../helpers/log-fields.helper';
 
 const useLoggerParams = (
   loggerParamsBuilder:
-    | ((Omit<IElkLoggerParams, 'fields'> | false) | ((options: any) => Omit<IElkLoggerParams, 'fields'> | false))
+    | ((Omit<IElkLoggerParams, 'fields'> | boolean) | ((options: any) => Omit<IElkLoggerParams, 'fields'> | boolean))
     | undefined,
   optionsBuilder: any,
   defaultValue: IElkLoggerParams,
@@ -16,11 +18,16 @@ const useLoggerParams = (
   if (loggerParamsBuilder === undefined) {
     return undefinedAsFalse ? false : defaultValue;
   }
+  if (typeof loggerParamsBuilder === 'boolean') {
+    return loggerParamsBuilder ? defaultValue : false;
+  }
 
   let result: IElkLoggerParams | false;
 
   if (typeof loggerParamsBuilder === 'function') {
-    result = loggerParamsBuilder(optionsBuilder);
+    const params = loggerParamsBuilder(optionsBuilder);
+
+    result = params === true ? defaultValue : params;
   } else {
     result = loggerParamsBuilder;
   }
@@ -40,30 +47,36 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
     const originalMethod = descriptor.value;
 
     descriptor.value = function (this: any, ...args: any[]) {
-      let context: IGeneralAsyncContext;
-
-      try {
-        context = GeneralAsyncContext.instance.extend();
-      } catch {
-        context = {};
-      }
+      const defaultElkLoggerOptions: ElkLoggerOptions = getElkLoggerOptions(target);
 
       const params: ITargetLoggerOnMethod = {
-        instanceName: target.constructor.name,
-        methodName: propertyKey.toString(),
-        context,
+        service: target.constructor.name,
+        method: propertyKey.toString(),
+        context: GeneralAsyncContext.instance.extend(),
         loggerPrams: false,
       };
 
-      const fields: ILogFields = eventData.fields
+      let fields: ILogFields = eventData.fields
         ? typeof eventData.fields === 'function'
-          ? eventData.fields({ methodsArgs: args })
+          ? eventData.fields({
+              service: params.service,
+              method: params.method,
+              methodsArgs: args,
+            })
           : eventData.fields
         : {};
 
+      if (defaultElkLoggerOptions.fields !== false) {
+        fields = LogFieldsHelper.merge(defaultElkLoggerOptions.fields, fields);
+      }
+
       const beforeCall = useLoggerParams(
         eventData.before,
-        { methodsArgs: args },
+        {
+          service: params.service,
+          method: params.method,
+          methodsArgs: args,
+        },
         {
           fields,
           data: {
@@ -75,20 +88,26 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
       );
 
       const start = new DateTimestamp();
+
       let duration: number;
       let response;
 
       ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, { ...params, loggerPrams: beforeCall });
+
+      let callError: boolean = false;
 
       try {
         response = originalMethod.apply(this, args);
         duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
       } catch (exception) {
         duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+        callError = true;
 
         const throwCall = useLoggerParams(
           eventData.throw,
           {
+            service: params.service,
+            method: params.method,
             error: exception,
             duration,
             methodsArgs: args,
@@ -108,10 +127,12 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
 
         throw exception;
       } finally {
-        if (!(response instanceof Promise)) {
+        if (callError || !(response instanceof Promise)) {
           const finallyCall = useLoggerParams(
             eventData.finally,
             {
+              service: params.service,
+              method: params.method,
               duration,
               methodsArgs: args,
             },
@@ -134,6 +155,8 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
         const afterCall = useLoggerParams(
           eventData.after,
           {
+            service: params.service,
+            method: params.method,
             result: response,
             duration,
             methodsArgs: args,
@@ -163,6 +186,8 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           const afterCall = useLoggerParams(
             eventData.after,
             {
+              service: params.service,
+              method: params.method,
               result: promiseResult,
               duration,
               methodsArgs: args,
@@ -187,6 +212,8 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           const throwCall = useLoggerParams(
             eventData.throw,
             {
+              service: params.service,
+              method: params.method,
               error,
               duration,
               methodsArgs: args,
@@ -209,6 +236,8 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
           const finallyCall = useLoggerParams(
             eventData.finally,
             {
+              service: params.service,
+              method: params.method,
               duration,
               methodsArgs: args,
             },

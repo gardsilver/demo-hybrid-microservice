@@ -241,5 +241,25 @@ describe(PrometheusSummaryConfigDecoratorHelper.name, () => {
       },
       end: false,
     });
+
+    config.observe = true;
+    config.startTimer = true;
+    result = PrometheusSummaryConfigDecoratorHelper.build(config, defaultOptions, defaultLabels, defaultParams);
+    expect(result).toEqual({
+      observe: {
+        metricConfig: mockConfig,
+        params: {
+          labels: mockLabel,
+          value: defaultParams.value,
+        },
+      },
+      startTimer: {
+        metricConfig: mockConfig,
+        params: {
+          labels: mockLabel,
+        },
+      },
+      end: false,
+    });
   });
 });

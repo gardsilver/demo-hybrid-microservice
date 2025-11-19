@@ -59,6 +59,7 @@ export abstract class KafkaServerBase extends Server {
   constructor(
     protected readonly options: Required<KafkaOptions>['options'] & {
       serverName: string;
+      startTimeout?: number;
       logTitle?: string;
       headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
     },
@@ -163,7 +164,7 @@ export abstract class KafkaServerBase extends Server {
           },
         });
 
-        await delay(this.options.client?.connectionTimeout ?? 10_000, () => {
+        await delay(this.options.startTimeout ?? 30_000, () => {
           if (this.isStop) {
             this.logger.error(this.logTitle + 'server failed.');
             callback(error);

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from 'crypto';
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { PrometheusLabels } from '../types/types';
 import { IPrometheusEventConfig, IPrometheusOnMethod, ITargetPrometheusOnMethod } from '../types/decorators.type';
@@ -33,19 +33,11 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
         defaultPrometheusMetricConfig.labels,
       );
 
-      let context: IGeneralAsyncContext;
-
-      try {
-        context = GeneralAsyncContext.instance.extend();
-      } catch {
-        context = {};
-      }
-
       const params: ITargetPrometheusOnMethod = {
-        instanceName: target.constructor.name,
-        methodName: propertyKey.toString(),
-        context,
-        flush: false,
+        service: target.constructor.name,
+        method: propertyKey.toString(),
+        context: GeneralAsyncContext.instance.extend(),
+        clear: false,
         prometheusEventConfig: false,
       };
 
@@ -56,6 +48,8 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
         histogram: false,
         summary: false,
       };
+
+      let callError: boolean = false;
 
       try {
         const beforeCall: IPrometheusEventConfig = PrometheusEventConfigDecoratorHelper.build(
@@ -91,6 +85,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
         duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
       } catch (exception) {
         duration = new DateTimestamp().diff(start) / MILLISECONDS_IN_SECOND;
+        callError = true;
 
         const throwCall: IPrometheusEventConfig = PrometheusEventConfigDecoratorHelper.build(
           eventData.throw
@@ -118,7 +113,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
 
         throw exception;
       } finally {
-        if (!(response instanceof Promise)) {
+        if (callError || !(response instanceof Promise)) {
           const finallyCall: IPrometheusEventConfig = PrometheusEventConfigDecoratorHelper.build(
             eventData.finally
               ? typeof eventData.finally === 'function'
@@ -148,7 +143,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
             },
             {
               ...params,
-              flush: true,
+              clear: true,
               prometheusEventConfig: finallyCall,
             },
           );
@@ -273,7 +268,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
             },
             {
               ...params,
-              flush: true,
+              clear: true,
               prometheusEventConfig: finallyCall,
             },
           );

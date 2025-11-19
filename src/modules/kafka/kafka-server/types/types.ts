@@ -47,7 +47,7 @@ export interface IKafkaServerOptions<T = unknown>
 }
 
 export interface IKafkaMicroserviceBuilderOptions<T = unknown> {
-  kafkaOptions: IKafkaServerOptions<T>;
+  kafkaOptions: IKafkaServerOptions<T> & { startTimeout?: number };
   loggerBuilder: IElkLoggerServiceBuilder;
   prometheusManager: PrometheusManager;
   kafkaStatusService: KafkaServerStatusService;

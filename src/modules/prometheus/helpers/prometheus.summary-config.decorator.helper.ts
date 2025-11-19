@@ -1,4 +1,4 @@
-import { ISummaryConfig } from '../types/decorators.type';
+import { IPrometheusParams, ISummaryConfig } from '../types/decorators.type';
 import { ISummaryMetricConfig, ISummaryParams, IParamsPrometheusValue, PrometheusLabels } from '../types/types';
 import { PrometheusDecoratorHelper } from './prometheus.decorator.helper';
 
@@ -13,45 +13,52 @@ export abstract class PrometheusSummaryConfigDecoratorHelper {
       return false;
     }
 
-    const result: ISummaryConfig = {
-      observe:
-        config && config.observe
-          ? {
-              metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-                config.observe.metricConfig,
-                defaultOptions,
-                'Для метрики Summary.observe не задан ISummaryMetricConfig!\n' +
-                  'Задайте опцию summary.observe.metricConfig или определите summary в декораторе PrometheusMetricConfigOnService.',
-              ),
-              params: PrometheusSummaryConfigDecoratorHelper.buildParams(
-                config.observe.params,
-                defaultLabels,
-                defaultParams,
-                'Для метрики Summary.observe не задан params.value!\n' + 'Задайте опцию summary.observe.params.value.',
-              ),
-            }
-          : config
-            ? config.observe === undefined
-              ? false
-              : config.observe
-            : false,
+    let configObserve: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>>;
+    let configStartTimer: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>>;
 
-      startTimer:
-        config && config.startTimer
-          ? {
-              metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-                config.startTimer.metricConfig,
-                defaultOptions,
-                'Для метрики Summary.startTimer не задан ISummaryMetricConfig!\n' +
-                  'Задайте опцию summary.startTimer.metricConfig или определите summary в декораторе PrometheusMetricConfigOnService.',
-              ),
-              params: PrometheusSummaryConfigDecoratorHelper.buildParams(config.startTimer.params, defaultLabels),
-            }
-          : config
-            ? config.startTimer === undefined
-              ? false
-              : config.startTimer
-            : false,
+    if (config) {
+      if (typeof config.observe === 'boolean') {
+        configObserve = config.observe ? {} : undefined;
+      } else {
+        configObserve = config.observe;
+      }
+
+      if (typeof config.startTimer === 'boolean') {
+        configStartTimer = config.startTimer ? {} : undefined;
+      } else {
+        configStartTimer = config.startTimer;
+      }
+    }
+
+    const result: ISummaryConfig = {
+      observe: configObserve
+        ? {
+            metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
+              configObserve.metricConfig,
+              defaultOptions,
+              'Для метрики Summary.observe не задан ISummaryMetricConfig!\n' +
+                'Задайте опцию summary.observe.metricConfig или определите summary в декораторе PrometheusMetricConfigOnService.',
+            ),
+            params: PrometheusSummaryConfigDecoratorHelper.buildParams(
+              configObserve.params,
+              defaultLabels,
+              defaultParams,
+              'Для метрики Summary.observe не задан params.value!\n' + 'Задайте опцию summary.observe.params.value.',
+            ),
+          }
+        : false,
+
+      startTimer: configStartTimer
+        ? {
+            metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
+              configStartTimer.metricConfig,
+              defaultOptions,
+              'Для метрики Summary.startTimer не задан ISummaryMetricConfig!\n' +
+                'Задайте опцию summary.startTimer.metricConfig или определите summary в декораторе PrometheusMetricConfigOnService.',
+            ),
+            params: PrometheusSummaryConfigDecoratorHelper.buildParams(configStartTimer.params, defaultLabels),
+          }
+        : false,
       end: defaultParams?.end === true ? (defaultLabels === false ? {} : { labels: defaultLabels }) : false,
     };
 

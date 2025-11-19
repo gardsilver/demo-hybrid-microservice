@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { getModelToken } from '@nestjs/sequelize';
 import { LoggerMarkers } from 'src/modules/common';
-import { ElkLoggerOnMethod } from 'src/modules/elk-logger';
+import { ElkLoggerOnMethod, ElkLoggerOnService } from 'src/modules/elk-logger';
 import { PrometheusMetricConfigOnService, PrometheusOnMethod } from 'src/modules/prometheus';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED, DatabaseHelper } from 'src/modules/database';
 import { IIdentityUser, IUser } from '../types/types';
@@ -13,6 +13,13 @@ import { UserModel } from '../models/user.model';
   },
   counter: DB_QUERY_FAILED,
   histogram: DB_QUERY_DURATIONS,
+})
+@ElkLoggerOnService({
+  fields: () => {
+    return {
+      markers: [LoggerMarkers.DB],
+    };
+  },
 })
 @Injectable()
 export class UserService {
@@ -30,12 +37,12 @@ export class UserService {
     },
     before: {
       histogram: {
-        startTimer: {},
+        startTimer: true,
       },
     },
     throw: {
       counter: {
-        increment: {},
+        increment: true,
       },
     },
   })
@@ -44,9 +51,8 @@ export class UserService {
       const identity = methodsArgs[0] as undefined as IIdentityUser;
 
       return {
-        markers: [LoggerMarkers.DB],
         payload: {
-          request: methodsArgs,
+          payload: { request: methodsArgs },
           filter: {
             where: {
               ...(identity?.id ? { id: identity?.id } : identity),

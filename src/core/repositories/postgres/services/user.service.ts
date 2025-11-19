@@ -52,7 +52,7 @@ export class UserService {
 
       return {
         payload: {
-          payload: { request: methodsArgs },
+          request: methodsArgs,
           filter: {
             where: {
               ...(identity?.id ? { id: identity?.id } : identity),

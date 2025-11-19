@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppConfig } from './services/app.config';
 import { AppKafkaConfig } from './services/app.kafka.config';
-import { ErrorFormattersService } from './services/logger/error.formatters.service';
+import { ErrorFormattersFactory } from './factories/logger/error.formatters.factory';
 import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
 import { HttpExceptionFormatter } from 'src/modules/http/http-server';
@@ -12,15 +12,15 @@ import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
-import { ObjectFormattersService } from './services/logger/object.formatters.service';
-import { IgnoreObjectsService } from './services/logger/ignore-objects.service';
+import { ObjectFormattersFactory } from './factories/logger/object.formatters.factory';
+import { IgnoreObjectsFactory } from './factories/logger/ignore-objects.factory';
 
 @Module({
   imports: [ConfigModule],
   providers: [
     AppConfig,
     AppKafkaConfig,
-    IgnoreObjectsService,
+    IgnoreObjectsFactory,
     DataBaseErrorFormatter,
     AxiosErrorFormatter,
     HttpClientErrorFormatter,
@@ -31,12 +31,12 @@ import { IgnoreObjectsService } from './services/logger/ignore-objects.service';
     RedisClientErrorFormatter,
     KafkaJsErrorObjectFormatter,
     KafkaClientErrorObjectFormatter,
-    ErrorFormattersService,
+    ErrorFormattersFactory,
     MetadataObjectFormatter,
     KafkaJsMessagesObjectFormatter,
     ValidationErrorItemObjectFormatter,
-    ObjectFormattersService,
+    ObjectFormattersFactory,
   ],
-  exports: [AppConfig, AppKafkaConfig, IgnoreObjectsService, ErrorFormattersService, ObjectFormattersService],
+  exports: [AppConfig, AppKafkaConfig, IgnoreObjectsFactory, ErrorFormattersFactory, ObjectFormattersFactory],
 })
 export class AppModule {}

@@ -5,7 +5,7 @@ import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 
 @Injectable()
-export class ObjectFormattersService {
+export class ObjectFormattersFactory {
   constructor(
     protected readonly metadataObjectFormatter: MetadataObjectFormatter,
     protected readonly kafkaJsMessagesObjectFormatter: KafkaJsMessagesObjectFormatter,

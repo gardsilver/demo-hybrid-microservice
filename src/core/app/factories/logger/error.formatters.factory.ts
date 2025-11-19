@@ -10,7 +10,7 @@ import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client'
 import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 
 @Injectable()
-export class ErrorFormattersService {
+export class ErrorFormattersFactory {
   constructor(
     protected readonly dataBaseErrorFormatter: DataBaseErrorFormatter,
     protected readonly axiosErrorFormatter: AxiosErrorFormatter,

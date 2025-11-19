@@ -7,10 +7,10 @@ import { HttpExceptionFormatter } from 'src/modules/http/http-server';
 import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
-import { ErrorFormattersService } from './error.formatters.service';
+import { ErrorFormattersFactory } from './error.formatters.factory';
 
-describe(ErrorFormattersService.name, () => {
-  let service: ErrorFormattersService;
+describe(ErrorFormattersFactory.name, () => {
+  let service: ErrorFormattersFactory;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -25,10 +25,10 @@ describe(ErrorFormattersService.name, () => {
         RedisClientErrorFormatter,
         KafkaJsErrorObjectFormatter,
         KafkaClientErrorObjectFormatter,
-        ErrorFormattersService,
+        ErrorFormattersFactory,
       ],
     }).compile();
-    service = module.get(ErrorFormattersService);
+    service = module.get(ErrorFormattersFactory);
   });
 
   it('init', async () => {

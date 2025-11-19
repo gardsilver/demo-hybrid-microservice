@@ -1,14 +1,14 @@
 import { Test } from '@nestjs/testing';
-import { IgnoreObjectsService } from './ignore-objects.service';
+import { IgnoreObjectsFactory } from './ignore-objects.factory';
 
-describe(IgnoreObjectsService.name, () => {
-  let service: IgnoreObjectsService;
+describe(IgnoreObjectsFactory.name, () => {
+  let service: IgnoreObjectsFactory;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
-      providers: [IgnoreObjectsService],
+      providers: [IgnoreObjectsFactory],
     }).compile();
-    service = module.get(IgnoreObjectsService);
+    service = module.get(IgnoreObjectsFactory);
   });
 
   it('init', async () => {

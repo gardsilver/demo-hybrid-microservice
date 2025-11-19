@@ -163,6 +163,7 @@ async function bootstrap(): Promise<void> {
         useAdmin: true,
         retry: appKafkaConfig.getKafkaHealthIndicatorRetry(),
       },
+      startTimeout: 20_000,
     },
     loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),
     prometheusManager: app.get(PrometheusManager),

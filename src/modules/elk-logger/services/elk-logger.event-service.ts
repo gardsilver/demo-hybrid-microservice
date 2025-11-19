@@ -59,17 +59,17 @@ export class ElkLoggerEventService implements OnApplicationShutdown {
     }
 
     const loggerPrams: IElkLoggerParams = param.loggerPrams;
-    const methodName = `${param.instanceName}.${param.methodName}`;
+    const moduleName = `${param.service}.${param.method}`;
 
     const logger = this.loggerBuilder.build({
-      module: methodName,
+      module: moduleName,
       ...(loggerPrams.fields ?? {}),
     });
 
     GeneralAsyncContext.instance.runWithContext(() => {
       logger.log(
         loggerPrams.level ?? defaultLevel[param.event],
-        loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', methodName),
+        loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', moduleName),
         loggerPrams.data,
       );
     }, param.context ?? {});

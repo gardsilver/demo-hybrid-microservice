@@ -57,14 +57,14 @@ describe(ElkLoggerEventService.name, () => {
     service['handleOnMethod'] = spy;
 
     ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-      instanceName: 'instanceName',
-      methodName: 'methodName',
+      service: 'instanceName',
+      method: 'methodName',
       loggerPrams: false,
     });
 
     ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, {
-      instanceName: 'instanceName',
-      methodName: 'methodName',
+      service: 'instanceName',
+      method: 'methodName',
       loggerPrams: {
         message: 'Test message',
       },
@@ -73,14 +73,14 @@ describe(ElkLoggerEventService.name, () => {
     expect(spy).toHaveBeenCalledTimes(2);
     expect(spy).toHaveBeenCalledWith({
       event: IElkLoggerEvent.AFTER_CALL,
-      instanceName: 'instanceName',
-      methodName: 'methodName',
+      service: 'instanceName',
+      method: 'methodName',
       loggerPrams: false,
     });
     expect(spy).toHaveBeenCalledWith({
       event: IElkLoggerEvent.BEFORE_CALL,
-      instanceName: 'instanceName',
-      methodName: 'methodName',
+      service: 'instanceName',
+      method: 'methodName',
       loggerPrams: {
         message: 'Test message',
       },
@@ -115,8 +115,8 @@ describe(ElkLoggerEventService.name, () => {
       expect(ElkLoggerEventService['subscription']).toBeDefined();
 
       ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: false,
       });
 
@@ -129,14 +129,14 @@ describe(ElkLoggerEventService.name, () => {
       expect(ElkLoggerEventService['subscription']).toBeDefined();
 
       ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: { fields },
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {},
       });
 
@@ -152,8 +152,8 @@ describe(ElkLoggerEventService.name, () => {
       expect(ElkLoggerEventService['subscription']).toBeDefined();
 
       ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           data: {
             payload: {
@@ -164,8 +164,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           data: {
             payload: {
@@ -176,8 +176,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.THROW_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           data: {
             payload: {
@@ -188,8 +188,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           data: {
             payload: {
@@ -228,8 +228,8 @@ describe(ElkLoggerEventService.name, () => {
       expect(ElkLoggerEventService['subscription']).toBeDefined();
 
       ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           message: 'start process',
           data: {
@@ -241,8 +241,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           message: 'success process',
           data: {
@@ -254,8 +254,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.THROW_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           message: 'failed process',
           data: {
@@ -267,8 +267,8 @@ describe(ElkLoggerEventService.name, () => {
       });
 
       ElkLoggerEventService.emit(IElkLoggerEvent.FINALLY_CALL, {
-        instanceName: 'instanceName',
-        methodName: 'methodName',
+        service: 'instanceName',
+        method: 'methodName',
         loggerPrams: {
           message: 'complete process',
           data: {
@@ -316,8 +316,8 @@ describe(ElkLoggerEventService.name, () => {
     expect(ElkLoggerEventService['subscription']).toBeUndefined();
 
     ElkLoggerEventService.emit(IElkLoggerEvent.AFTER_CALL, {
-      instanceName: 'instanceName',
-      methodName: 'methodName',
+      service: 'instanceName',
+      method: 'methodName',
       loggerPrams: {},
     });
 

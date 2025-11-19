@@ -8,14 +8,7 @@ export class GeneralAsyncContextFormatter implements ILogRecordFormatter {
   }
 
   public transform(from: ILogRecord): ILogRecord {
-    let context = {} as IAsyncContext;
-
-    try {
-      context = GeneralAsyncContext.instance.extend();
-    } catch {
-      return from;
-    }
-
+    const context: IAsyncContext = GeneralAsyncContext.instance.extend();
     const logFields: ILogFields = {};
 
     for (const [k, v] of Object.entries(context)) {

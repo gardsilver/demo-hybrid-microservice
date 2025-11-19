@@ -1,5 +1,5 @@
 import { IHistogramMetricConfig, IHistogramParams, IParamsPrometheusValue, PrometheusLabels } from '../types/types';
-import { IHistogramConfig } from '../types/decorators.type';
+import { IHistogramConfig, IPrometheusParams } from '../types/decorators.type';
 import { PrometheusDecoratorHelper } from './prometheus.decorator.helper';
 
 export abstract class PrometheusHistogramConfigDecoratorHelper {
@@ -13,44 +13,52 @@ export abstract class PrometheusHistogramConfigDecoratorHelper {
       return false;
     }
 
-    const result: IHistogramConfig = {
-      observe: config
-        ? config.observe
-          ? {
-              metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-                config.observe.metricConfig,
-                defaultOptions,
-                'Для метрики Histogram.observe не задан IHistogramMetricConfig!\n' +
-                  'Задайте опцию histogram.observe.metricConfig или определите histogram в декораторе PrometheusMetricConfigOnService.',
-              ),
-              params: PrometheusHistogramConfigDecoratorHelper.buildParams(
-                config.observe.params,
-                defaultLabels,
-                defaultParams,
-                'Для метрики Histogram.observe не задан params.value!\n' +
-                  'Задайте опцию histogram.observe.params.value.',
-              ),
-            }
-          : config.observe === undefined
-            ? false
-            : config.observe
-        : false,
-      startTimer: config
-        ? config.startTimer
-          ? {
-              metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-                config.startTimer.metricConfig,
-                defaultOptions,
-                'Для метрики Histogram.startTimer не задан IHistogramMetricConfig!\n' +
-                  'Задайте опцию histogram.startTimer.metricConfig или определите histogram в декораторе PrometheusMetricConfigOnService.',
-              ),
-              params: PrometheusHistogramConfigDecoratorHelper.buildParams(config.startTimer.params, defaultLabels),
-            }
-          : config.startTimer === undefined
-            ? false
-            : config.startTimer
-        : false,
+    let configObserve: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>>;
+    let configStartTimer: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>>;
 
+    if (config) {
+      if (typeof config.observe === 'boolean') {
+        configObserve = config.observe ? {} : undefined;
+      } else {
+        configObserve = config.observe;
+      }
+
+      if (typeof config.startTimer === 'boolean') {
+        configStartTimer = config.startTimer ? {} : undefined;
+      } else {
+        configStartTimer = config.startTimer;
+      }
+    }
+
+    const result: IHistogramConfig = {
+      observe: configObserve
+        ? {
+            metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
+              configObserve.metricConfig,
+              defaultOptions,
+              'Для метрики Histogram.observe не задан IHistogramMetricConfig!\n' +
+                'Задайте опцию histogram.observe.metricConfig или определите histogram в декораторе PrometheusMetricConfigOnService.',
+            ),
+            params: PrometheusHistogramConfigDecoratorHelper.buildParams(
+              configObserve.params,
+              defaultLabels,
+              defaultParams,
+              'Для метрики Histogram.observe не задан params.value!\n' +
+                'Задайте опцию histogram.observe.params.value.',
+            ),
+          }
+        : false,
+      startTimer: configStartTimer
+        ? {
+            metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
+              configStartTimer.metricConfig,
+              defaultOptions,
+              'Для метрики Histogram.startTimer не задан IHistogramMetricConfig!\n' +
+                'Задайте опцию histogram.startTimer.metricConfig или определите histogram в декораторе PrometheusMetricConfigOnService.',
+            ),
+            params: PrometheusHistogramConfigDecoratorHelper.buildParams(configStartTimer.params, defaultLabels),
+          }
+        : false,
       end: defaultParams?.end === true ? (defaultLabels === false ? {} : { labels: defaultLabels }) : false,
     };
 

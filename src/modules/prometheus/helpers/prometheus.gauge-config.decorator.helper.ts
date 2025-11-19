@@ -1,4 +1,4 @@
-import { IGaugeConfig } from '../types/decorators.type';
+import { IGaugeConfig, IPrometheusParams } from '../types/decorators.type';
 import { IGaugeMetricConfig, IGaugeParams, PrometheusLabels } from '../types/types';
 import { PrometheusDecoratorHelper } from './prometheus.decorator.helper';
 
@@ -12,34 +12,45 @@ export abstract class PrometheusGaugeConfigDecoratorHelper {
       return false;
     }
 
+    let configIncrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>>;
+    let configDecrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>>;
+
+    if (typeof config.increment === 'boolean') {
+      configIncrement = config.increment ? {} : undefined;
+    } else {
+      configIncrement = config.increment;
+    }
+
+    if (typeof config.decrement === 'boolean') {
+      configDecrement = config.decrement ? {} : undefined;
+    } else {
+      configDecrement = config.decrement;
+    }
+
     const result: IGaugeConfig = {
-      increment: config.increment
+      increment: configIncrement
         ? {
             metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-              config.increment.metricConfig,
+              configIncrement.metricConfig,
               defaultOptions,
               'Для метрики Gauge.increment не задан IGaugeMetricConfig!\n' +
                 'Задайте опцию gauge.increment.metricConfig или определите gauge в декораторе PrometheusMetricConfigOnService.',
             ),
-            params: PrometheusGaugeConfigDecoratorHelper.buildParams(config.increment.params, defaultLabels),
+            params: PrometheusGaugeConfigDecoratorHelper.buildParams(configIncrement.params, defaultLabels),
           }
-        : config.increment === undefined
-          ? false
-          : config.increment,
+        : false,
 
-      decrement: config.decrement
+      decrement: configDecrement
         ? {
             metricConfig: PrometheusDecoratorHelper.buildMetricConfig(
-              config.decrement.metricConfig,
+              configDecrement.metricConfig,
               defaultOptions,
               'Для метрики Gauge.decrement не задан IGaugeMetricConfig!\n' +
                 'Задайте опцию gauge.decrement.metricConfig или определите gauge в декораторе PrometheusMetricConfigOnService.',
             ),
-            params: PrometheusGaugeConfigDecoratorHelper.buildParams(config.decrement.params, defaultLabels),
+            params: PrometheusGaugeConfigDecoratorHelper.buildParams(configDecrement.params, defaultLabels),
           }
-        : config.decrement === undefined
-          ? false
-          : config.decrement,
+        : false,
     };
 
     return result.increment === false && result.decrement === false ? false : result;

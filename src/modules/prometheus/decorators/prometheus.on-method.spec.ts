@@ -210,10 +210,10 @@ describe('PrometheusOnMethod', () => {
         service = new TestService();
 
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
       });
@@ -286,7 +286,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -322,7 +322,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = service.runError('success');
         } catch (err) {
@@ -419,7 +419,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -459,10 +459,10 @@ describe('PrometheusOnMethod', () => {
 
       beforeEach(async () => {
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
 
@@ -516,7 +516,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -542,7 +542,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = service.runError('success');
         } catch (err) {
@@ -608,7 +608,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -662,10 +662,10 @@ describe('PrometheusOnMethod', () => {
 
       beforeEach(async () => {
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
 
@@ -744,7 +744,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -770,7 +770,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = service.runError('success');
         } catch (err) {
@@ -861,7 +861,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -890,10 +890,10 @@ describe('PrometheusOnMethod', () => {
         service = new TestService();
 
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
       });
@@ -966,7 +966,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -1002,7 +1002,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = await service.runError('success');
         } catch (err) {
@@ -1099,7 +1099,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -1139,10 +1139,10 @@ describe('PrometheusOnMethod', () => {
 
       beforeEach(async () => {
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
 
@@ -1196,7 +1196,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -1222,7 +1222,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = await service.runError('success');
         } catch (err) {
@@ -1288,7 +1288,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -1342,10 +1342,10 @@ describe('PrometheusOnMethod', () => {
 
       beforeEach(async () => {
         params = {
-          instanceName: 'TestService',
-          methodName: 'runOk',
+          service: 'TestService',
+          method: 'runOk',
           context,
-          flush: false,
+          clear: false,
           prometheusEventConfig: false,
         };
 
@@ -1424,7 +1424,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );
@@ -1450,7 +1450,7 @@ describe('PrometheusOnMethod', () => {
       it('failed', async () => {
         let result = undefined;
 
-        params.methodName = 'runError';
+        params.method = 'runError';
         try {
           result = await service.runError('success');
         } catch (err) {
@@ -1541,7 +1541,7 @@ describe('PrometheusOnMethod', () => {
           },
           {
             ...params,
-            flush: true,
+            clear: true,
             prometheusEventConfig: eventConfig,
           },
         );

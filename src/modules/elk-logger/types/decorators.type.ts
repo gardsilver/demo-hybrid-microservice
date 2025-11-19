@@ -17,32 +17,49 @@ export interface IElkLoggerParams {
 }
 
 export interface IElkLoggerOnMethod {
-  fields?: ILogFields | ((options: { methodsArgs?: any[] }) => ILogFields);
+  fields?: ILogFields | ((options: { service?: string; method?: string; methodsArgs?: any[] }) => ILogFields);
 
   before?:
-    | (Omit<IElkLoggerParams, 'fields'> | false)
-    | ((options: { methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
+    | (Omit<IElkLoggerParams, 'fields'> | boolean)
+    | ((options: {
+        service?: string;
+        method?: string;
+        methodsArgs?: any[];
+      }) => Omit<IElkLoggerParams, 'fields'> | boolean);
 
   after?:
-    | (Omit<IElkLoggerParams, 'fields'> | false)
-    | ((options: { result?: any; duration?: number; methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
+    | (Omit<IElkLoggerParams, 'fields'> | boolean)
+    | ((options: {
+        service?: string;
+        method?: string;
+        result?: any;
+        duration?: number;
+        methodsArgs?: any[];
+      }) => Omit<IElkLoggerParams, 'fields'> | boolean);
 
   throw?:
-    | (Omit<IElkLoggerParams, 'fields'> | false)
+    | (Omit<IElkLoggerParams, 'fields'> | boolean)
     | ((options: {
+        service?: string;
+        method?: string;
         error: unknown;
         duration?: number;
         methodsArgs?: any[];
-      }) => Omit<IElkLoggerParams, 'fields'> | false);
+      }) => Omit<IElkLoggerParams, 'fields'> | boolean);
 
   finally?:
-    | (Omit<IElkLoggerParams, 'fields'> | false)
-    | ((options: { duration?: number; methodsArgs?: any[] }) => Omit<IElkLoggerParams, 'fields'> | false);
+    | (Omit<IElkLoggerParams, 'fields'> | boolean)
+    | ((options: {
+        service?: string;
+        method?: string;
+        duration?: number;
+        methodsArgs?: any[];
+      }) => Omit<IElkLoggerParams, 'fields'> | boolean);
 }
 
 export interface ITargetLoggerOnMethod {
-  instanceName: string;
-  methodName: string;
+  service: string;
+  method: string;
   context?: IGeneralAsyncContext;
   loggerPrams: IElkLoggerParams | false;
 }

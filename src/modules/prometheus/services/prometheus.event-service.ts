@@ -81,11 +81,11 @@ export class PrometheusEventService implements OnApplicationShutdown {
     const options = {
       ticketId: param.ticketId,
       eventArgs: param.eventArgs,
-      flush: param.flush ?? false,
+      clear: param.clear ?? false,
     };
 
     if (param.prometheusEventConfig === false) {
-      this.handleFlush(options);
+      this.handleClear(options);
 
       return;
     }
@@ -102,7 +102,7 @@ export class PrometheusEventService implements OnApplicationShutdown {
     options: {
       ticketId: string;
       eventArgs: PrometheusEventArgs;
-      flush?: boolean;
+      clear?: boolean;
     },
   ): void {
     this.handleCounter(param.counter);
@@ -110,17 +110,19 @@ export class PrometheusEventService implements OnApplicationShutdown {
     this.handleHistogram(param.histogram, options);
     this.handleSummary(param.summary, options);
     this.handleCustom(param.custom, options);
-    this.handleFlush(options);
+    this.handleClear(options);
   }
 
   private handleCounter(counter: false | ICounterConfig): void {
-    if (!counter) {
+    if (!counter || !counter.increment) {
       return;
     }
 
-    if (counter.increment) {
-      this.prometheusManager.counter().increment(counter.increment.metricConfig, counter.increment.params);
+    if (counter.increment === true) {
+      throw new Error('Invalid configuration Prometheus Handle Counter Increment!!!');
     }
+
+    this.prometheusManager.counter().increment(counter.increment.metricConfig, counter.increment.params);
   }
 
   private handleGauge(gauge: false | IGaugeConfig): void {
@@ -129,10 +131,18 @@ export class PrometheusEventService implements OnApplicationShutdown {
     }
 
     if (gauge.increment) {
+      if (gauge.increment === true) {
+        throw new Error('Invalid configuration Prometheus Handle Gauge Increment!!!');
+      }
+
       this.prometheusManager.gauge().increment(gauge.increment.metricConfig, gauge.increment.params);
     }
 
     if (gauge.decrement) {
+      if (gauge.decrement === true) {
+        throw new Error('Invalid configuration Prometheus Handle Gauge Decrement!!!');
+      }
+
       this.prometheusManager.gauge().decrement(gauge.decrement.metricConfig, gauge.decrement.params);
     }
   }
@@ -142,7 +152,7 @@ export class PrometheusEventService implements OnApplicationShutdown {
     options: {
       ticketId: string;
       eventArgs: PrometheusEventArgs;
-      flush?: boolean;
+      clear?: boolean;
     },
   ): void {
     if (!histogram) {
@@ -150,6 +160,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
     }
 
     if (histogram.startTimer) {
+      if (histogram.startTimer === true) {
+        throw new Error('Invalid configuration Prometheus Handle Histogram StartTimer!!!');
+      }
+
       const endCallback = this.prometheusManager
         .histogram()
         .startTimer(histogram.startTimer.metricConfig, histogram.startTimer.params);
@@ -158,6 +172,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
     }
 
     if (histogram.observe) {
+      if (histogram.observe === true) {
+        throw new Error('Invalid configuration Prometheus Handle Histogram Observe!!!');
+      }
+
       this.prometheusManager.histogram().observe(histogram.observe.metricConfig, histogram.observe.params);
     }
 
@@ -173,7 +191,7 @@ export class PrometheusEventService implements OnApplicationShutdown {
     options: {
       ticketId: string;
       eventArgs: PrometheusEventArgs;
-      flush?: boolean;
+      clear?: boolean;
     },
   ): void {
     if (!summary) {
@@ -181,6 +199,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
     }
 
     if (summary.startTimer) {
+      if (summary.startTimer === true) {
+        throw new Error('Invalid configuration Prometheus Handle Summary StartTimer!!!');
+      }
+
       const endCallback = this.prometheusManager
         .summary()
         .startTimer(summary.startTimer.metricConfig, summary.startTimer.params);
@@ -189,6 +211,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
     }
 
     if (summary.observe) {
+      if (summary.observe === true) {
+        throw new Error('Invalid configuration Prometheus Handle Summary Observe!!!');
+      }
+
       this.prometheusManager.summary().observe(summary.observe.metricConfig, summary.observe.params);
     }
 
@@ -204,7 +230,7 @@ export class PrometheusEventService implements OnApplicationShutdown {
     options: {
       ticketId: string;
       eventArgs: PrometheusEventArgs;
-      flush?: boolean;
+      clear?: boolean;
     },
   ): void {
     if (!custom) {
@@ -214,8 +240,8 @@ export class PrometheusEventService implements OnApplicationShutdown {
     custom.call(undefined, { ...options.eventArgs, prometheusManager: this.prometheusManager });
   }
 
-  private handleFlush(options: { ticketId: string; eventArgs: PrometheusEventArgs; flush?: boolean }): void {
-    if (!options.flush) {
+  private handleClear(options: { ticketId: string; eventArgs: PrometheusEventArgs; clear?: boolean }): void {
+    if (!options.clear) {
       return;
     }
 

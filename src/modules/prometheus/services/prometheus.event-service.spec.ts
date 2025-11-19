@@ -232,10 +232,10 @@ describe(PrometheusEventService.name, () => {
     expect(PrometheusEventService['subscription']).toBeDefined();
 
     const param: ITargetPrometheusOnMethod = {
-      instanceName: faker.string.alpha(5),
-      methodName: faker.string.alpha(5),
+      service: faker.string.alpha(5),
+      method: faker.string.alpha(5),
       context,
-      flush: false,
+      clear: false,
       prometheusEventConfig: false,
     };
 
@@ -293,23 +293,17 @@ describe(PrometheusEventService.name, () => {
     expect(PrometheusEventService['onEndCallback'].size).toBe(0);
 
     const param: ITargetPrometheusOnMethod = {
-      instanceName: faker.string.alpha(5),
-      methodName: faker.string.alpha(5),
+      service: faker.string.alpha(5),
+      method: faker.string.alpha(5),
       context,
-      flush: false,
-      prometheusEventConfig: eventConfig,
+      clear: false,
+      prometheusEventConfig: { ...eventConfig },
     };
 
+    jest.clearAllMocks();
     PrometheusEventService.emit(ticketId, eventArgs, param);
 
     expect(PrometheusEventService['onEndCallback'].size).toBe(1);
-
-    param.flush = true;
-    param.prometheusEventConfig = false;
-
-    PrometheusEventService.emit(ticketId, eventArgs, param);
-
-    expect(PrometheusEventService['onEndCallback'].size).toBe(0);
 
     expect(spyCountInc).toHaveBeenCalledTimes(1);
     expect(spyCountInc).toHaveBeenCalledWith(
@@ -369,17 +363,101 @@ describe(PrometheusEventService.name, () => {
       prometheusManager: true,
     });
 
-    param.flush = true;
-    param.prometheusEventConfig = {
-      histogram: eventConfig.histogram,
-    };
+    param.clear = true;
+    param.prometheusEventConfig = false;
 
+    jest.clearAllMocks();
     PrometheusEventService.emit(ticketId, eventArgs, param);
 
     expect(PrometheusEventService['onEndCallback'].size).toBe(0);
 
-    expect(spyHistogramObs).toHaveBeenCalledTimes(2);
-    expect(spyHistogramStr).toHaveBeenCalledTimes(2);
-    expect(spyHistogramEnd).toHaveBeenCalledTimes(2);
+    expect(spyCountInc).toHaveBeenCalledTimes(0);
+    expect(spyGaugeInc).toHaveBeenCalledTimes(0);
+    expect(spyGaugeDec).toHaveBeenCalledTimes(0);
+    expect(spyHistogramObs).toHaveBeenCalledTimes(0);
+    expect(spyHistogramStr).toHaveBeenCalledTimes(0);
+    expect(spyHistogramEnd).toHaveBeenCalledTimes(0);
+    expect(spySummaryObs).toHaveBeenCalledTimes(0);
+    expect(spySummaryStr).toHaveBeenCalledTimes(0);
+    expect(spySummaryEnd).toHaveBeenCalledTimes(0);
+    expect(spyCustom).toHaveBeenCalledTimes(0);
+
+    param.clear = true;
+    param.prometheusEventConfig = {
+      histogram: eventConfig.histogram,
+    };
+
+    jest.clearAllMocks();
+    PrometheusEventService.emit(ticketId, eventArgs, param);
+
+    expect(PrometheusEventService['onEndCallback'].size).toBe(0);
+
+    expect(spyHistogramObs).toHaveBeenCalledTimes(1);
+    expect(spyHistogramStr).toHaveBeenCalledTimes(1);
+    expect(spyHistogramEnd).toHaveBeenCalledTimes(1);
+  });
+
+  describe('crash', () => {
+    it('handleCounter', async () => {
+      expect(() =>
+        service['handleCounter']({
+          increment: true,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Counter Increment!!!');
+    });
+
+    it('handleGauge', async () => {
+      expect(() =>
+        service['handleGauge']({
+          increment: true,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Increment!!!');
+
+      expect(() =>
+        service['handleGauge']({
+          decrement: true,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Decrement!!!');
+    });
+
+    it('handleHistogram', async () => {
+      expect(() =>
+        service['handleHistogram'](
+          {
+            startTimer: true,
+          },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram StartTimer!!!');
+
+      expect(() =>
+        service['handleHistogram'](
+          {
+            observe: true,
+          },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram Observe!!!');
+    });
+
+    it('handleSummary', async () => {
+      expect(() =>
+        service['handleSummary'](
+          {
+            startTimer: true,
+          },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary StartTimer!!!');
+
+      expect(() =>
+        service['handleSummary'](
+          {
+            observe: true,
+          },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary Observe!!!');
+    });
   });
 });

@@ -12,7 +12,7 @@ import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
 import { HealthModule } from 'src/health';
-import { AppModule, ErrorFormattersService, IgnoreObjectsService, ObjectFormattersService } from 'src/core/app';
+import { AppModule, ErrorFormattersFactory, IgnoreObjectsFactory, ObjectFormattersFactory } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
 import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
@@ -31,16 +31,16 @@ import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
       formattersOptions: {
         sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
         ignoreObjects: {
-          inject: [IgnoreObjectsService],
-          useFactory: (ignoreObjectsService: IgnoreObjectsService) => ignoreObjectsService.getCheckObjects(),
+          inject: [IgnoreObjectsFactory],
+          useFactory: (ignoreObjectsService: IgnoreObjectsFactory) => ignoreObjectsService.getCheckObjects(),
         },
         exceptionFormatters: {
-          inject: [ErrorFormattersService],
-          useFactory: (errorFormattersService: ErrorFormattersService) => errorFormattersService.getFormatters(),
+          inject: [ErrorFormattersFactory],
+          useFactory: (errorFormattersService: ErrorFormattersFactory) => errorFormattersService.getFormatters(),
         },
         objectFormatters: {
-          inject: [ObjectFormattersService],
-          useFactory: (objectFormattersService: ObjectFormattersService) => objectFormattersService.getFormatters(),
+          inject: [ObjectFormattersFactory],
+          useFactory: (objectFormattersService: ObjectFormattersFactory) => objectFormattersService.getFormatters(),
         },
       },
       formatters: {

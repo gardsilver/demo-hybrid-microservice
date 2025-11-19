@@ -2,10 +2,10 @@ import { Test } from '@nestjs/testing';
 import { ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
-import { ObjectFormattersService } from './object.formatters.service';
+import { ObjectFormattersFactory } from './object.formatters.factory';
 
-describe(ObjectFormattersService.name, () => {
-  let service: ObjectFormattersService;
+describe(ObjectFormattersFactory.name, () => {
+  let service: ObjectFormattersFactory;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -13,10 +13,10 @@ describe(ObjectFormattersService.name, () => {
         MetadataObjectFormatter,
         KafkaJsMessagesObjectFormatter,
         ValidationErrorItemObjectFormatter,
-        ObjectFormattersService,
+        ObjectFormattersFactory,
       ],
     }).compile();
-    service = module.get(ObjectFormattersService);
+    service = module.get(ObjectFormattersFactory);
   });
 
   it('init', async () => {

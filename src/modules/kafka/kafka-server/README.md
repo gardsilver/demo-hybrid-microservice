@@ -37,13 +37,20 @@ const { server, serverHealthIndicator } =  KafkaMicroserviceBuilder.setup(app, {
 ...
 ```
 
-- `server` сервис `KafkaServerService`, аналог `ServerKafka` [@nestjs/microservices](https://docs.nestjs.com/microservices/kafka#naming-conventions).
+- здесь `server` это `KafkaServerService`, аналог `ServerKafka` [@nestjs/microservices](https://docs.nestjs.com/microservices/kafka#naming-conventions).
 
-#### ВАЖНО
+Вызов `KafkaMicroserviceBuilder.setup(...)` запускает сценарий старта **Kafka**-сервера, который происходит в два этапа:
 
-Сценарий запуска **Kafka**-сервера учитывает не доступность брокеров **Kafka**. В этом случае будут попытки переподключения на протяжении указанных `kafkaOptions.startTimeout` ms в `KafkaMicroserviceBuilder.setup` (если не указаны, то на протяжении `30_000` ms). По истечении этого периода и невозможности установки подключения будет выброшена соответствующая ошибка и остановлена работа приложения.
+1) Установка соединения с брокерами **Kafka**.
 
-При потере соединения с брокерами **Kafka** после успешного запуска **Kafka**-сервера, будут повторные попытки переподключения к брокерами **Kafka** в рамках сценария автоматического восстановления соединения с брокером **Kafka**: [retry](https://kafka.js.org/docs/configuration#default-retry). В этом случае не будет остановлена работа приложения.
+При этом учитывается, что в момент запуска брокеры **Kafka** могут быть кратковременно не доступны. В этом случае будут попытки переподключения на протяжении указанных `kafkaOptions.startTimeout` ms в `KafkaMicroserviceBuilder.setup` (если не указаны, то на протяжении `30_000` ms). По истечении этого периода и невозможности установки подключения будет выброшена соответствующая ошибка и остановлена работа приложения.
+
+2) Запуск консюмеров.
+
+Список необходимых консъюмеров определяется на основе установленных подписок на топики (`@see` декоратор `EventKafkaMessage` - описан ниже).
+При этом возможны исключительные ситуации (например указанные топики отсутствуют), и если они возникают будет выброшена соответствующая ошибка и остановлена работа приложения.
+
+При потере соединения с брокерами **Kafka** после успешного запуска **Kafka**-сервера, будут повторные попытки переподключения в рамках сценария автоматического восстановления соединения: [retry](https://kafka.js.org/docs/configuration#default-retry). В этом случае не будет остановлена работа приложения.
 
 ### Подписаться на топик
 
@@ -84,14 +91,14 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'sr
 
 - Реализовать универсальный `deserializer` и подключить его через `KafkaMicroserviceBuilder.setup`.
 
-Доступ к `serverName` и `topic` в `deserializer` будет всегда (**@see** `options: IKafkaMessageOptions`), поэтому можно организовать выбор способа десериализации для `KafkaMessage`.
+Доступ к `serverName` и к `topic` в `deserializer` будет всегда (**@see** `options: IKafkaMessageOptions`), поэтому можно организовать выбор способа десериализации для `KafkaMessage`.
 
 - Задать через декоратор `EventKafkaMessage`. В этом случае универсальный будет проигнорирован.
 - Или воспользоваться стандартными механизмами `NodeJs` и реализовать **Middleware**, **Interceptors**, **Pipe**.
 
 ### KafkaErrorFilter
 
-Фильтр **Kafka**-ошибок возникающих при обработке полученных сообщений. При перехвате ошибки будет записан лог. Можно подключать с использованием `@UseFilters` (**@see** `@nestjs/common`), Используется в `HybridErrorResponseFilter` ( **@see** `src/modules/hybrid/hybrid-server`).
+Фильтр **Kafka**-ошибок возникающих при обработке полученных сообщений. При перехвате ошибки будет записан лог. Можно подключать с использованием `@UseFilters` (**@see** `@nestjs/common`). Или глобально: используется в `HybridErrorResponseFilter` ( **@see** `src/modules/hybrid/hybrid-server`).
 
 ### Метрики
 

@@ -32,7 +32,8 @@ import { randomUUID } from 'crypto';
 
 export class MyService {
 
-  /** Обратите внимание, что здесь аргументы request и correlation будут соответствовать аргументам метода: req и cor.
+  /** 
+   * Обратите внимание, что здесь аргументы request и correlation будут соответствовать аргументам метода: req и cor.
   */
   @MyAsyncContext.define((request, correlation) => ({
     requestId: request,

@@ -22,7 +22,7 @@ export class KafkaServerService extends KafkaServerBase {
    * Returns an instance of the underlying [server/broker, each consumer, bath consumer] instance
    *
    * Consumers can be is null if they have no subscribers.
-   * */
+   */
   public unwrap<T = [Kafka, Consumer, Consumer]>(): T {
     if (!this.client) {
       throw new Error(

@@ -96,7 +96,7 @@ export class KafkaClientErrorHandler {
       /** @see
        *   - https://github.com/tulios/kafkajs/blob/master/src/protocol/error.js
        *   - https://github.com/tulios/kafkajs/blob/master/src/errors.js
-       * */
+       */
       if (
         cause instanceof KafkaJSNonRetriableError ||
         [

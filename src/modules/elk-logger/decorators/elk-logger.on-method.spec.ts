@@ -1277,7 +1277,6 @@ describe(ElkLoggerOnMethod.name, () => {
     });
   });
 
-  // ====================
   describe('custom async as object', () => {
     class TestService {
       @ElkLoggerOnMethod({

@@ -15,7 +15,8 @@ import { HealthModule } from 'src/health';
 import { AppModule, ErrorFormattersFactory, IgnoreObjectsFactory, ObjectFormattersFactory } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
-import { KafkaApiModule } from 'src/core/api/kafka/kafka-api.module';
+import { KafkaApiModule } from 'src/core/api/kafka';
+import { WebSocketApiModule } from 'src/core/api/web-socket';
 import { PostgresModule } from 'src/core/repositories/postgres';
 import { ExampleHttpModule } from 'src/examples/integrations/http';
 import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
@@ -69,6 +70,7 @@ import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
     HttpApiModule,
     GrpcApiModule,
     KafkaApiModule,
+    WebSocketApiModule,
     PostgresModule,
     ExampleHttpModule,
     ExampleGrpcModule,

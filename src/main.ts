@@ -77,6 +77,10 @@ async function bootstrap(): Promise<void> {
 
   const app = await NestFactory.create<NestExpressApplication>(MainModule, { logger: nestLogger, bufferLogs: true });
 
+  app.useStaticAssets(join(__dirname, '../front/static'));
+  app.setBaseViewsDir(join(__dirname, '../front/views'));
+  app.setViewEngine('ejs');
+
   nestLogger = app.get(ELK_NEST_LOGGER_SERVICE_DI);
   app.useLogger(nestLogger);
   app.flushLogs();
@@ -107,7 +111,10 @@ async function bootstrap(): Promise<void> {
   app.enableCors(appConfig.getCorsOptions());
   app.use(cookieParser());
   app.setGlobalPrefix(GLOBAL_ROUTE_PREFIX, {
-    exclude: [{ path: 'health{*path}', method: RequestMethod.ALL }],
+    exclude: [
+      { path: 'health{*path}', method: RequestMethod.ALL },
+      { path: 'chat{*path}', method: RequestMethod.ALL },
+    ],
   });
 
   const document = new DocumentBuilder()

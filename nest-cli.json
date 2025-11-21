@@ -9,6 +9,11 @@
       {
         "include": "../protos/",
         "outDir": "dist/protos/"
+      },
+      "**/*front",
+      {
+        "include": "../front/",
+        "outDir": "dist/front/"
       }
     ],
     "watchAssets": true

@@ -105,18 +105,22 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
           status: MessageStatus.SUCCESS,
         });
       });
-      client.emit('answerMessage', {
-        from: this.clientMap.get(client.id),
-        to: payload.email,
-        text: payload.text,
-        status: MessageStatus.SEND,
+      this.userMap.get(this.clientMap.get(client.id)).forEach((socketData) => {
+        socketData.socket.emit('answerMessage', {
+          from: this.clientMap.get(client.id),
+          to: payload.email,
+          text: payload.text,
+          status: MessageStatus.SEND,
+        });
       });
     } else {
-      client.emit('answerMessage', {
-        from: this.clientMap.get(client.id),
-        to: payload.email,
-        text: payload.text,
-        status: MessageStatus.ERROR,
+      this.userMap.get(this.clientMap.get(client.id)).forEach((socketData) => {
+        socketData.socket.emit('answerMessage', {
+          from: this.clientMap.get(client.id),
+          to: payload.email,
+          text: payload.text,
+          status: MessageStatus.ERROR,
+        });
       });
     }
   }

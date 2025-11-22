@@ -16,12 +16,26 @@
 <body>
   <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand">Lets Chat</a>
+      <a class="navbar-brand">Demo Chat</a>
     </div>
   </nav>
   <div class="container">
     <div class="mb-3 mt-4">
-      <input class="form-control" id="from-email" rows="3" placeholder="Your Email or Nickname" />
+      <div class="input-group">
+        <span class="input-group-text" id="aria-from-email">
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="16" 
+            height="16" 
+            fill="currentColor" 
+            class="bi bi-circle-fill btn-outline-default" 
+            viewBox="0 0 16 16"
+          >
+            <circle cx="8" cy="8" r="8"></circle>
+          </svg>
+        </span>
+        <input class="form-control" id="from-email" rows="3" placeholder="Your Email or Nickname" aria-describedby="aria-from-email">
+      </div>
     </div>
     <div class="mb-3 mt-3">
       <ul style="list-style: none" id="data-container"></ul>

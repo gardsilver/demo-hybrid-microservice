@@ -72,23 +72,34 @@ msgBox.addEventListener('keydown', (e) => {
 function loadDate(data) {
   let messages = '';
   data.map((message) => {
+    let text = '';
+    if (message.from) {
+      text += `<span class="fw-bolder">${message.from}</span>`
+    }
+
+    if (message.to) {
+      if (text !== '') {
+        text += ' to ';
+      }
+
+      text += `<span class="fw-bolder">${message.to}</span>`
+    }
+
+    if (text !== '') {
+      text += `: ${message.text}`;
+    } else {
+      text += message.text;
+    }
+
     switch (message.status) {
       case "send":
-        messages += 
-        `<li class="bg-success p-2 rounded mb-2 text-light">
-          <span class="fw-bolder">${message.from}</span> to <span class="fw-bolder">${message.to}</span>: ${message.text}
-        </li>`
+        messages += `<li class="bg-success p-2 rounded mb-2 text-light">${text}</li>`
         break;
       case "error":
-        messages += 
-        ` <li class="bg-danger p-2 rounded mb-2 text-light">
-          <span class="fw-bolder">${message.from}</span> to <span class="fw-bolder">${message.to}</span>: ${message.text}
-        </li>`;
+        messages += `<li class="bg-danger p-2 rounded mb-2 text-light">${text}</li>`;
         break;
       default:
-        messages += ` <li class="bg-primary  p-2 rounded mb-2 text-light">
-          <span class="fw-bolder">${message.from}</span> to <span class="fw-bolder">${message.to}</span>: ${message.text}
-        </li>`;
+        messages += `<li class="bg-primary  p-2 rounded mb-2 text-light">${text}</li>`;
         break;
     }
   });

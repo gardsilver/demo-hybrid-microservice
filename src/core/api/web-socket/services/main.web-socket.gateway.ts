@@ -53,7 +53,6 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
 
     if (!userEmail) {
       client.emit('answerMessage', {
-        email: '',
         text: 'Unknown user',
         status: MessageStatus.ERROR,
       });

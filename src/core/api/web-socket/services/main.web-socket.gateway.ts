@@ -99,18 +99,23 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
     if (tgt?.size) {
       tgt.forEach((socketData) => {
         socketData.socket.emit('answerMessage', {
-          ...payload,
-          email: this.clientMap.get(client.id),
+          from: this.clientMap.get(client.id),
+          to: payload.email,
+          text: payload.text,
           status: MessageStatus.SUCCESS,
         });
       });
       client.emit('answerMessage', {
-        ...payload,
+        from: this.clientMap.get(client.id),
+        to: payload.email,
+        text: payload.text,
         status: MessageStatus.SEND,
       });
     } else {
       client.emit('answerMessage', {
-        ...payload,
+        from: this.clientMap.get(client.id),
+        to: payload.email,
+        text: payload.text,
         status: MessageStatus.ERROR,
       });
     }

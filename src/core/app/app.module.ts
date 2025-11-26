@@ -14,7 +14,7 @@ import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client'
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { ObjectFormattersFactory } from './factories/logger/object.formatters.factory';
 import { IgnoreObjectsFactory } from './factories/logger/ignore-objects.factory';
-import { AppController } from './controller/app.controller';
+import { ChatController } from './controller/chat.controller';
 
 @Module({
   imports: [ConfigModule],
@@ -39,6 +39,6 @@ import { AppController } from './controller/app.controller';
     ObjectFormattersFactory,
   ],
   exports: [AppConfig, AppKafkaConfig, IgnoreObjectsFactory, ErrorFormattersFactory, ObjectFormattersFactory],
-  controllers: [AppController],
+  controllers: [ChatController],
 })
 export class AppModule {}

@@ -1,9 +1,9 @@
 import { ExceptionHelper, IKeyValue } from 'src/modules/common';
-import { ErrorFormatter, IUnknownFormatter } from '../../types/elk-logger.types';
+import { IUnknownFormatter } from '../../types/elk-logger.types';
 import { BaseErrorObjectFormatter } from './base-error.object-formatter';
 
 export class ErrorObjectFormatter extends BaseErrorObjectFormatter<Error> {
-  constructor(private readonly exceptionFormatters: ErrorFormatter[]) {
+  constructor(private readonly exceptionFormatters: BaseErrorObjectFormatter[]) {
     super();
   }
 

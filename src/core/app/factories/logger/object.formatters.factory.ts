@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ObjectFormatter } from 'src/modules/elk-logger';
+import { BaseObjectFormatter } from 'src/modules/elk-logger';
 import { ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
@@ -12,7 +12,7 @@ export class ObjectFormattersFactory {
     protected readonly validationErrorItemObjectFormatter: ValidationErrorItemObjectFormatter,
   ) {}
 
-  getFormatters(): ObjectFormatter[] {
+  getFormatters(): BaseObjectFormatter[] {
     return [this.metadataObjectFormatter, this.kafkaJsMessagesObjectFormatter, this.validationErrorItemObjectFormatter];
   }
 }

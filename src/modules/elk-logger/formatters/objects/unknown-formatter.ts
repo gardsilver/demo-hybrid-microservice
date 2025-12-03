@@ -6,7 +6,11 @@ export class UnknownFormatter implements IUnknownFormatter {
   constructor(
     private readonly elkLoggerConfig: ElkLoggerConfig,
     private readonly objectFormatters: ObjectFormatter[],
-  ) {}
+  ) {
+    this.objectFormatters.forEach((objectFormatter) => {
+      objectFormatter.setUnknownFormatter(this);
+    });
+  }
 
   public transform(value: unknown): unknown | IKeyValue<unknown> {
     if (value !== undefined && value !== null && typeof value === 'object') {

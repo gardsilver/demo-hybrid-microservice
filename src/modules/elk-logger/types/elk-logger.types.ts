@@ -58,11 +58,8 @@ export abstract class ObjectFormatter<T extends object = object>
   extends AbstractCheckObject<T>
   implements IFormatter<T, IKeyValue<unknown>>
 {
-  abstract transform(from: T): IKeyValue<unknown>;
-}
-
-export abstract class ErrorFormatter<T extends object = object> extends ObjectFormatter<T> {
   abstract setUnknownFormatter(unknownFormatter: IUnknownFormatter): void;
+  abstract transform(from: T): IKeyValue<unknown>;
 }
 
 export interface ILogRecordFormatter extends IFormatter<ILogRecord, ILogRecord> {

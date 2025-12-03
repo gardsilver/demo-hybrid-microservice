@@ -13,7 +13,6 @@ import {
   ILogRecordEncodeFormatter,
   ILogRecordFormatter,
   LogLevel,
-  ObjectFormatter,
 } from '../types/elk-logger.types';
 import { ElkLoggerConfig } from './elk-logger.config';
 import { ElkLoggerService } from './elk-logger.service';
@@ -25,6 +24,7 @@ import {
   ELK_SORT_FIELDS_DI,
 } from '../types/tokens';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
+import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 describe(ElkLoggerService.name, () => {
   let mockUuid;
@@ -85,7 +85,7 @@ describe(ElkLoggerService.name, () => {
           useFactory: (
             configService: ConfigService,
             ignoreObjects: CheckObjectsType[],
-            objectFormatters: ObjectFormatter[],
+            objectFormatters: BaseObjectFormatter[],
             sortFields: string[],
             defaultFields?: ILogFields,
           ) => {

@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MAIN_SERVICE_NAME } from 'protos/compiled/demo/service/MainService';
-import { GeneralAsyncContextFormatter } from 'src/modules/common';
 import {
   ELK_NEST_LOGGER_SERVICE_DI,
   NestElkLoggerServiceBuilder,
@@ -14,36 +13,31 @@ import {
   ElkLoggerConfig,
 } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
-import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
-import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
-import { HttpSecurityHeadersFormatter, BEARER_NAME } from 'src/modules/http/http-common';
-import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
-import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
-import { GrpcServiceErrorFormatter, GrpcClientErrorFormatter } from 'src/modules/grpc/grpc-client';
-import {
-  HttpAuthGuard,
-  HttpExceptionFormatter,
-  HttpHeadersResponse,
-  HttpLogging,
-  HttpPrometheus,
-} from 'src/modules/http/http-server';
+import { BEARER_NAME } from 'src/modules/http/http-common';
+import { HttpAuthGuard, HttpHeadersResponse, HttpLogging, HttpPrometheus } from 'src/modules/http/http-server';
 import {
   GrpcAuthGuard,
   GrpcLogging,
   GrpcMicroserviceBuilder,
   GrpcPrometheus,
   GrpcServerStatusService,
-  RpcExceptionFormatter,
 } from 'src/modules/grpc/grpc-server';
-import { KafkaJsErrorObjectFormatter, KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
 import {
   KafkaServerStatusService,
   KafkaMicroserviceBuilder,
   KAFKA_SERVER_HEADERS_ADAPTER_DI,
 } from 'src/modules/kafka/kafka-server';
-import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
-import { GLOBAL_ROUTE_PREFIX, AppConfig, AppKafkaConfig, KafkaServers } from 'src/core/app';
+import {
+  GLOBAL_ROUTE_PREFIX,
+  AppConfig,
+  AppKafkaConfig,
+  KafkaServers,
+  ErrorFormattersFactoryBuilder,
+  IgnoreObjectsFactoryBuilder,
+  ObjectFormattersFactoryBuilder,
+  FormattersFactoryBuilder,
+} from 'src/core/app';
 import { MainModule } from 'src/main.module';
 
 async function bootstrap(): Promise<void> {
@@ -52,26 +46,12 @@ async function bootstrap(): Promise<void> {
     configService: initConfigService,
     formattersOptions: {
       sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
-      exceptionFormatters: [
-        new DataBaseErrorFormatter(),
-        new AxiosErrorFormatter(),
-        new HttpClientErrorFormatter(),
-        new HttpExceptionFormatter(),
-        new GrpcServiceErrorFormatter(),
-        new GrpcClientErrorFormatter(),
-        new RpcExceptionFormatter(),
-        new RedisClientErrorFormatter(),
-        new KafkaJsErrorObjectFormatter(),
-        new KafkaClientErrorObjectFormatter(),
-      ],
-      objectFormatters: [
-        new MetadataObjectFormatter(),
-        new KafkaJsMessagesObjectFormatter(),
-        new ValidationErrorItemObjectFormatter(),
-      ],
+      ignoreObjects: IgnoreObjectsFactoryBuilder.build().getCheckObjects(),
+      exceptionFormatters: ErrorFormattersFactoryBuilder.build().getFormatters(),
+      objectFormatters: ObjectFormattersFactoryBuilder.build().getFormatters(),
     },
     formatters: (elkLoggerConfig: ElkLoggerConfig) => {
-      return [new GeneralAsyncContextFormatter(), new HttpSecurityHeadersFormatter(elkLoggerConfig)];
+      return FormattersFactoryBuilder.build({ elkLoggerConfig }).getFormatters();
     },
   });
 

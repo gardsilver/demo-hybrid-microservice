@@ -1,7 +1,7 @@
 import { ValidationErrorItem } from 'sequelize';
 import { Injectable } from '@nestjs/common';
 import { IKeyValue } from 'src/modules/common';
-import { ObjectFormatter } from 'src/modules/elk-logger';
+import { BaseObjectFormatter } from 'src/modules/elk-logger';
 import { DatabaseHelper } from '../../helpers/database.helper';
 
 /**
@@ -9,7 +9,7 @@ import { DatabaseHelper } from '../../helpers/database.helper';
  * @TODO в sequelize v7 ValidationErrorItem является объектом Error (@see DataBaseErrorFormatter)
  */
 @Injectable()
-export class ValidationErrorItemObjectFormatter extends ObjectFormatter<ValidationErrorItem> {
+export class ValidationErrorItemObjectFormatter extends BaseObjectFormatter<ValidationErrorItem> {
   isInstanceOf(obj: unknown): obj is ValidationErrorItem {
     return obj instanceof ValidationErrorItem;
   }

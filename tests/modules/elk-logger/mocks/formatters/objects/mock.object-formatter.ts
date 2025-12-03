@@ -1,7 +1,7 @@
 import { IKeyValue } from 'src/modules/common';
-import { ObjectFormatter } from 'src/modules/elk-logger';
+import { BaseObjectFormatter } from 'src/modules/elk-logger';
 
-export class MockObjectFormatter extends ObjectFormatter {
+export class MockObjectFormatter extends BaseObjectFormatter {
   constructor(private readonly fieldName: string = 'fieldName') {
     super();
   }

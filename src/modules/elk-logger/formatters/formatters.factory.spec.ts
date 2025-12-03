@@ -11,7 +11,7 @@ import {
   ELK_OBJECT_FORMATTERS_DI,
   ELK_SORT_FIELDS_DI,
 } from '../types/tokens';
-import { ObjectFormatter, ILogFields } from '../types/elk-logger.types';
+import { ILogFields } from '../types/elk-logger.types';
 import { ObjectFormatterBuilder } from '../builders/object-formatter.builder';
 import { FormattersFactory } from '../formatters/formatters.factory';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
@@ -21,6 +21,7 @@ import { PruneFormatter } from '../formatters/records/prune.formatter';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
 import { PruneConfig } from './prune.config';
+import { BaseObjectFormatter } from './objects/base.object-formatter';
 
 describe(FormattersFactory.name, () => {
   let formattersFactory: FormattersFactory;
@@ -60,7 +61,7 @@ describe(FormattersFactory.name, () => {
           useFactory: (
             configService: ConfigService,
             ignoreObjects: CheckObjectsType[],
-            objectFormatters: ObjectFormatter[],
+            objectFormatters: BaseObjectFormatter[],
             sortFields: string[],
             defaultFields?: ILogFields,
           ) => {

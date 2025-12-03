@@ -1,7 +1,7 @@
 import { IKeyValue } from 'src/modules/common';
-import { ErrorFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 
-export class MockErrorFormatter extends ErrorFormatter {
+export class MockErrorFormatter extends BaseErrorObjectFormatter {
   constructor(private readonly fieldName: string = 'fieldName') {
     super();
   }

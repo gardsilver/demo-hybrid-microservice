@@ -31,8 +31,10 @@ import { ElkLoggerService } from './services/elk-logger.service';
 import { NestElkLoggerService } from './services/nest-elk-logger.service';
 import { ElkLoggerServiceBuilder } from './builders/elk-logger.service.builder';
 import { ObjectFormatterBuilder } from './builders/object-formatter.builder';
-import { ErrorFormatter, ILogFields, ObjectFormatter } from './types/elk-logger.types';
+import { ILogFields } from './types/elk-logger.types';
 import { ElkLoggerEventService } from './services/elk-logger.event-service';
+import { BaseErrorObjectFormatter } from './formatters/objects/base-error.object-formatter';
+import { BaseObjectFormatter } from './formatters/objects/base.object-formatter';
 
 @Module({})
 export class ElkLoggerModule {
@@ -76,7 +78,7 @@ export class ElkLoggerModule {
         useFactory: (
           configService: ConfigService,
           ignoreObjects: CheckObjectsType[],
-          objectFormatters: ObjectFormatter[],
+          objectFormatters: BaseObjectFormatter[],
           sortFields: string[],
           defaultFields?: ILogFields,
         ) => {
@@ -100,8 +102,8 @@ export class ElkLoggerModule {
         inject: [ElkLoggerConfig, ELK_EXCEPTION_FORMATTER_OBJECTS_DI, ELK_OBJECT_FORMATTERS_DI],
         useFactory: (
           elkLoggerConfig: ElkLoggerConfig,
-          exceptionFormatters: ErrorFormatter[],
-          objectFormatters: ObjectFormatter[],
+          exceptionFormatters: BaseErrorObjectFormatter[],
+          objectFormatters: BaseObjectFormatter[],
         ) => {
           return ObjectFormatterBuilder.build(elkLoggerConfig, {
             exceptionFormatters,

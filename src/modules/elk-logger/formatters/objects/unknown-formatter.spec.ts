@@ -3,19 +3,26 @@ import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
 import { MockObjectFormatter } from 'tests/modules/elk-logger';
 import { ElkLoggerConfig } from '../../services/elk-logger.config';
+import { BaseObjectFormatter } from './base.object-formatter';
 import { UnknownFormatter } from './unknown-formatter';
 
 describe(UnknownFormatter.name, () => {
   let configService: ConfigService;
   let loggerConfig: ElkLoggerConfig;
+  let mockObjectFormatter: BaseObjectFormatter;
   let formatter: UnknownFormatter;
 
   beforeEach(async () => {
     configService = new MockConfigService() as undefined as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
-    formatter = new UnknownFormatter(loggerConfig, [new MockObjectFormatter()]);
+    mockObjectFormatter = new MockObjectFormatter();
+    formatter = new UnknownFormatter(loggerConfig, [mockObjectFormatter]);
     jest.clearAllMocks();
   });
+  
+  it('init', async () => {
+    expect(mockObjectFormatter['unknownFormatter']).toEqual(formatter);
+  })
 
   it('transform', async () => {
     expect(formatter.transform(undefined)).toBeUndefined();

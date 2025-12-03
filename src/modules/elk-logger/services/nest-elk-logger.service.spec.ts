@@ -24,9 +24,9 @@ import {
   ILogRecordEncodeFormatter,
   LogLevel,
   ILogFields,
-  ObjectFormatter,
 } from '../types/elk-logger.types';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
+import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 jest.mock('fs', () => ({
   ...jest.requireActual('fs'),
@@ -90,7 +90,7 @@ describe(NestElkLoggerService.name, () => {
           useFactory: (
             configService: ConfigService,
             ignoreObjects: CheckObjectsType[],
-            objectFormatters: ObjectFormatter[],
+            objectFormatters: BaseObjectFormatter[],
             sortFields: string[],
             defaultFields?: ILogFields,
           ) => {

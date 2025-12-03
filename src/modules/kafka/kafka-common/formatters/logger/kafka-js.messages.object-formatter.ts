@@ -6,7 +6,7 @@ import {
   Batch,
 } from '@nestjs/microservices/external/kafka.interface';
 import { IKeyValue } from 'src/modules/common';
-import { ObjectFormatter } from 'src/modules/elk-logger';
+import { BaseObjectFormatter } from 'src/modules/elk-logger';
 import { KafkaHeadersHelper } from '../../helpers/kafka.headers.helper';
 
 export const isKafkaMessage = (obj: unknown): obj is KafkaMessage => {
@@ -99,7 +99,7 @@ export const isEachBatchPayload = (obj: unknown): obj is EachBatchPayload => {
 };
 
 @Injectable()
-export class KafkaJsMessagesObjectFormatter extends ObjectFormatter<
+export class KafkaJsMessagesObjectFormatter extends BaseObjectFormatter<
   EachMessagePayload | EachBatchPayload | KafkaMessage | Batch
 > {
   isInstanceOf(obj: unknown): obj is EachMessagePayload | EachBatchPayload | KafkaMessage | Batch {

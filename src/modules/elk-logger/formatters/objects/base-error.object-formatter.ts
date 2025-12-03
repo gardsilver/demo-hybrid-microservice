@@ -1,13 +1,3 @@
-import { IKeyValue } from 'src/modules/common';
-import { IUnknownFormatter, ErrorFormatter } from '../../types/elk-logger.types';
+import { BaseObjectFormatter } from './base.object-formatter';
 
-export abstract class BaseErrorObjectFormatter<T extends object = object> extends ErrorFormatter<T> {
-  protected unknownFormatter: IUnknownFormatter;
-
-  setUnknownFormatter(unknownFormatter: IUnknownFormatter) {
-    this.unknownFormatter = unknownFormatter;
-  }
-
-  abstract isInstanceOf(obj: unknown): obj is T;
-  abstract transform(from: T): IKeyValue<unknown>;
-}
+export abstract class BaseErrorObjectFormatter<T extends object = object> extends BaseObjectFormatter<T> {}

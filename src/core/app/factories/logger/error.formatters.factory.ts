@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ErrorFormatter } from 'src/modules/elk-logger';
+import { BaseErrorObjectFormatter } from 'src/modules/elk-logger';
 import { DataBaseErrorFormatter } from 'src/modules/database';
 import { GrpcClientErrorFormatter, GrpcServiceErrorFormatter } from 'src/modules/grpc/grpc-client';
 import { RpcExceptionFormatter } from 'src/modules/grpc/grpc-server';
@@ -24,7 +24,7 @@ export class ErrorFormattersFactory {
     protected readonly kafkaClientErrorObjectFormatter: KafkaClientErrorObjectFormatter,
   ) {}
 
-  getFormatters(): ErrorFormatter[] {
+  getFormatters(): BaseErrorObjectFormatter[] {
     return [
       this.dataBaseErrorFormatter,
       this.axiosErrorFormatter,

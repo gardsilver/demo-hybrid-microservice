@@ -1,12 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { CheckObjectsType } from 'src/modules/common';
-import {
-  ErrorFormatter,
-  IEncodeFormatter,
-  ILogRecordFormatter,
-  INestElkLoggerService,
-  ObjectFormatter,
-} from '../types/elk-logger.types';
+import { IEncodeFormatter, ILogRecordFormatter, INestElkLoggerService } from '../types/elk-logger.types';
 import { IElkLoggerModuleOptions } from '../types/elk-logger.module.options';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { NestElkLoggerService } from '../services/nest-elk-logger.service';
@@ -21,6 +15,8 @@ import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { PruneFormatter } from '../formatters/records/prune.formatter';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
 import { ObjectFormatterBuilder } from './object-formatter.builder';
+import { BaseErrorObjectFormatter } from '../formatters/objects/base-error.object-formatter';
+import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 export interface INestElkLoggerServiceBuilderOption extends Pick<IElkLoggerModuleOptions, 'defaultFields'> {
   configService?: ConfigService;
@@ -29,8 +25,8 @@ export interface INestElkLoggerServiceBuilderOption extends Pick<IElkLoggerModul
   formattersOptions?: {
     sortFields?: string[];
     ignoreObjects?: CheckObjectsType[];
-    exceptionFormatters?: ErrorFormatter[];
-    objectFormatters?: ObjectFormatter[];
+    exceptionFormatters?: BaseErrorObjectFormatter[];
+    objectFormatters?: BaseObjectFormatter[];
   };
 }
 

@@ -32,7 +32,7 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 #### ВАЖНО
 
-Не следует на прямую использовать `KafkaHeadersHelper` для получения данных асинхронного контекста. Для этого нужно использовать адаптер соответствующий интерфейсу `IKafkaHeadersToAsyncContextAdapter`. Можно использовать `HttpHeadersToAsyncContextAdapter` или реализовать свой.
+Не следует на прямую использовать `KafkaHeadersHelper` для получения данных асинхронного контекста. Для этого нужно использовать адаптер соответствующий интерфейсу `IKafkaHeadersToAsyncContextAdapter`. Можно использовать `KafkaHeadersToAsyncContextAdapter` или реализовать свой.
 
 ### Record Formatters
 

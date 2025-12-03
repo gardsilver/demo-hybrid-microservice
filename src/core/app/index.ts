@@ -5,4 +5,8 @@ export * from './factories/logger/ignore-objects.factory';
 export * from './factories/logger/error.formatters.factory';
 export * from './factories/logger/object.formatters.factory';
 export * from './factories/logger/formatters.factory';
+export * from './factories/logger/builders/ignore-objects.factory.builder';
+export * from './factories/logger/builders/error.formatters.factory.builder';
+export * from './factories/logger/builders/object.formatters.factory.builder';
+export * from './factories/logger/builders/formatters.factory.builder';
 export * from './app.module';

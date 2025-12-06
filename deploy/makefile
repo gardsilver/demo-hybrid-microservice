@@ -8,6 +8,13 @@ init:
 	docker volume create --name=redis
 	docker volume create --name=kafka
 
+.PHONY: logs docker-rm all
+dc-rm-all:
+	docker-compose -f base-compose.yml -f demo-hybrid-microservice.yml down
+	sudo docker system prune
+	sudo docker system prune --volumes
+	sudo docker system prune -a
+
 .PHONY: docker-compose-down all
 dc-down:
 	docker-compose -f base-compose.yml -f demo-hybrid-microservice.yml down

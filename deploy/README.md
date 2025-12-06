@@ -1,6 +1,6 @@
 # Deploy
 
-Минимальные настройки окружения для локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**)
+Минимальные настройки окружения для локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**).
 
 ## ВНИМАНИЕ
 
@@ -13,6 +13,7 @@
 | **make**-команда | Описание |
 |---|---|
 |`sudo make init`| Создает необходимые volumes |
+|`sudo make dc-rm-all`| Удаляет все Docker контейнеры |
 |`sudo make dc-down`| Останавливает работу всех контейнеров |
 |`sudo make dc-start`| Запускает все контейнеры окружения и микросервис **Demo Hybrid Microservice**  |
 |`sudo make dc-down-postgres`| Останавливает работу **Postgres**  |
@@ -26,6 +27,7 @@
 - **postgresdb**: Database **Postgres**
 - **redis**: Database **Redis**
 - **redis-ui**: Web-клиент **Redis Insight**
+- **kafka**: Брокер **kafka**
 - **kafka-ui**: Web-клиент **kafka UI**
 - **demo-hybrid-microservice**: Микросервис **Demo Hybrid Microservice**
 

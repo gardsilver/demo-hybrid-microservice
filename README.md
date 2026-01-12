@@ -75,7 +75,7 @@ GRPC_PORT=3001
 
 - `PrometheusModule` (**@see** `src/modules/prometheus`).
 
-## **Hybrid Microservice**: **REST**, **gRPC**, **Kafka**
+## **Hybrid Microservice**: **REST**, **gRPC**, **Kafka**, **RabbitMq**
 
 А именно реализована поддержка глобальных **Guard**, **Interceptor**, **Errors Filter**.
 
@@ -86,6 +86,8 @@ GRPC_PORT=3001
 - `GrpcClientService` (**@see**  `src/modules/grpc/grpc-client`)
 - `KafkaErrorFilter`, `KafkaServerService` (**@see**  `src/modules/kafka/kafka-server`)
 - `KafkaClientService` (**@see**  `src/modules/kafka/kafka-client`)
+- `RabbitMqErrorFilter`, `RabbitMqServer` (**@see**  `src/modules/rabbit-mq/rabbit-mq-server`)
+- `RabbitMqClientService` (**@see**  `src/modules/rabbit-mq/rabbit-mq-client`)
 
 ## **Graceful Shutdown**
 

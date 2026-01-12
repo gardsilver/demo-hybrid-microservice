@@ -1,5 +1,5 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { MetadataExplorer, ITargetInstanceMethod, LoggerMarkers, GeneralAsyncContext } from 'src/modules/common';
+import { MetadataExplorer, ITargetInstanceMethod, GeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   IElkLoggerServiceBuilder,

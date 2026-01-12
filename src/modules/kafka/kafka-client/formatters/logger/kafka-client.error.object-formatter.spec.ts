@@ -1,5 +1,6 @@
 import { KafkaJSError, KafkaJSErrorMetadata } from 'kafkajs';
 import { faker } from '@faker-js/faker';
+import { LoggerMarkers } from 'src/modules/common';
 import { KafkaClientError } from '../../errors/kafka-client.error';
 import { KafkaClientInternalError } from '../../errors/kafka-client.internal.error';
 import { KafkaClientErrorObjectFormatter } from './kafka-client.error.object-formatter';
@@ -47,6 +48,7 @@ describe(KafkaClientErrorObjectFormatter.name, () => {
   it('transform', async () => {
     expect(formatter.transform(error)).toEqual({
       statusCode: 'status',
+      loggerMarker: LoggerMarkers.INTERNAL,
     });
   });
 });

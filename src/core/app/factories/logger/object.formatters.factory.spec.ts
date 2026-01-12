@@ -1,4 +1,5 @@
 import { Test } from '@nestjs/testing';
+import { BufferObjectFormatter } from 'src/modules/common/formatters';
 import { ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { MetadataObjectFormatter } from 'src/modules/grpc/grpc-common';
 import { KafkaJsMessagesObjectFormatter } from 'src/modules/kafka/kafka-common';
@@ -10,6 +11,7 @@ describe(ObjectFormattersFactory.name, () => {
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
+        BufferObjectFormatter,
         MetadataObjectFormatter,
         KafkaJsMessagesObjectFormatter,
         ValidationErrorItemObjectFormatter,
@@ -26,6 +28,7 @@ describe(ObjectFormattersFactory.name, () => {
   it('getFormatters', async () => {
     const formatters = service.getFormatters();
     expect(formatters).toEqual([
+      new BufferObjectFormatter(),
       new MetadataObjectFormatter(),
       new KafkaJsMessagesObjectFormatter(),
       new ValidationErrorItemObjectFormatter(),

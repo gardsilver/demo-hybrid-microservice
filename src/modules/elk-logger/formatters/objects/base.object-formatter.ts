@@ -1,4 +1,3 @@
-import { IKeyValue } from 'src/modules/common';
 import { IUnknownFormatter, ObjectFormatter } from '../../types/elk-logger.types';
 
 export abstract class BaseObjectFormatter<T extends object = object> extends ObjectFormatter<T> {
@@ -9,5 +8,4 @@ export abstract class BaseObjectFormatter<T extends object = object> extends Obj
   }
 
   abstract isInstanceOf(obj: unknown): obj is T;
-  abstract transform(from: T): IKeyValue<unknown>;
 }

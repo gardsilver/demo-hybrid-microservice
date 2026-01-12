@@ -8,10 +8,10 @@ describe(AppKafkaConfig.name, () => {
     const kafkaConfig = new AppKafkaConfig(config);
 
     expect({
-      getKafkaBrokers: kafkaConfig.getKafkaBrokers(),
-      getKafkaClientId: kafkaConfig.getKafkaClientId(),
-      getKafkaGroupId: kafkaConfig.getKafkaGroupId(),
-      getKafkaRetryStatusCodes: kafkaConfig.getKafkaRetryStatusCodes(),
+      getKafkaBrokers: kafkaConfig.getBrokers(),
+      getKafkaClientId: kafkaConfig.getClientId(),
+      getKafkaGroupId: kafkaConfig.getGroupId(),
+      getKafkaRetryStatusCodes: kafkaConfig.getRetryStatusCodes(),
     }).toEqual({
       getKafkaBrokers: [],
       getKafkaClientId: undefined,
@@ -30,10 +30,10 @@ describe(AppKafkaConfig.name, () => {
     const kafkaConfig = new AppKafkaConfig(config);
 
     expect({
-      getKafkaBrokers: kafkaConfig.getKafkaBrokers(),
-      getKafkaClientId: kafkaConfig.getKafkaClientId(),
-      getKafkaGroupId: kafkaConfig.getKafkaGroupId(),
-      getKafkaRetryStatusCodes: kafkaConfig.getKafkaRetryStatusCodes(),
+      getKafkaBrokers: kafkaConfig.getBrokers(),
+      getKafkaClientId: kafkaConfig.getClientId(),
+      getKafkaGroupId: kafkaConfig.getGroupId(),
+      getKafkaRetryStatusCodes: kafkaConfig.getRetryStatusCodes(),
     }).toEqual({
       getKafkaBrokers: ['broker1', 'broker2'],
       getKafkaClientId: 'kafka-client',

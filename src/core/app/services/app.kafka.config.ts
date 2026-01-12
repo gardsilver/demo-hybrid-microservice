@@ -5,21 +5,21 @@ import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 
 @Injectable()
 export class AppKafkaConfig {
-  private kafkaBrokers: string[];
-  private kafkaClientId: string;
-  private kafkaGroupId: string;
-  private kafkaRetryStatusCodes: Array<string | number> = [];
+  private brokers: string[];
+  private clientId: string;
+  private groupId: string;
+  private retryStatusCodes: Array<string | number> = [];
 
   constructor(private readonly configService: ConfigService) {
-    const configServiceHelper = new ConfigServiceHelper(configService);
+    const configServiceHelper = new ConfigServiceHelper(configService, 'KAFKA_');
 
-    this.kafkaBrokers = configServiceHelper.parseArray('KAFKA_BROKERS');
-    this.kafkaClientId = this.configService.get<string>('KAFKA_CLIENT_ID');
-    this.kafkaGroupId = this.configService.get<string>('KAFKA_GROUP_ID');
+    this.brokers = configServiceHelper.parseArray('BROKERS');
+    this.clientId = this.configService.get<string>(configServiceHelper.getKeyName('CLIENT_ID'));
+    this.groupId = this.configService.get<string>(configServiceHelper.getKeyName('GROUP_ID'));
 
-    const kafkaRetryStatusCodes = configServiceHelper.parseArray('KAFKA_RETRY_STATUS_CODES');
+    const kafkaRetryStatusCodes = configServiceHelper.parseArray('RETRY_STATUS_CODES');
 
-    this.kafkaRetryStatusCodes =
+    this.retryStatusCodes =
       kafkaRetryStatusCodes.length === 0
         ? []
         : kafkaRetryStatusCodes.map((code) => {
@@ -33,22 +33,22 @@ export class AppKafkaConfig {
           });
   }
 
-  getKafkaBrokers(): string[] {
-    return this.kafkaBrokers;
+  getBrokers(): string[] {
+    return this.brokers;
   }
 
-  getKafkaClientId(): string {
-    return this.kafkaClientId;
+  getClientId(): string {
+    return this.clientId;
   }
 
-  getKafkaGroupId(): string {
-    return this.kafkaGroupId;
+  getGroupId(): string {
+    return this.groupId;
   }
 
-  getKafkaRetryStatusCodes(): Array<string | number> {
-    return this.kafkaRetryStatusCodes;
+  getRetryStatusCodes(): Array<string | number> {
+    return this.retryStatusCodes;
   }
-  getKafkaProducerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
+  getProducerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
       maxRetryTime: 1_000,
       initialRetryTime: 200,
@@ -56,7 +56,7 @@ export class AppKafkaConfig {
     };
   }
 
-  getKafkaConsumerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
+  getConsumerRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
       maxRetryTime: 10_000,
       initialRetryTime: 1_000,
@@ -64,7 +64,7 @@ export class AppKafkaConfig {
     };
   }
 
-  getKafkaHealthIndicatorRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
+  getHealthIndicatorRetry(): Omit<KafkaRetryConfig, 'restartOnFailure'> {
     return {
       maxRetryTime: 4_000,
       initialRetryTime: 500,

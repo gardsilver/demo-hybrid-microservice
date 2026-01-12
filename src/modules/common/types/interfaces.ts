@@ -2,8 +2,8 @@ import { ModuleMetadata, ClassProvider, FactoryProvider, ValueProvider } from '@
 import { IAsyncContext } from 'src/modules/async-context';
 import { IHeaders } from './types';
 
-export interface IHeadersToContextAdapter<Ctx = IAsyncContext> {
-  adapt(headers: IHeaders): Ctx;
+export interface IHeadersToContextAdapter<Ctx = IAsyncContext, H = IHeaders> {
+  adapt(headers: H): Ctx;
 }
 
 export interface IFormatter<From, To> {

@@ -12,6 +12,7 @@ export class KafkaClientErrorObjectFormatter extends BaseErrorObjectFormatter<Ka
   transform(from: KafkaClientError): IKeyValue<unknown> {
     return {
       statusCode: from.statusCode,
+      loggerMarker: from.loggerMarker,
     };
   }
 }

@@ -13,8 +13,9 @@ import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
-import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
+import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { mockSequelize } from 'tests/sequelize-typescript';
+import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { HealthController } from './controllers/health.controller';
 import { HealthModule } from './health.module';
 
@@ -41,6 +42,7 @@ describe(HealthModule.name, () => {
         DatabaseModule.forRoot(),
         GracefulShutdownModule.forRoot(),
         KafkaServerModule.forRoot(),
+        RabbitMqServerModule.forRoot(),
       ],
     })
       .overrideProvider(ELK_LOGGER_SERVICE_BUILDER_DI)

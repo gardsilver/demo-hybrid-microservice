@@ -7,6 +7,8 @@ import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/
 import { HttpExceptionFormatter } from 'src/modules/http/http-server';
 import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
 import { KafkaClientErrorObjectFormatter } from 'src/modules/kafka/kafka-client';
+import { RabbitMqErrorObjectFormatter } from 'src/modules/rabbit-mq/rabbit-mq-common';
+import { RabbitMqClientErrorObjectFormatter } from 'src/modules/rabbit-mq/rabbit-mq-client';
 import { RedisClientErrorFormatter } from 'src/modules/redis-cache-manager';
 
 @Injectable()
@@ -22,6 +24,8 @@ export class ErrorFormattersFactory {
     protected readonly redisClientErrorFormatter: RedisClientErrorFormatter,
     protected readonly kafkaJsErrorObjectFormatter: KafkaJsErrorObjectFormatter,
     protected readonly kafkaClientErrorObjectFormatter: KafkaClientErrorObjectFormatter,
+    protected readonly rabbitMqErrorObjectFormatter: RabbitMqErrorObjectFormatter,
+    protected readonly rabbitMqClientErrorObjectFormatter: RabbitMqClientErrorObjectFormatter,
   ) {}
 
   getFormatters(): BaseErrorObjectFormatter[] {
@@ -36,6 +40,8 @@ export class ErrorFormattersFactory {
       this.redisClientErrorFormatter,
       this.kafkaJsErrorObjectFormatter,
       this.kafkaClientErrorObjectFormatter,
+      this.rabbitMqErrorObjectFormatter,
+      this.rabbitMqClientErrorObjectFormatter,
     ];
   }
 }

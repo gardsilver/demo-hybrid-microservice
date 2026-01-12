@@ -81,7 +81,7 @@ describe(GrpcClientResponseHandler.name, () => {
       markers: [LoggerMarkers.GRPC],
       payload: {
         request: {
-          method: 'main',
+          method: 'find',
           headers: GrpcHeadersHelper.normalize(headers),
         },
       },

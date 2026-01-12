@@ -1,7 +1,9 @@
+import { Injectable } from '@nestjs/common';
 import { IAsyncContext } from 'src/modules/async-context';
+import { GeneralAsyncContext } from 'src/modules/common';
 import { ILogFields, ILogRecord, ILogRecordFormatter } from 'src/modules/elk-logger';
-import { GeneralAsyncContext } from '../../context/general.async-context';
 
+@Injectable()
 export class GeneralAsyncContextFormatter implements ILogRecordFormatter {
   public priority(): number {
     return 0;

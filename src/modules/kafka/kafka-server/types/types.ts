@@ -28,7 +28,7 @@ export type IKafkaMessageOptions = Record<string, unknown> & {
   replyPartition?: number;
 };
 
-export interface IConsumerDeserializer<T = unknown> extends Deserializer<unknown, IConsumerPacket<T>> {
+export interface IConsumerDeserializer<T = unknown> extends Deserializer<KafkaMessage, IConsumerPacket<T>> {
   deserialize(value: KafkaMessage, options: IKafkaMessageOptions): IConsumerPacket<T> | Promise<IConsumerPacket<T>>;
 }
 

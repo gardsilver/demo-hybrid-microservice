@@ -1,7 +1,7 @@
 import { ConfigService } from '@nestjs/config';
 import { DiscoveryModule } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { LoggerMarkers, MetadataExplorer } from 'src/modules/common';
+import { MetadataExplorer, LoggerMarkers } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,

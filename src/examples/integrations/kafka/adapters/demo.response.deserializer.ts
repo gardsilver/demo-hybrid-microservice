@@ -19,10 +19,12 @@ export class DemoResponseDeserializer implements IConsumerDeserializer<MainRespo
 
     return {
       ...result,
-      data: {
-        ...result.data,
-        value: result.data.value ? MainResponse.decode(result.data.value) : null,
-      },
+      data: result.data
+        ? {
+            ...result.data,
+            value: result.data.value ? MainResponse.decode(result.data.value) : null,
+          }
+        : undefined,
     };
   }
 }

@@ -8,7 +8,7 @@ import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   TraceSpanBuilder,
 } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, LoggerMarkers, getSkipInterceptors } from 'src/modules/common';
+import { IGeneralAsyncContext, getSkipInterceptors, LoggerMarkers } from 'src/modules/common';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 import { HttpLoggerHelper } from '../helpers/http.logger.helper';

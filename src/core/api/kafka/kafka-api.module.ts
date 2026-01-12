@@ -24,12 +24,12 @@ import { KafkaDemoController } from './controllers/kafka-demo.controller';
             serverName: KafkaServers.MAIN_KAFKA_BROKER,
             postfixId: '',
             client: {
-              brokers: config.getKafkaBrokers(),
-              clientId: config.getKafkaClientId(),
+              brokers: config.getBrokers(),
+              clientId: config.getClientId(),
               useLogger: true,
             },
             producer: {
-              retry: config.getKafkaProducerRetry(),
+              retry: config.getProducerRetry(),
             },
           };
         },

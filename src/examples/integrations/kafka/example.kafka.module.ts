@@ -20,13 +20,13 @@ import { HttpController } from './controllers/http.controller';
             serverName: KafkaServers.MAIN_KAFKA_BROKER,
             postfixId: '',
             client: {
-              brokers: config.getKafkaBrokers(),
-              clientId: config.getKafkaClientId(),
+              brokers: config.getBrokers(),
+              clientId: config.getClientId(),
               useLogger: true,
               connectionTimeout: 300,
             },
             producer: {
-              retry: config.getKafkaProducerRetry(),
+              retry: config.getProducerRetry(),
             },
           };
         },

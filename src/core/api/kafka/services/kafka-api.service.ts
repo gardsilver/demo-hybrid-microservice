@@ -25,7 +25,7 @@ export class KafkaApiService {
     const context = KafkaAsyncContext.instance.extend();
 
     if (!context.replyTopic) {
-      this.logger.error('Not find retry topic', {
+      this.logger.error('Not find reply topic', {
         payload: {
           topic,
           request,

@@ -80,7 +80,7 @@ describe(GrpcService.name, () => {
     expect(spyRequest).toHaveBeenCalledWith(
       {
         service: 'MainService',
-        method: 'main',
+        method: 'find',
         data: { query: request.query },
       },
       {

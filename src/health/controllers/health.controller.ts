@@ -17,6 +17,7 @@ import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shu
 import { DATABASE_DI } from 'src/modules/database';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { KafkaServerStatusService } from 'src/modules/kafka/kafka-server';
+import { RabbitMqServerStatusService } from 'src/modules/rabbit-mq/rabbit-mq-server';
 
 @SkipInterceptors({
   All: true,
@@ -34,6 +35,7 @@ export class HealthController {
     private readonly authHealth: AuthHealthIndicatorService,
     @Inject(DATABASE_DI) private readonly db: Sequelize,
     private readonly kafkaServerStatusService: KafkaServerStatusService,
+    private readonly rabbitMqServerStatusService: RabbitMqServerStatusService,
     private readonly gracefulShutdownHealth: GracefulShutdownHealthIndicatorService,
     @Inject(PrometheusManager) private readonly prometheusManager: PrometheusManager,
     @Inject(AUTH_SERVICE_DI) private readonly authService: IAuthService,
@@ -56,6 +58,10 @@ export class HealthController {
       checks.push(() => healthIndicator.isHealthy());
     });
 
+    this.rabbitMqServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
+      checks.push(() => healthIndicator.isHealthy());
+    });
+
     return this.health.check(checks);
   }
 
@@ -65,6 +71,10 @@ export class HealthController {
     const checks = [() => this.authHealth.isReadiness(), () => this.gracefulShutdownHealth.isHealthy()];
 
     this.kafkaServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
+      checks.push(() => healthIndicator.isHealthy());
+    });
+
+    this.rabbitMqServerStatusService.getHealthIndicators().forEach((healthIndicator) => {
       checks.push(() => healthIndicator.isHealthy());
     });
 

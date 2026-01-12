@@ -13,4 +13,5 @@ export enum LoggerMarkers {
   GRPC = 'gRPC',
   HTTP = 'HTTP',
   KAFKA = 'KAFKA',
+  RABBIT_MQ = 'RMQ',
 }

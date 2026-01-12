@@ -5,7 +5,7 @@ package demo.service;
 option java_multiple_files = true;
 
 service MainService {
-  rpc main (MainRequest) returns (MainResponse) {};
+  rpc find (MainRequest) returns (MainResponse) {};
 }
 
 message MainRequest {

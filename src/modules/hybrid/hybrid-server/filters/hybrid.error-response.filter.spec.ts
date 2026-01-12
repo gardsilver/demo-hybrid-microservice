@@ -4,13 +4,17 @@ import { ExecutionContext } from '@nestjs/common';
 import { HttpErrorResponseFilter } from 'src/modules/http/http-server';
 import { GrpcErrorResponseFilter } from 'src/modules/grpc/grpc-server';
 import { KafkaContext, KafkaErrorFilter } from 'src/modules/kafka/kafka-server';
+import { RabbitMqContext, RabbitMqErrorFilter } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { HybridErrorResponseFilter } from './hybrid.error-response.filter';
 
 describe(HybridErrorResponseFilter.name, () => {
   let httpErrorResponseFilter: HttpErrorResponseFilter;
   let grpcErrorResponseFilter: GrpcErrorResponseFilter;
   let kafkaErrorFilter: KafkaErrorFilter;
+  let rabbitMqErrorFilter: RabbitMqErrorFilter;
   let filter: HybridErrorResponseFilter;
+
+  let error, spyHttp, spyGrpc, spyKafka, spyRabbitMq;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -33,6 +37,12 @@ describe(HybridErrorResponseFilter.name, () => {
             catch: jest.fn(),
           },
         },
+        {
+          provide: RabbitMqErrorFilter,
+          useValue: {
+            catch: jest.fn(),
+          },
+        },
         HybridErrorResponseFilter,
       ],
     }).compile();
@@ -40,7 +50,15 @@ describe(HybridErrorResponseFilter.name, () => {
     httpErrorResponseFilter = module.get(HttpErrorResponseFilter);
     grpcErrorResponseFilter = module.get(GrpcErrorResponseFilter);
     kafkaErrorFilter = module.get(KafkaErrorFilter);
+    rabbitMqErrorFilter = module.get(RabbitMqErrorFilter);
     filter = module.get(HybridErrorResponseFilter);
+
+    spyHttp = jest.spyOn(httpErrorResponseFilter, 'catch');
+    spyGrpc = jest.spyOn(grpcErrorResponseFilter, 'catch');
+    spyKafka = jest.spyOn(kafkaErrorFilter, 'catch');
+    spyRabbitMq = jest.spyOn(rabbitMqErrorFilter, 'catch');
+
+    error = new Error('Test Error');
 
     jest.clearAllMocks();
   });
@@ -49,6 +67,7 @@ describe(HybridErrorResponseFilter.name, () => {
     expect(httpErrorResponseFilter).toBeDefined();
     expect(grpcErrorResponseFilter).toBeDefined();
     expect(kafkaErrorFilter).toBeDefined();
+    expect(rabbitMqErrorFilter).toBeDefined();
     expect(filter).toBeDefined();
   });
 
@@ -56,28 +75,19 @@ describe(HybridErrorResponseFilter.name, () => {
     const host = {
       getType: () => 'tcp',
     } as undefined as ExecutionContext;
-    const error = new Error('Test Error');
-
-    const spyHttp = jest.spyOn(httpErrorResponseFilter, 'catch');
-    const spyGrpc = jest.spyOn(grpcErrorResponseFilter, 'catch');
-    const spyKafka = jest.spyOn(kafkaErrorFilter, 'catch');
 
     await filter.catch(error, host);
 
     expect(spyHttp).toHaveBeenCalledTimes(0);
     expect(spyGrpc).toHaveBeenCalledTimes(0);
     expect(spyKafka).toHaveBeenCalledTimes(0);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
   });
 
   it('http', async () => {
     const host = {
       getType: () => 'http',
     } as undefined as ExecutionContext;
-    const error = new Error('Test Error');
-
-    const spyHttp = jest.spyOn(httpErrorResponseFilter, 'catch');
-    const spyGrpc = jest.spyOn(grpcErrorResponseFilter, 'catch');
-    const spyKafka = jest.spyOn(kafkaErrorFilter, 'catch');
 
     await filter.catch(error, host);
 
@@ -85,6 +95,7 @@ describe(HybridErrorResponseFilter.name, () => {
     expect(spyHttp).toHaveBeenCalledWith(error, host);
     expect(spyGrpc).toHaveBeenCalledTimes(0);
     expect(spyKafka).toHaveBeenCalledTimes(0);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
   });
 
   it('grpc', async () => {
@@ -94,11 +105,6 @@ describe(HybridErrorResponseFilter.name, () => {
         getContext: () => new Metadata(),
       }),
     } as undefined as ExecutionContext;
-    const error = new Error('Test Error');
-
-    const spyHttp = jest.spyOn(httpErrorResponseFilter, 'catch');
-    const spyGrpc = jest.spyOn(grpcErrorResponseFilter, 'catch');
-    const spyKafka = jest.spyOn(kafkaErrorFilter, 'catch');
 
     await filter.catch(error, host);
 
@@ -106,6 +112,7 @@ describe(HybridErrorResponseFilter.name, () => {
     expect(spyGrpc).toHaveBeenCalledTimes(1);
     expect(spyGrpc).toHaveBeenCalledWith(error, host);
     expect(spyKafka).toHaveBeenCalledTimes(0);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
   });
 
   it('kafka', async () => {
@@ -125,11 +132,6 @@ describe(HybridErrorResponseFilter.name, () => {
         getContext: () => kafkaContext,
       }),
     } as undefined as ExecutionContext;
-    const error = new Error('Test Error');
-
-    const spyHttp = jest.spyOn(httpErrorResponseFilter, 'catch');
-    const spyGrpc = jest.spyOn(grpcErrorResponseFilter, 'catch');
-    const spyKafka = jest.spyOn(kafkaErrorFilter, 'catch');
 
     await filter.catch(error, host);
 
@@ -137,5 +139,25 @@ describe(HybridErrorResponseFilter.name, () => {
     expect(spyGrpc).toHaveBeenCalledTimes(0);
     expect(spyKafka).toHaveBeenCalledTimes(1);
     expect(spyKafka).toHaveBeenCalledWith(error, host);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
+  });
+
+  it('RabbitMq', async () => {
+    const rabbitMqContext = new RabbitMqContext([undefined, undefined, undefined, undefined]);
+
+    const host = {
+      getType: () => 'rpc',
+      switchToRpc: () => ({
+        getContext: () => rabbitMqContext,
+      }),
+    } as undefined as ExecutionContext;
+
+    await filter.catch(error, host);
+
+    expect(spyHttp).toHaveBeenCalledTimes(0);
+    expect(spyGrpc).toHaveBeenCalledTimes(0);
+    expect(spyKafka).toHaveBeenCalledTimes(0);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(1);
+    expect(spyRabbitMq).toHaveBeenCalledWith(error, host);
   });
 });

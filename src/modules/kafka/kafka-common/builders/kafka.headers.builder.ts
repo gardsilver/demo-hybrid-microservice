@@ -14,7 +14,7 @@ export class KafkaHeadersBuilder implements IKafkaHeadersBuilder {
   ): IHeaders {
     const useZipkin: boolean = options?.useZipkin ?? false;
 
-    const headers = params.headers ? { ...params.headers } : {};
+    const headers = { ...params.headers };
 
     if (AUTHORIZATION_HEADER_NAME in headers) {
       delete headers[AUTHORIZATION_HEADER_NAME];
@@ -28,7 +28,7 @@ export class KafkaHeadersBuilder implements IKafkaHeadersBuilder {
 
       let value: string;
 
-      if (params?.asyncContext && key in params.asyncContext && params.asyncContext[key] !== undefined) {
+      if (params.asyncContext && key in params.asyncContext && params.asyncContext[key] !== undefined) {
         value = params.asyncContext[key].toString();
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
         value = Array.isArray(headers[useHeaderName]) ? headers[useHeaderName].join('-') : headers[useHeaderName];

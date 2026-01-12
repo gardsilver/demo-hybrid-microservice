@@ -35,26 +35,48 @@ import { RedisCacheManagerModule, RedisCacheService } from './';
 describe(RedisCacheManagerModule.name, () => {
   let redisCacheService: RedisCacheService;
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      imports: [
-        ConfigModule,
-        ElkLoggerModule.forRoot(),
-        PrometheusModule,
-        RedisCacheManagerModule.forRoot({
-          imports: [TestModule],
-          providers: [TestService],
-        }),
-      ],
-    })
-      .overrideProvider(ConfigService)
-      .useValue(new MockConfigService())
-      .compile();
+  describe('default', () => {
+    beforeEach(async () => {
+      const module = await Test.createTestingModule({
+        imports: [ConfigModule, ElkLoggerModule.forRoot(), PrometheusModule, RedisCacheManagerModule.forRoot()],
+      })
+        .overrideProvider(ConfigService)
+        .useValue(new MockConfigService())
+        .compile();
 
-    redisCacheService = module.get(RedisCacheService);
+      redisCacheService = module.get(RedisCacheService);
+    });
+
+    it('init', async () => {
+      expect(redisCacheService).toBeDefined();
+    });
   });
 
-  it('init', async () => {
-    expect(redisCacheService).toBeDefined();
+  describe('custom', () => {
+    beforeEach(async () => {
+      const module = await Test.createTestingModule({
+        imports: [
+          ConfigModule,
+          ElkLoggerModule.forRoot(),
+          PrometheusModule,
+          RedisCacheManagerModule.forRoot({
+            imports: [TestModule],
+            providers: [TestService],
+            redisClientOptions: {
+              useValue: {},
+            },
+          }),
+        ],
+      })
+        .overrideProvider(ConfigService)
+        .useValue(new MockConfigService())
+        .compile();
+
+      redisCacheService = module.get(RedisCacheService);
+    });
+
+    it('init', async () => {
+      expect(redisCacheService).toBeDefined();
+    });
   });
 });

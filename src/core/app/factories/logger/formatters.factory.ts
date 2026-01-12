@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ILogRecordFormatter } from 'src/modules/elk-logger';
-import { GeneralAsyncContextFormatter } from 'src/modules/common';
+import { GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 
 @Injectable()

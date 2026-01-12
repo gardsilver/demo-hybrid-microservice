@@ -6,15 +6,22 @@ export const EventKafkaMessage: {
   <T = string>(metadata?: T): MethodDecorator;
   <T = string, K = unknown>(
     metadata?: T,
-    options?: Record<string, any> & IEventKafkaMessageOptions<K>,
+    options?:
+      | (Record<string, any> & IEventKafkaMessageOptions<K>)
+      | (() => Record<string, any> & IEventKafkaMessageOptions<K>),
   ): MethodDecorator;
 } = <T = string, K = unknown>(
   metadata?: T,
-  options?: Record<string, any> & IEventKafkaMessageOptions<K>,
+  options?:
+    | (Record<string, any> & IEventKafkaMessageOptions<K>)
+    | (() => Record<string, any> & IEventKafkaMessageOptions<K>),
 ): MethodDecorator => {
+  const params: Record<string, any> & IEventKafkaMessageOptions<K> =
+    typeof options === 'function' ? options() : options;
+
   const extras = {
-    ...options,
-    mode: options?.mode ?? ConsumerMode.EACH_MESSAGE,
+    ...params,
+    mode: params?.mode ?? ConsumerMode.EACH_MESSAGE,
   };
 
   const decorator = EventPattern(metadata, Transport.KAFKA, extras);

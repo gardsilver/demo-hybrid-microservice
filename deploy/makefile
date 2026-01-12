@@ -7,6 +7,7 @@ init:
 	docker volume create --name=postgres
 	docker volume create --name=redis
 	docker volume create --name=kafka
+	docker volume create --name=rabbitmq
 
 .PHONY: logs docker-rm all
 dc-rm-all:
@@ -34,6 +35,10 @@ dc-down-redis:
 .PHONY: docker-compose-down kafka
 dc-down-kafka:
 	docker-compose -f base-compose.yml -f demo-hybrid-microservice.yml stop kafka
+
+.PHONY: docker-compose-down rabbitmq
+dc-down-rabbitmq:
+	docker-compose -f base-compose.yml -f demo-hybrid-microservice.yml stop rabbitmq
 
 .PHONY: docker-compose-down demo-hybrid-microservice
 dc-down-dhms:

@@ -3,7 +3,7 @@
 ## Описание
 
 Позволяет хранить данные на протяжении всего жизненного цикла любой асинхронной операции.
-[@see node:async_hooks](https://nodejs.org/api/async_context.html#class-asynclocalstorage)
+[**@see** node:async_hooks](https://nodejs.org/api/async_context.html#class-asynclocalstorage)
 
 ### Как применять
 

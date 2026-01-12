@@ -27,16 +27,19 @@ import {
   KafkaMicroserviceBuilder,
   KAFKA_SERVER_HEADERS_ADAPTER_DI,
 } from 'src/modules/kafka/kafka-server';
+import { RabbitMqMicroserviceBuilder, RabbitMqServerStatusService } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
 import {
   GLOBAL_ROUTE_PREFIX,
   AppConfig,
   AppKafkaConfig,
   KafkaServers,
+  RabbitMqServers,
   ErrorFormattersFactoryBuilder,
   IgnoreObjectsFactoryBuilder,
   ObjectFormattersFactoryBuilder,
   FormattersFactoryBuilder,
+  AppRabbitMqConfig,
 } from 'src/core/app';
 import { MainModule } from 'src/main.module';
 
@@ -136,25 +139,44 @@ async function bootstrap(): Promise<void> {
       serverName: KafkaServers.MAIN_KAFKA_BROKER,
       postfixId: '',
       client: {
-        brokers: appKafkaConfig.getKafkaBrokers(),
-        clientId: appKafkaConfig.getKafkaClientId(),
+        brokers: appKafkaConfig.getBrokers(),
+        clientId: appKafkaConfig.getClientId(),
         useLogger: true,
         connectionTimeout: 2_000,
       },
       consumer: {
-        groupId: appKafkaConfig.getKafkaGroupId(),
-        retry: appKafkaConfig.getKafkaConsumerRetry(),
+        groupId: appKafkaConfig.getGroupId(),
+        retry: appKafkaConfig.getConsumerRetry(),
       },
       headerAdapter: app.get(KAFKA_SERVER_HEADERS_ADAPTER_DI),
       healthIndicatorOptions: {
         useAdmin: true,
-        retry: appKafkaConfig.getKafkaHealthIndicatorRetry(),
+        retry: appKafkaConfig.getHealthIndicatorRetry(),
       },
       startTimeout: 20_000,
     },
     loggerBuilder: app.get(ELK_LOGGER_SERVICE_BUILDER_DI),
     prometheusManager: app.get(PrometheusManager),
     kafkaStatusService: app.get(KafkaServerStatusService),
+  });
+
+  const appRabbitMqConfig = app.get(AppRabbitMqConfig);
+
+  RabbitMqMicroserviceBuilder.setup(app, {
+    serverName: RabbitMqServers.MAIN_RABBIT_MQ_BROKER,
+    consumer: {
+      urls: appRabbitMqConfig.getUrls(),
+      socketOptions: {
+        reconnectTimeInSeconds: appRabbitMqConfig.getRetryConfig().reconnectTimeInSeconds,
+        heartbeatIntervalInSeconds: appRabbitMqConfig.getRetryConfig().heartbeatIntervalInSeconds,
+      },
+      queueOptions: {
+        durable: false,
+      },
+      maxConnectionAttempts: appRabbitMqConfig.getRetryConfig().maxConnectionAttempts,
+    },
+    prometheusManager: app.get(PrometheusManager),
+    rabbitMqStatusService: app.get(RabbitMqServerStatusService),
   });
 
   app.enableShutdownHooks();

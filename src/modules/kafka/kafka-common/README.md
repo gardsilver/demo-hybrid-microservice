@@ -27,8 +27,8 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 Описаны имена **Kafka**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common` и др.).
 
-- `KafkaAsyncContextHeaderNames.nameAsHeaderName` - позволяет получить имя заголовка для параметра `IKafkaAsyncContext`
-- `KafkaAsyncContextHeaderNames.toAsyncContext` - позволяет получить `IKafkaAsyncContext` из  **Kafka** заголовков `IHeaders` (**@see** `src/modules/common`).
+- `KafkaHeadersHelper.nameAsHeaderName` - позволяет получить имя заголовка для параметра `IKafkaAsyncContext`
+- `KafkaHeadersHelper.toAsyncContext` - позволяет получить `IKafkaAsyncContext` из  **Kafka** заголовков `IHeaders` (**@see** `src/modules/common`).
 
 #### ВАЖНО
 

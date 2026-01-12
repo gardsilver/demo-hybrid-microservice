@@ -24,6 +24,11 @@ import {
   KafkaServerModule,
   KafkaServerStatusService,
 } from 'src/modules/kafka/kafka-server';
+import {
+  RabbitMqHealthIndicator,
+  RabbitMqServerModule,
+  RabbitMqServerStatusService,
+} from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
 import { mockSequelize } from 'tests/sequelize-typescript';
@@ -39,6 +44,7 @@ describe(HealthController.name, () => {
   let authService: IAuthService;
   let certificateService: ICertificateService;
   let kafkaServerStatusService: KafkaServerStatusService;
+  let rabbitMqServerStatusService: RabbitMqServerStatusService;
   let prometheusManager: PrometheusManager;
   let controller: HealthController;
 
@@ -49,7 +55,14 @@ describe(HealthController.name, () => {
     nestLogger = new MockNestElkLoggerService();
 
     const module = await Test.createTestingModule({
-      imports: [ConfigModule, ElkLoggerModule.forRoot(), TerminusModule, PrometheusModule, KafkaServerModule.forRoot()],
+      imports: [
+        ConfigModule,
+        ElkLoggerModule.forRoot(),
+        TerminusModule,
+        PrometheusModule,
+        KafkaServerModule.forRoot(),
+        RabbitMqServerModule.forRoot(),
+      ],
       providers: [
         {
           provide: DATABASE_DI,
@@ -113,6 +126,7 @@ describe(HealthController.name, () => {
     authService = module.get(AUTH_SERVICE_DI);
     certificateService = module.get(AUTH_CERTIFICATE_SERVICE_DI);
     kafkaServerStatusService = module.get(KafkaServerStatusService);
+    rabbitMqServerStatusService = module.get(RabbitMqServerStatusService);
     prometheusManager = module.get(PrometheusManager);
     controller = module.get(HealthController);
 
@@ -127,12 +141,25 @@ describe(HealthController.name, () => {
         } as undefined as KafkaServerHealthIndicator,
       ];
     };
+
+    rabbitMqServerStatusService.getHealthIndicators = () => {
+      return [
+        {
+          isHealthy: async () => ({
+            RabbitMq: {
+              status: 'up',
+            },
+          }),
+        } as undefined as RabbitMqHealthIndicator,
+      ];
+    };
   });
 
   it('init', async () => {
     expect(authService).toBeDefined();
     expect(certificateService).toBeDefined();
     expect(kafkaServerStatusService).toBeDefined();
+    expect(rabbitMqServerStatusService).toBeDefined();
     expect(prometheusManager).toBeDefined();
     expect(controller).toBeDefined();
   });
@@ -155,6 +182,9 @@ describe(HealthController.name, () => {
         Kafka: {
           status: 'up',
         },
+        RabbitMq: {
+          status: 'up',
+        },
       },
       error: {},
       details: {
@@ -166,6 +196,9 @@ describe(HealthController.name, () => {
           isActive: false,
         },
         Kafka: {
+          status: 'up',
+        },
+        RabbitMq: {
           status: 'up',
         },
       },
@@ -189,6 +222,9 @@ describe(HealthController.name, () => {
         Kafka: {
           status: 'up',
         },
+        RabbitMq: {
+          status: 'up',
+        },
       },
       error: {},
       details: {
@@ -201,6 +237,9 @@ describe(HealthController.name, () => {
           isActive: false,
         },
         Kafka: {
+          status: 'up',
+        },
+        RabbitMq: {
           status: 'up',
         },
       },

@@ -11,6 +11,8 @@ volumes:
     external: true
   kafka:
     external: true
+  rabbitmq:
+    external: true
 
 services: 
   redis: 
@@ -94,3 +96,17 @@ services:
     networks:
       - dev-local
 
+  rabbitmq:
+    image: "rabbitmq:4-management"
+    container_name: rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - 'rabbitmq:/var/lib/rabbitmq/data'
+    networks:
+      - dev-local

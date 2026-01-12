@@ -1,6 +1,6 @@
 # Deploy
 
-Минимальные настройки окружения для локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**).
+Минимальные настройки окружения для локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**), **RabbitMq** (**RabbitMq Management**).
 
 ## ВНИМАНИЕ
 
@@ -19,6 +19,7 @@
 |`sudo make dc-down-postgres`| Останавливает работу **Postgres**  |
 |`sudo make dc-down-redis`| Останавливает работу **Redis**  |
 |`sudo make dc-down-kafka`| Останавливает работу **Kafka**  |
+|`sudo make dc-down-rabbitmq`| Останавливает работу **RabbitMq**  |
 |`sudo make dc-down-dhms`| Останавливает работу микросервис **Demo Hybrid Microservice**  |
 |`sudo make dc-logs-dhms`| Выводит логи микросервиса **Demo Hybrid Microservice**  |
 
@@ -29,6 +30,7 @@
 - **redis-ui**: Web-клиент **Redis Insight**
 - **kafka**: Брокер **kafka**
 - **kafka-ui**: Web-клиент **kafka UI**
+- **rabbitmq**: Брокер **RabbitMq**
 - **demo-hybrid-microservice**: Микросервис **Demo Hybrid Microservice**
 
 ## **Postgres**
@@ -57,3 +59,13 @@
 | `KAFKA_BROKERS` | Список брокеров (через ",") для подключения к **Kafka**  | `KAFKA_BROKERS=kafka:9092` | `host=localhost` |
 
 - <http://localhost:8082> - **Kafka UI**
+
+## **RabbitMq**
+
+| Параметр | Описание | **.env** **Demo Hybrid Microservice** | localhost |
+|---|---|---|---|
+| `RABBIT_MQ_URLS` | Список брокеров (через ",") для подключения к **RabbitMq**  | `RABBIT_MQ_URLS=rabbitmq:5672` | `host=localhost` |
+| `RABBIT_MQ_USER` | Имя пользователя  | `RABBIT_MQ_USER=admin` | `user=admin` |
+| `RABBIT_MQ_PASSWORD` | Пароль пользователя  | `RABBIT_MQ_PASSWORD=admin` | `password=admin` |
+
+- <http://localhost:15672> - **RabbitMq Management** (user: `admin`; pass: `admin`)

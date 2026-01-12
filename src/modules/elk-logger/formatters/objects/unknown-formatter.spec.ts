@@ -19,10 +19,10 @@ describe(UnknownFormatter.name, () => {
     formatter = new UnknownFormatter(loggerConfig, [mockObjectFormatter]);
     jest.clearAllMocks();
   });
-  
+
   it('init', async () => {
     expect(mockObjectFormatter['unknownFormatter']).toEqual(formatter);
-  })
+  });
 
   it('transform', async () => {
     expect(formatter.transform(undefined)).toBeUndefined();

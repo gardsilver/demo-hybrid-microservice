@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { GeneralAsyncContextFormatter } from 'src/modules/common';
+import { GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 import { FormattersFactory } from './formatters.factory';
 import { ElkLoggerConfig } from 'src/modules/elk-logger';

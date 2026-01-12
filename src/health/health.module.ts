@@ -6,6 +6,7 @@ import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { HealthController } from './controllers/health.controller';
 
 @Module({
@@ -17,6 +18,7 @@ import { HealthController } from './controllers/health.controller';
     DatabaseModule,
     GracefulShutdownModule,
     KafkaServerModule,
+    RabbitMqServerModule,
   ],
   controllers: [HealthController],
 })

@@ -1,0 +1,37 @@
+import { tap } from 'rxjs';
+import { HealthIndicatorResult } from '@nestjs/terminus';
+import { RmqStatus } from 'src/modules/rabbit-mq/rabbit-mq-common';
+import { RabbitMqServer } from './rabbit-mq-server';
+
+export class RabbitMqHealthIndicator {
+  private status: RmqStatus;
+
+  constructor(
+    private readonly serverName: string,
+    private readonly server: RabbitMqServer,
+  ) {
+    this.server.status
+      .pipe(
+        tap((status) => {
+          this.status = status as undefined as RmqStatus;
+        }),
+      )
+      .subscribe();
+  }
+
+  async isHealthy(): Promise<HealthIndicatorResult> {
+    const consumers = {};
+
+    this.server.getConsumersInfo().forEach((info, pattern) => {
+      consumers[pattern] = info;
+    });
+
+    return {
+      [this.serverName]: {
+        status: [RmqStatus.CONNECTED].includes(this.status) ? 'up' : 'down',
+        details: this.status,
+        consumers,
+      },
+    };
+  }
+}

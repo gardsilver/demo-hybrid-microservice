@@ -4,6 +4,10 @@
 
 Содержит описания и реализации часто используемого общего функционала.
 
+### Common Formatters Module
+
+Лог-форматеры не вошедшие в `ElkLogger Module`  (**@see** `src/modules/common/formatters`)
+
 ### Базовые типы
 
 - `IHeaders` - нормализованный тип заголовков. К нему будут приведены все форматы заголовков (`http`, `gRPC` metadata, `Kafka` и др.).
@@ -23,7 +27,7 @@
 - `ServiceValueProvider<T>` - Упрощенный интерфейс `ValueProvider` (`@nestjs/common`).
 - `ServiceFactoryProvider<T>` - Упрощенный интерфейс `FactoryProvider` (`@nestjs/common`).
 - `ProviderBuilder.build` - возвращает `Provider` (`@nestjs/common`);
-- `MetadataExplorer` - Сервис реализующий поиск `providers` по всем зарегистрированным `providers` в `NestApplication`, у которых имеются привязанные метаданные к методу с заданным `metadataKey`. Может быть полезен, когда реализуется декоратор фиксирующий метод сервиса, который в последствии нужно будет вызвать третьему лицу. (`@see` `GracefulShutdownOnEvent` (`src/modules/graceful-shutdown`))
+- `MetadataExplorer` - Сервис реализующий поиск `providers` по всем зарегистрированным `providers` в `NestApplication`, у которых имеются привязанные метаданные к методу с заданным `metadataKey`. Может быть полезен, когда реализуется декоратор фиксирующий метод сервиса, который в последствии нужно будет вызвать третьему лицу. (**@see** `GracefulShutdownOnEvent` (`src/modules/graceful-shutdown`))
 
 ### ВАЖНО
 
@@ -82,29 +86,3 @@
 - `isStaticMethod` проверяет, является ли метод статическим.
 - `enumKeys` - возвращает имена ключей **enum**
 - `enumValues` - возвращает значения **enum**
-
-## Record Formatters
-
-### `GeneralAsyncContextFormatter`
-
-Автоматически дополняет данные логирования информацией из асинхронного контекста.
-
-```typescript
-import { ElkLoggerModule } from 'src/modules/elk-logger';
-import { GeneralAsyncContextFormatter } from 'src/modules/common';
-...
-
-  imports: [
-    ...
-    ElkLoggerModule.forRoot({
-      ...,
-      formatters: {
-        useFactory: () => {
-          return [..., new GeneralAsyncContextFormatter()];
-        },
-      },
-    }),
-  ]
-...
-
-```

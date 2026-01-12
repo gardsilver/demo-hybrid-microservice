@@ -7,6 +7,7 @@ import { HttpServerModule } from 'src/modules/http/http-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { HybridServerModule } from './hybrid-server.module';
 import { HybridErrorResponseFilter } from './filters/hybrid.error-response.filter';
+import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
 
 describe(HybridServerModule.name, () => {
   let filter: HybridErrorResponseFilter;
@@ -21,6 +22,7 @@ describe(HybridServerModule.name, () => {
           HttpServerModule.forRoot(),
           GrpcServerModule.forRoot(),
           KafkaServerModule.forRoot(),
+          RabbitMqServerModule.forRoot(),
           HybridServerModule,
         ],
       }).compile();

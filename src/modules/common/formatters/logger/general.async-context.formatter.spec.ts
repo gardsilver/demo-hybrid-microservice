@@ -1,10 +1,9 @@
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
 import { ILogRecord, LogLevel, TraceSpanBuilder } from 'src/modules/elk-logger';
-import { GeneralAsyncContextFormatter } from './general.async-context.formatter';
-import { IGeneralAsyncContext } from '../../types/general.async-context.type';
 import { LoggerMarkers } from '../../types/logger.markers';
-import { GeneralAsyncContext } from '../../context/general.async-context';
+import { GeneralAsyncContextFormatter } from './general.async-context.formatter';
 
 describe(GeneralAsyncContextFormatter.name, () => {
   let formatter: GeneralAsyncContextFormatter;

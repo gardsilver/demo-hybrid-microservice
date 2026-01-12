@@ -20,7 +20,7 @@ export class GrpcMainController {
     private readonly grpcMetadataResponseBuilder: IGrpcMetadataResponseBuilder,
   ) {}
 
-  @GrpcMethod(MAIN_SERVICE_NAME, 'main')
+  @GrpcMethod(MAIN_SERVICE_NAME, 'find')
   /**
    * Пример использования декоратора @GeneralAsyncContext.define
    * Тут указание аргумента request - обязательно.
@@ -32,7 +32,7 @@ export class GrpcMainController {
     return GrpcMetadataHelper.getAsyncContext<IGeneralAsyncContext>(metadata);
   })
   @GracefulShutdownOnCount()
-  async main(
+  async find(
     request: MainRequest,
     metadata: Metadata,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

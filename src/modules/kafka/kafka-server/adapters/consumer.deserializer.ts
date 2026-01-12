@@ -1,7 +1,6 @@
 import { KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
 import { KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
-import { IConsumerDeserializer } from 'src/modules/kafka/kafka-server';
-import { IKafkaMessageOptions, IConsumerPacket } from '../types/types';
+import { IKafkaMessageOptions, IConsumerPacket, IConsumerDeserializer } from '../types/types';
 
 export class ConsumerDeserializer implements IConsumerDeserializer<Buffer | null> {
   deserialize(value: KafkaMessage, options: IKafkaMessageOptions): IConsumerPacket<Buffer | null> {

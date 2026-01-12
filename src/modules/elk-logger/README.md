@@ -83,20 +83,20 @@ export class AppModule()
 
 | Параметры окружения (**env**)| Обязательный| возможные значения | Описание|
 |---|---|---|---|
-|`LOGGER_FORMAT_RECORD`| нет. По умолчанию: **FULL** |  1. **FULL** - полный лог в формате json `@see FullFormatter` <br> 2. **SIMPLE** - сжатый лог `@see SimpleFormatter` <br> 3. **SHORT** -  максимально сжатый лог `@see SortFieldsFormatter` <br> 4.  **NULL** - не выводить логи.| Определяет формат вывода лога . <br> При указании **FULL** конечная запись лога будет соответствовать **json-строке**. В остальных случаях будет сформирована запись в удобном для восприятия виде. Полезно при локальной разработке.  |
+|`LOGGER_FORMAT_RECORD`| нет. По умолчанию: **FULL** |  1. **FULL** - полный лог в формате json **@see** `FullFormatter` <br> 2. **SIMPLE** - сжатый лог **@see** `SimpleFormatter` <br> 3. **SHORT** -  максимально сжатый лог **@see** `SortFieldsFormatter` <br> 4.  **NULL** - не выводить логи.| Определяет формат вывода лога . <br> При указании **FULL** конечная запись лога будет соответствовать **json-строке**. В остальных случаях будет сформирована запись в удобном для восприятия виде. Полезно при локальной разработке.  |
 |`LOGGER_IGNORE_MODULES`| нет.| Строка. Регистр имеет значение.  | Через разделитель **','** указываются список значений `ILogRecord.module`, которые будут проигнорированы. Конечная запись лога не будет записана. |
 |`LOGGER_LEVELS`| нет.| Регистр не имеет значение. <br> 1. **TRACE** <br> 2. **DEBUG**  <br> 3. **INFO**  <br> 4.  **WARN**  | Через разделитель **','** указываются уровни логирования, которые следует писать. Если не указан, то будут писаться все логи. |
-|`LOGGER_FORMAT_TIMESTAMP`| нет. По умолчанию: **'YYYY-MM-DDTHH:mm:ssZ'** | Строка. Регистр имеет значение. | Определяет формат вывода поля `ILogRecord.timestamp` (`@see src/modules/date-timestamp/types/constants.ts`). <br> Если не указан будет использован формат **'YYYY-MM-DDTHH:mm:ssZ'** - **'2022-01-16T20:08:24+03:00'** |
+|`LOGGER_FORMAT_TIMESTAMP`| нет. По умолчанию: **'YYYY-MM-DDTHH:mm:ssZ'** | Строка. Регистр имеет значение. | Определяет формат вывода поля `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp/types/constants.ts`). <br> Если не указан будет использован формат **'YYYY-MM-DDTHH:mm:ssZ'** - **'2022-01-16T20:08:24+03:00'** |
 |`LOGGER_STORE_FILE`| нет.| Строка. Регистр имеет значение. | Задает путь к файлу, в который будет писаться полный лог. Будет использован только, если `LOGGER_FORMAT_RECORD=SHORT`. <br> Пример: `LOGGER_STORE_FILE=log.log` |
 
-### Параметры сжатия - `PruneConfig` (`@see PruneFormatter`)
+### Параметры сжатия - `PruneConfig` (**@see** `PruneFormatter`)
 
 | Параметры окружения (**env**)| Обязательный| возможные значения | Описание|
 |---|---|---|---|
 | `LOGGER_PRUNE_ENABLED`| нет. По умолчанию: **NO**  |  1. **NO**  (Регистронезависимый) Не применяется <br> 2. **YES** (Регистронезависимый) Лог будет обрезан до длины **--default--** из настройки `LOGGER_PRUNE_MAX_LENGTH_FIELDS`  <br> 3. Любое другое значение (регистр имеет значение) будет интерпретировано, как имя поля из настройки `LOGGER_PRUNE_MAX_LENGTH_FIELDS`, для определения длины обрезания лога.   | |
 | `LOGGER_PRUNE_MAX_FIELDS`| нет. По умолчанию: **0** |  Число.   | Определяет максимальное кол-во полей в `ILogRecord.businessData` / `ILogRecord.payload`.  Значение **0** отключает проверку. |
 | `LOGGER_PRUNE_MAX_DEPTH`| нет. По умолчанию: **0** |  Число.   | Определяет максимальную длину вложенности данных в `ILogRecord.businessData` / `ILogRecord.payload`.  Значение **0** отключает проверку. |
-| `LOGGER_PRUNE_APPLY_FOR_FORMATS`| нет. |  Строка. Через разделитель **','** указывается для какого форматера применять `PruneFormatter`. `@see LOGGER_FORMAT_RECORD`  | Например: `LOGGER_PRUNE_APPLY_FOR_FORMATS=FULL,SHORT` |
+| `LOGGER_PRUNE_APPLY_FOR_FORMATS`| нет. |  Строка. Через разделитель **','** указывается для какого форматера применять `PruneFormatter`. **@see** `LOGGER_FORMAT_RECORD`  | Например: `LOGGER_PRUNE_APPLY_FOR_FORMATS=FULL,SHORT` |
 | `LOGGER_PRUNE_MAX_LENGTH_FIELDS`| нет. |  Строка. Через разделитель **','** указывается пара (через разделитель **'='**): **имя_поля=число** (до какой длины обрезать данное поле)  | Применяется для строк и массивов. Возможно указание глобальных лимитов. Значения 0 или меньше - отключает применение для указанного поля. <br> Пример: `LOGGER_PRUNE_MAX_LENGTH_FIELDS=--array--=2,--default--=40,fileBody=20`. Здесь **--array--** и **--default--** - служебные значения для указания ограничения длины по умолчанию для массивов и общего ограничения.|
 
 ## `INestElkLoggerService`
@@ -105,7 +105,7 @@ export class AppModule()
 
 Создание этого сервиса и замещение основного сервиса логирования `NestApplication` подразумевает два этапа.
 
-1. Создание экземпляра `INestElkLoggerService` до вызова `NestFactory.create`, что бы иметь возможность писать логи, даже если `NestFactory.create` выкинет ошибку и не сможет создать экземпляр приложения. Для этого нужно использовать `NestElkLoggerServiceBuilder` (`@see` **main.ts** функция `bootstrap`):
+1. Создание экземпляра `INestElkLoggerService` до вызова `NestFactory.create`, что бы иметь возможность писать логи, даже если `NestFactory.create` выкинет ошибку и не сможет создать экземпляр приложения. Для этого нужно использовать `NestElkLoggerServiceBuilder` (**@see** `main.ts` функция `bootstrap`):
 
 ```typescript
 import {
@@ -229,7 +229,7 @@ export class AppService {
 
 ### `CircularFormatter`
 
-Выполняется самым первым: удаляет из `ILogRecord.businessData` и `ILogRecord.payload` циклические ссылки, нормализует данные приводя к виду `IKeyValue` (`@see src/modules/common`).
+Выполняется самым первым: удаляет из `ILogRecord.businessData` и `ILogRecord.payload` циклические ссылки, нормализует данные приводя к виду `IKeyValue` (**@see** `src/modules/common`).
 
 ### `ObjectFormatter`
 
@@ -247,7 +247,7 @@ export class AppService {
 
 ## Record Encodes `IFormatter<ILogRecord, string>`
 
-`@see LOGGER_FORMAT_RECORD`.
+**@see** `LOGGER_FORMAT_RECORD`.
 
 ### `FullFormatter`
 

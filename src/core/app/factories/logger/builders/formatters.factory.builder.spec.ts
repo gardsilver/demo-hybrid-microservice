@@ -1,4 +1,4 @@
-import { GeneralAsyncContextFormatter } from 'src/modules/common';
+import { GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
 import { ElkLoggerConfig } from 'src/modules/elk-logger';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 import { FormattersFactoryBuilder } from './formatters.factory.builder';

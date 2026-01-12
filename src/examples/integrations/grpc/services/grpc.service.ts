@@ -16,7 +16,7 @@ export class GrpcService {
     const response = await this.grpcClientService.request<MainRequest, MainResponse>(
       {
         service: MAIN_SERVICE_NAME,
-        method: 'main',
+        method: 'find',
         data: { query: request.query },
       },
       {

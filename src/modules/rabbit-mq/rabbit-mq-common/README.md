@@ -27,7 +27,7 @@ const headers = RabbitMqMessageHelper.normalize(message.properties?.headers ?? {
 
 ### `RabbitMqMessageHelper`
 
-Описаны имена **Kafka**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common` и др.).
+Описаны имена **RabbitMq**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common` и др.).
 
 - `RabbitMqMessageHelper.normalize` - нормализует заголовки в сообщении **RabbitMq** (приводит к виду `IRabbitMqHeaders`, а имена заголовков переводит в нижний регистр).
 - `RabbitMqMessageHelper.nameAsHeaderName` - позволяет получить имя заголовка для параметра `IRabbitMqAsyncContext`.

@@ -1,6 +1,7 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
-import Diff = moment.unitOfTime.Diff;
+
+type Diff = moment.unitOfTime.Diff;
 import {
   MILLISECONDS_IN_SECOND,
   DATE_BASE_FORMAT,
@@ -12,7 +13,7 @@ import {
 import { DateTimestampHelper } from '../helpers/date-timestamp.helper';
 
 export class DateTimestamp {
-  private moment: moment.Moment;
+  private moment!: moment.Moment;
   private offset: number | null = MOSCOW_OFFSET;
   private setCorrectly = false;
   private readonly throwOnError: boolean = true;
@@ -100,7 +101,7 @@ export class DateTimestamp {
     return this;
   }
 
-  getUtcOffset(): number {
+  getUtcOffset(): number | null {
     return this.offset;
   }
 
@@ -128,7 +129,9 @@ export class DateTimestamp {
         throw new Error(DateTimestampErrorMessages.dateTimeNotSet);
       }
 
-      return;
+      this.moment = moment();
+
+      return this;
     }
 
     try {

@@ -6,3 +6,4 @@ export class MockSequelize {
   getQueryInterface() {}
 }
 export const mockSequelize = new MockSequelize();
+export { SEQUELIZE_TYPESCRIPT_MOCK } from './mocks/mock.sequelize-typescript-module';

@@ -42,7 +42,7 @@ export class KafkaDemoController {
       },
     });
 
-    const results: Promise<IProducerPacket<MainResponse>>[] = [];
+    const results: Promise<IProducerPacket<MainResponse> | undefined>[] = [];
 
     data.forEach((request, index) => {
       results.push(
@@ -60,7 +60,7 @@ export class KafkaDemoController {
     const responses: Record<string, IKafkaRequest<MainResponse>> = {};
 
     (await Promise.all(results))
-      .filter((response) => response)
+      .filter((response): response is IProducerPacket<MainResponse> => !!response)
       .forEach((response) => {
         if (response.topic in responses) {
           (responses[response.topic].data as IKafkaMessage<MainResponse>[]).push(response.data);

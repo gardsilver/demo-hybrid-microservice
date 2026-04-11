@@ -9,7 +9,7 @@ export class DemoRequestSerializer implements IProducerSerializer<MainRequest> {
     options: IProducerSerializerOptions,
   ): IKafkaMessage<string | Buffer> {
     return {
-      key: value.data.key ?? null,
+      key: value.data.key ?? undefined,
       value: Buffer.from(MainRequest.encode(value.data.value).finish()),
       headers: value.data.headers,
     };

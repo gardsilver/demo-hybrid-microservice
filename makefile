@@ -6,7 +6,8 @@ help: ## Показать список доступных команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk -F ':.*?## ' '{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: install
-i: ## Установить зависимости (npm i)
+i: ## Создать .env (если нет) и установить зависимости
+	@test -f .env || (cp .example.env .env && echo "Created .env from .example.env")
 	npm i
 
 .PHONY: proto-compile

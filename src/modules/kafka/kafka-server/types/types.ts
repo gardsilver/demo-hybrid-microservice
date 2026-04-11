@@ -32,15 +32,18 @@ export interface IConsumerDeserializer<T = unknown> extends Deserializer<KafkaMe
   deserialize(value: KafkaMessage, options: IKafkaMessageOptions): IConsumerPacket<T> | Promise<IConsumerPacket<T>>;
 }
 
-export interface IEventKafkaMessageOptions<T = unknown>
-  extends Partial<Omit<IKafkaMessageOptions, 'topic' | 'correlationId'>> {
+export interface IEventKafkaMessageOptions<T = unknown> extends Partial<
+  Omit<IKafkaMessageOptions, 'topic' | 'correlationId'>
+> {
   serverName: string;
   headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
   deserializer?: IConsumerDeserializer<T>;
 }
 
-export interface IKafkaServerOptions<T = unknown>
-  extends Omit<IKafkaClientProxyBuilderOptions, 'producerOnlyMode' | 'producer' | 'serializer' | 'deserializer'> {
+export interface IKafkaServerOptions<T = unknown> extends Omit<
+  IKafkaClientProxyBuilderOptions,
+  'producerOnlyMode' | 'producer' | 'serializer' | 'deserializer'
+> {
   deserializer?: IConsumerDeserializer<T>;
   headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
   healthIndicatorOptions?: IKafkaHealthIndicatorOptions;

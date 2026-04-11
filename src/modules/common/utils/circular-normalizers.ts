@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { Type } from '@nestjs/common';
 
 export abstract class AbstractCheckObject<T extends object = object> {

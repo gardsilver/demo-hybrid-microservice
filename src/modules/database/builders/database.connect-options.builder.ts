@@ -2,11 +2,10 @@ import { Options, Dialect } from 'sequelize';
 import { IElkLoggerService } from 'src/modules/elk-logger';
 import { DatabaseConfig } from '../services/database.config';
 
-export interface IConnectOptions
-  extends Pick<
-    Required<Options>,
-    'dialect' | 'host' | 'port' | 'schema' | 'database' | 'username' | 'password' | 'logging' | 'benchmark'
-  > {}
+export interface IConnectOptions extends Pick<
+  Required<Options>,
+  'dialect' | 'host' | 'port' | 'schema' | 'database' | 'username' | 'password' | 'logging' | 'benchmark'
+> {}
 
 export abstract class DatabaseConnectOptionsBuilder {
   public static build(config: DatabaseConfig, logger: IElkLoggerService): IConnectOptions {

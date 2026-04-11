@@ -37,7 +37,9 @@ export class RabbitMqApiService {
     return false;
   }
 
-  async search(request: IRabbitMqConsumeMessage<MainRequest>): Promise<IRabbitMqProducerMessage<MainResponse>> {
+  async search(
+    request: IRabbitMqConsumeMessage<MainRequest>,
+  ): Promise<IRabbitMqProducerMessage<MainResponse> | undefined> {
     const context = RabbitMqAsyncContext.instance.extend();
 
     if (!context.replyTo) {

@@ -89,7 +89,7 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
 
   @SubscribeMessage('askMessage')
   handleMessage(client: Socket, payload: { email: string; text: string }) {
-    let tgt: Map<SocketId, IUserSocketData>;
+    let tgt: Map<SocketId, IUserSocketData> | undefined;
 
     if (this.userMap.has(payload.email)) {
       tgt = this.userMap.get(payload.email);

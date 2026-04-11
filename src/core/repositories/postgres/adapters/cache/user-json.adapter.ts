@@ -13,8 +13,8 @@ export class UserJsonCacheAdapter implements IRedisCacheAdapter<IUser> {
 
     return {
       ...parse,
-      createdAt: parse.createdAt ? new Date(parse.createdAt) : undefined,
-      updatedAt: parse.createdAt ? new Date(parse.updatedAt) : undefined,
+      createdAt: new Date(parse.createdAt),
+      updatedAt: new Date(parse.updatedAt),
     };
   }
 

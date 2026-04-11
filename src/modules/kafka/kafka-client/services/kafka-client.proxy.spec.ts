@@ -30,11 +30,7 @@ import {
 } from '../types/types';
 import { KafkaClientProxy } from './kafka-client.proxy';
 
-jest.mock('kafkajs', () => {
-  const actualKafkaJs = jest.requireActual('kafkajs');
-
-  return Object.assign(actualKafkaJs, { Kafka: jest.fn((prams?) => new MockKafka(prams)) });
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK_WITH_ORIGINALS);
 
 describe(KafkaClientProxy.name, () => {
   let serverName: string;

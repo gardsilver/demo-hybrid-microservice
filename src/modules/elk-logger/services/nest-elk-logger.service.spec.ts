@@ -1,10 +1,10 @@
-import * as fs from 'fs';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
 import { CheckObjectsType } from 'src/modules/common';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
+import { FS_MOCK } from 'tests/fs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
 import { TestService } from 'tests/src/test-module';
 import { NestElkLoggerService } from './nest-elk-logger.service';
@@ -28,13 +28,7 @@ import {
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  appendFileSync: jest.fn(),
-  openSync: jest.fn(() => 1002),
-  writeSync: jest.fn(),
-  closeSync: jest.fn(),
-}));
+jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(NestElkLoggerService.name, () => {
   let mockUuid;
@@ -683,8 +677,8 @@ describe(NestElkLoggerService.name, () => {
 
       logger = new NestElkLoggerService(loggerConfig, recordEncodeFormattersFactory, formattersFactory);
 
-      spyOnOpenSync = jest.spyOn(fs, 'openSync');
-      spyOnAppendFileSync = jest.spyOn(fs, 'appendFileSync');
+      spyOnOpenSync = FS_MOCK.openSync;
+      spyOnAppendFileSync = FS_MOCK.appendFileSync;
     });
 
     it('setLogLevels', async () => {

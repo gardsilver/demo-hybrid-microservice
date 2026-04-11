@@ -42,13 +42,12 @@ export interface ILogRecord extends ILogFields {
   parentSpanId: null | string;
 }
 
-export interface IOptionLog
-  extends Partial<
-    Pick<
-      ILogFields,
-      'module' | 'markers' | 'businessData' | 'payload' | 'traceId' | 'spanId' | 'initialSpanId' | 'parentSpanId'
-    >
-  > {}
+export interface IOptionLog extends Partial<
+  Pick<
+    ILogFields,
+    'module' | 'markers' | 'businessData' | 'payload' | 'traceId' | 'spanId' | 'initialSpanId' | 'parentSpanId'
+  >
+> {}
 
 export interface IUnknownFormatter {
   transform(value: unknown): unknown | IKeyValue<unknown>;

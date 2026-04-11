@@ -27,9 +27,7 @@ import { KafkaContext } from '../ctx-host/kafka.context';
 import { ConsumerDeserializer } from '../adapters/consumer.deserializer';
 import { KafkaServerBase } from './kafka-server.base';
 
-jest.mock('kafkajs', () => {
-  return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK);
 
 let mockDelay = jest.fn();
 
@@ -298,12 +296,16 @@ describe(KafkaServerBase, () => {
 
       expect(callback).toHaveBeenCalledWith(error);
       expect(spyLogError).toHaveBeenCalledWith(
-        `Kafka Server [${serverName}]: ` + 'server failed.',
+        `Kafka Server [${serverName}]: ` + 'connection failed.',
         error,
         'KafkaServer',
       );
-      expect(spyLogWarn).toHaveBeenCalledTimes(0);
-      expect(count).toBe(0);
+      expect(spyLogError).toHaveBeenCalledWith(
+        `Kafka Server [${serverName}]: ` + 'server failed.',
+        undefined,
+        'KafkaServer',
+      );
+      expect(spyLogWarn).toHaveBeenCalledWith(`Kafka Server [${serverName}]: ` + 'connection retry.', 'KafkaServer');
     });
 
     it('handleEvent', async () => {
@@ -440,7 +442,7 @@ describe(KafkaServerBase, () => {
       consumer.emit('consumer.disconnect');
       consumer.emit('consumer.rebalancing');
       consumer.emit('consumer.stop');
-      consumer.emit('consumer.crash');
+      consumer.emit('consumer.crash', { payload: { restart: true } });
       consumer.emit('consumer.group_join');
 
       expect(spy).toHaveBeenCalledTimes(6);

@@ -1,6 +1,6 @@
 export interface ITraceSpan {
   traceId: string;
   spanId: string;
-  initialSpanId: string;
+  initialSpanId?: string;
   parentSpanId: string;
 }

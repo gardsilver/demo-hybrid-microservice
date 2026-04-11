@@ -30,9 +30,12 @@ export class MockConsumer {
   constructor(private config?) {}
   connect() {}
   subscribe() {}
-  run() {}
+  run() {
+    this.emit(this.events.GROUP_JOIN);
+  }
   disconnect() {}
-  on(event, callback: () => void) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  on(event, callback: (...args: any[]) => void) {
     let calls = [];
     if (this._events.has(event)) {
       calls = this._events.get(event);
@@ -40,12 +43,21 @@ export class MockConsumer {
     calls.push(callback);
 
     this._events.set(event, calls);
+
+    return () => {
+      const listeners = this._events.get(event) ?? [];
+      this._events.set(
+        event,
+        listeners.filter((cb) => cb !== callback),
+      );
+    };
   }
-  emit(event) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  emit(event, ...args: any[]) {
     const calls = this._events.has(event) ? this._events.get(event) : [];
 
     calls.forEach((element) => {
-      element();
+      element(...args);
     });
   }
 }

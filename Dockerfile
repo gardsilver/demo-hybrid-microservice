@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:24-alpine
 LABEL app_name="demo-hybrid-microservice"
 
 WORKDIR /app

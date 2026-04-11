@@ -7,6 +7,8 @@ import { PrometheusConfig } from '../services/prometheus.config';
 import { MetricType } from '../types/types';
 import { PrometheusMetricBuilder } from './prometheus-metric.builder';
 
+jest.mock('prom-client', () => ({ ...jest.requireActual('prom-client'), ...jest.requireActual('tests/prom-client').PROM_CLIENT_MOCK }));
+
 describe(PrometheusMetricBuilder.name, () => {
   let spySetDefaultLabels;
   let spyCollectDefaultMetrics;

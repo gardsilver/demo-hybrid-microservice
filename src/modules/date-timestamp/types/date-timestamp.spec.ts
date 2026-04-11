@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
 import {
   MILLISECONDS_IN_SECOND,
@@ -66,11 +66,13 @@ describe(DateTimestamp.name, () => {
 
     expect(() => new DateTimestamp(null)).toThrow(new Error(DateTimestampErrorMessages.dateTimeNotSet));
     expect(typeof new DateTimestamp(null, undefined, false)).toBe('object');
-    expect(new DateTimestamp(null, undefined, false)).toEqual({
-      offset: 180,
-      setCorrectly: false,
-      throwOnError: false,
-    });
+    expect(new DateTimestamp(null, undefined, false)).toEqual(
+      expect.objectContaining({
+        offset: 180,
+        setCorrectly: false,
+        throwOnError: false,
+      }),
+    );
     expect(new DateTimestamp(null, undefined, false).isValid()).toBeFalsy();
 
     expect(new DateTimestamp(1691425521329).format(DATE_TIME_FORMAT)).toBe('07.08.2023 19:25:21');

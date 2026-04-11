@@ -1,18 +1,12 @@
-import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { MomentCheckObject } from 'src/modules/common';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
+import { FS_MOCK } from 'tests/fs';
 import { ElkLoggerConfig } from './elk-logger.config';
 import { ILogFields, LogFormat, LogLevel } from '../types/elk-logger.types';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  appendFileSync: jest.fn(),
-  openSync: jest.fn(() => 1002),
-  writeSync: jest.fn(),
-  closeSync: jest.fn(),
-}));
+jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(ElkLoggerConfig.name, () => {
   let configService: ConfigService;
@@ -53,7 +47,7 @@ describe(ElkLoggerConfig.name, () => {
   });
 
   it('custom', async () => {
-    const spyOnOpenSync = jest.spyOn(fs, 'openSync');
+    const spyOnOpenSync = FS_MOCK.openSync;
 
     configService = new MockConfigService({
       LOGGER_FORMAT_RECORD: 'SHORT',

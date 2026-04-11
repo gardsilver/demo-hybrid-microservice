@@ -38,8 +38,10 @@ export interface IKafkaHealthIndicatorOptions {
   retry?: Omit<KafkaRetryConfig, 'restartOnFailure'>;
 }
 
-export interface IKafkaClientProxyBuilderOptions
-  extends Omit<KafkaOptions['options'], 'client' | 'consumer' | 'producer' | 'parser'> {
+export interface IKafkaClientProxyBuilderOptions extends Omit<
+  KafkaOptions['options'],
+  'client' | 'consumer' | 'producer' | 'parser'
+> {
   serverName: string;
   client: IKafkaClientOptions;
   consumer?: IKafkaConsumerOptions;

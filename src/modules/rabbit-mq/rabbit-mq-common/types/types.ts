@@ -67,8 +67,10 @@ export declare const enum RmqStatus {
   CRASHED = 'crashed',
 }
 
-export interface IRabbitMqMessagePropertiesToAsyncContextAdapter
-  extends IHeadersToContextAdapter<IRabbitMqAsyncContext, IRabbitMqMessageProperties> {}
+export interface IRabbitMqMessagePropertiesToAsyncContextAdapter extends IHeadersToContextAdapter<
+  IRabbitMqAsyncContext,
+  IRabbitMqMessageProperties
+> {}
 
 export interface IRabbitMqPublishOptionsBuilderOptions {
   useZipkin?: boolean;

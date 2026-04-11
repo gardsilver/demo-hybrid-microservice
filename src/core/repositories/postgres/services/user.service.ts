@@ -90,7 +90,7 @@ export class UserService {
       };
     },
   })
-  public async findUser(identity: IIdentityUser): Promise<IUser> {
+  public async findUser(identity: IIdentityUser): Promise<IUser | null> {
     const filter = identity?.id ? { id: identity?.id } : identity;
     const model = await this.repository.findOne({
       where: {

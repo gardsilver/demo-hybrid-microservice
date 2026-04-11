@@ -12,16 +12,11 @@ import { PrometheusLabels } from '../types/types';
 import { IPrometheusEventConfig, IPrometheusOnMethod, ITargetPrometheusOnMethod } from '../types/decorators.type';
 import { PrometheusMetricConfigOnService } from './prometheus.metric-config.on-service';
 
+import { CRYPTO_MOCK } from 'tests/crypto';
+
+jest.mock('crypto', () => ({ ...jest.requireActual('crypto'), ...jest.requireActual('tests/crypto').CRYPTO_MOCK }));
+
 let mockUuid;
-
-jest.mock('crypto', () => {
-  const actualMoment = jest.requireActual('crypto');
-
-  return {
-    ...actualMoment,
-    randomUUID: () => mockUuid,
-  };
-});
 
 const eventConfigBuilder = (): IPrometheusEventConfig => {
   return {
@@ -170,6 +165,7 @@ describe('PrometheusOnMethod', () => {
     PrometheusEventService.emit = spyEmit;
 
     mockUuid = faker.string.uuid();
+    CRYPTO_MOCK.randomUUID.mockImplementation(() => mockUuid);
 
     context = {
       ...TraceSpanBuilder.build(),

@@ -6,16 +6,16 @@ import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 @Injectable()
 export class AppKafkaConfig {
   private brokers: string[];
-  private clientId: string;
-  private groupId: string;
+  private clientId: string | undefined;
+  private groupId: string | undefined;
   private retryStatusCodes: Array<string | number> = [];
 
   constructor(private readonly configService: ConfigService) {
     const configServiceHelper = new ConfigServiceHelper(configService, 'KAFKA_');
 
     this.brokers = configServiceHelper.parseArray('BROKERS');
-    this.clientId = this.configService.get<string>(configServiceHelper.getKeyName('CLIENT_ID'));
-    this.groupId = this.configService.get<string>(configServiceHelper.getKeyName('GROUP_ID'));
+    this.clientId = this.configService.get<string>(configServiceHelper.getKeyName('CLIENT_ID'))?.trim();
+    this.groupId = this.configService.get<string>(configServiceHelper.getKeyName('GROUP_ID'))?.trim();
 
     const kafkaRetryStatusCodes = configServiceHelper.parseArray('RETRY_STATUS_CODES');
 
@@ -37,11 +37,11 @@ export class AppKafkaConfig {
     return this.brokers;
   }
 
-  getClientId(): string {
+  getClientId(): string | undefined {
     return this.clientId;
   }
 
-  getGroupId(): string {
+  getGroupId(): string | undefined {
     return this.groupId;
   }
 

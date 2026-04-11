@@ -9,5 +9,5 @@ export interface IAuthService {
 
   authenticate(jwtString: string | null): Promise<IAuthInfo>;
 
-  getJwtToken(dataToken: IAccessTokenData): string;
+  getJwtToken(dataToken: IAccessTokenData): string | undefined;
 }

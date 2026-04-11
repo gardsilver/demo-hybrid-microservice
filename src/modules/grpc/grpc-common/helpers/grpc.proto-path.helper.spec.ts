@@ -1,6 +1,8 @@
-import * as fs from 'fs';
 import { sep } from 'path';
+import { FS_MOCK } from 'tests/fs';
 import { GrpcProtoPathHelper } from './grpc.proto-path.helper';
+
+jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(GrpcProtoPathHelper.name, () => {
   beforeEach(async () => {
@@ -8,7 +10,7 @@ describe(GrpcProtoPathHelper.name, () => {
   });
 
   it('existPaths', async () => {
-    jest.spyOn(fs, 'existsSync').mockImplementation((path: string) => {
+    FS_MOCK.existsSync.mockImplementation((path: string) => {
       if (path == 'tmp') {
         return false;
       }

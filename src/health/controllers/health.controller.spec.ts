@@ -34,9 +34,7 @@ import { MockConfigService } from 'tests/nestjs';
 import { mockSequelize } from 'tests/sequelize-typescript';
 import { HealthController } from './health.controller';
 
-jest.mock('sequelize-typescript', () => {
-  return { Sequelize: jest.fn(() => mockSequelize) };
-});
+jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 describe(HealthController.name, () => {
   let logger: IElkLoggerService;

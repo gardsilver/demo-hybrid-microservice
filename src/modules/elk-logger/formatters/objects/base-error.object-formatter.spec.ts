@@ -4,7 +4,7 @@ import { BaseErrorObjectFormatter } from './base-error.object-formatter';
 import { IUnknownFormatter } from '../../types/elk-logger.types';
 
 class TestErrorFormatter extends BaseErrorObjectFormatter {
-  isInstanceOf(obj: unknown): obj is object {
+  isInstanceOf(_obj: unknown): _obj is object {
     return false;
   }
 

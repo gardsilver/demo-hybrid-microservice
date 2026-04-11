@@ -1,13 +1,15 @@
-import * as crypto from 'crypto';
 import { faker } from '@faker-js/faker';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { MockCertificateService } from './mock.certificate.service';
+
+jest.mock('crypto', () => ({ ...jest.requireActual('crypto'), ...jest.requireActual('tests/crypto').CRYPTO_MOCK }));
 
 describe(MockCertificateService.name, () => {
   let service: MockCertificateService;
   const mockUuid = faker.string.uuid();
 
   beforeAll(async () => {
-    jest.spyOn(crypto, 'randomUUID').mockImplementation(() => mockUuid as undefined as crypto.UUID);
+    CRYPTO_MOCK.randomUUID.mockImplementation(() => mockUuid);
   });
 
   afterAll(async () => {

@@ -15,8 +15,10 @@ export type IProducerSerializerOptions = Record<string, unknown> & {
   pattern?: string;
 };
 
-export interface IProducerSerializer<T = unknown>
-  extends Serializer<IRabbitMqProducerMessage<T>, IRabbitMqProducerMessage<Buffer | string>> {
+export interface IProducerSerializer<T = unknown> extends Serializer<
+  IRabbitMqProducerMessage<T>,
+  IRabbitMqProducerMessage<Buffer | string>
+> {
   serialize(
     value: IRabbitMqProducerMessage<T>,
     options: IProducerSerializerOptions,

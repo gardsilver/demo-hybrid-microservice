@@ -49,7 +49,7 @@ export abstract class HttHeadersHelper {
     return ctx;
   }
 
-  protected static searchValue(headers: IHeaders, ...headerName: string[]): string {
+  protected static searchValue(headers: IHeaders, ...headerName: string[]): string | undefined {
     const result = BaseHeadersHelper.searchValue(headers, ...headerName);
 
     if (Array.isArray(result.value)) {

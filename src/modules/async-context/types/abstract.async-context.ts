@@ -33,7 +33,7 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
    *    - или использовать runWithContext()
    */
   public static define<T = IAsyncContext>(initCallback?: (...methodsArgs: any[]) => T): MethodDecorator {
-    return (target: any, propertyKey: string, descriptor: PropertyDescriptor) => {
+    return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value;
 
       descriptor.value = function (this: any, ...args: any[]) {

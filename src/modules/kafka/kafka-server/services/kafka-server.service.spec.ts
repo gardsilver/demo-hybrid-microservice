@@ -19,9 +19,7 @@ import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE } from '../types/metr
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerService } from './kafka-server.service';
 
-jest.mock('kafkajs', () => {
-  return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK);
 
 let mockDelay = jest.fn();
 
@@ -116,7 +114,8 @@ describe(KafkaServerService.name, () => {
     expect(batchConsumer).toBeDefined();
     expect(batchConsumer instanceof MockConsumer).toBeTruthy();
 
-    expect(spyOn).toHaveBeenCalledTimes(12);
+    // 6 events × 2 consumers (registerConsumerEventListeners) + 3 events × 2 consumers (waitForConsumerReady)
+    expect(spyOn).toHaveBeenCalledTimes(18);
     expect(spyConnect).toHaveBeenCalledTimes(2);
     expect(spyRun).toHaveBeenCalledTimes(2);
     expect(spyDisconnect).toHaveBeenCalledTimes(0);

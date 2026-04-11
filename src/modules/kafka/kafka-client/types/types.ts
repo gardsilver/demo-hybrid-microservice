@@ -43,8 +43,7 @@ export type IProducerSerializerOptions = Record<string, unknown> & {
 };
 
 export interface IKafkaSendOptions
-  extends Omit<ProducerRecord, 'topic' | 'messages'>,
-    Omit<Message, 'key' | 'value' | 'headers'> {
+  extends Omit<ProducerRecord, 'topic' | 'messages'>, Omit<Message, 'key' | 'value' | 'headers'> {
   serializer?: IProducerSerializer;
   serializerOption?: Record<string, unknown>;
   headerBuilder?: IKafkaHeadersRequestBuilder;
@@ -58,16 +57,17 @@ export interface IProducerPacket<T = unknown> {
   data: IKafkaMessage<T>;
 }
 
-export interface IProducerSerializer<T = unknown>
-  extends Serializer<IProducerPacket<T>, IKafkaMessage<string | Buffer>> {
+export interface IProducerSerializer<T = unknown> extends Serializer<
+  IProducerPacket<T>,
+  IKafkaMessage<string | Buffer>
+> {
   serialize(value: IProducerPacket<T>, options: IProducerSerializerOptions): IKafkaMessage<string | Buffer>;
 }
 
-export interface IKafkaClientServiceOptions
-  extends Omit<
-    IKafkaClientProxyBuilderOptions,
-    'producerOnlyMode' | 'consumer' | 'run' | 'subscribe' | 'producer' | 'serializer' | 'deserializer'
-  > {
+export interface IKafkaClientServiceOptions extends Omit<
+  IKafkaClientProxyBuilderOptions,
+  'producerOnlyMode' | 'consumer' | 'run' | 'subscribe' | 'producer' | 'serializer' | 'deserializer'
+> {
   producer?: IKafkaProducerOptions;
   logTitle?: string;
 }

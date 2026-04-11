@@ -19,6 +19,6 @@ export abstract class ProviderBuilder {
     return {
       provide: di,
       ...params.defaultType,
-    };
+    } as Provider;
   }
 }

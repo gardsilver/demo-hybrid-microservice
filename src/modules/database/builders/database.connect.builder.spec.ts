@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryTypes } from 'sequelize';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { LoggerMarkers } from 'src/modules/common';
@@ -14,9 +14,7 @@ import { mockSequelize } from 'tests/sequelize-typescript';
 import { DatabaseConnectBuilder } from './database.connect.builder';
 import { DatabaseConfig } from '../services/database.config';
 
-jest.mock('sequelize-typescript', () => {
-  return { Sequelize: jest.fn(() => mockSequelize) };
-});
+jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 const mockMigrations = {
   async up(queryInterface, sequelize) {

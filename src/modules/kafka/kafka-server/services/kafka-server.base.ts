@@ -45,6 +45,9 @@ export abstract class KafkaServerBase extends Server {
 
   protected logger = new Logger('KafkaServer');
   protected isStop: boolean = false;
+  protected isConnecting: boolean = false;
+  protected isReconnecting: boolean = false;
+  private runCallback: ((err?: unknown, ...optionalParams: unknown[]) => void) | null = null;
   protected serverName: string;
   protected logTitle: string;
   protected client: Kafka | null = null;
@@ -127,8 +130,10 @@ export abstract class KafkaServerBase extends Server {
 
   public async close(): Promise<void> {
     this.isStop = true;
-    this.client = null;
+    await this.disconnect();
   }
+
+  protected abstract disconnect(): Promise<void>;
 
   public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
     this.isStop = false;
@@ -146,49 +151,77 @@ export abstract class KafkaServerBase extends Server {
     ...TraceSpanBuilder.build(),
   }))
   protected async run(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
-    let isConnection: boolean = false;
+    this.runCallback = callback;
 
     this.logger.log(this.logTitle + 'starting server.');
 
-    while (!(isConnection || this.isStop)) {
-      try {
-        await this.connect();
-        isConnection = true;
-      } catch (error) {
-        this.logger.error(this.logTitle + 'connection failed.', error);
+    try {
+      await this.connectAndStart();
 
-        this.prometheusManager.counter().increment(KAFKA_SERVER_START_FAILED, {
-          labels: {
-            service: this.serverName,
-            errorType: error.name ?? error.constructor.name,
-          },
-        });
+      if (!this.isStop) {
+        this.logger.log(this.logTitle + 'server start success.');
+        callback();
+      }
+    } catch (error) {
+      callback(error);
+    }
+  }
 
-        await delay(this.options.startTimeout ?? 30_000, () => {
+  protected async connectAndStart(): Promise<void> {
+    this.isConnecting = true;
+
+    try {
+      while (!this.isStop) {
+        try {
+          await this.connect();
+
+          this.logger.log(this.logTitle + 'starting consumers.');
+          await this.start();
+
+          return;
+        } catch (error) {
+          await this.disconnect().catch(() => {});
+
+          this.logger.error(this.logTitle + 'connection failed.', error);
+
+          this.prometheusManager.counter().increment(KAFKA_SERVER_START_FAILED, {
+            labels: {
+              service: this.serverName,
+              errorType: error.name ?? error.constructor.name,
+            },
+          });
+
+          await delay(this.options.startTimeout ?? 30_000);
+
           if (this.isStop) {
             this.logger.error(this.logTitle + 'server failed.');
-            callback(error);
-          } else {
-            this.logger.warn(this.logTitle + 'connection retry.');
+            throw error;
           }
-        });
+
+          this.logger.warn(this.logTitle + 'connection retry.');
+        }
       }
+    } finally {
+      this.isConnecting = false;
     }
+  }
 
-    if (!this.isStop && isConnection) {
-      this.logger.log(this.logTitle + 'starting consumers.');
+  protected async reconnect(): Promise<void> {
+    if (this.isStop || this.isReconnecting) return;
+    this.isReconnecting = true;
 
-      try {
-        await this.start();
+    try {
+      this.logger.warn(this.logTitle + 'consumer crashed, triggering full reconnection.');
+      await this.disconnect().catch(() => {});
+      await this.connectAndStart();
 
-        this.logger.log(this.logTitle + 'server start success.');
-
-        callback();
-      } catch (error) {
-        this.logger.error(this.logTitle + 'server failed.', error);
-
-        callback(error);
+      if (!this.isStop) {
+        this.logger.log(this.logTitle + 'reconnection success.');
       }
+    } catch {
+      // Stopped during reconnection — exit silently
+    } finally {
+      this.isReconnecting = false;
     }
   }
 
@@ -237,8 +270,45 @@ export abstract class KafkaServerBase extends Server {
     consumer.on(consumer.events.DISCONNECT, () => this.updateStatus(KafkaStatus.DISCONNECTED, mode, topics));
     consumer.on(consumer.events.REBALANCING, () => this.updateStatus(KafkaStatus.REBALANCING, mode, topics));
     consumer.on(consumer.events.STOP, () => this.updateStatus(KafkaStatus.STOPPED, mode, topics));
-    consumer.on(consumer.events.CRASH, () => this.updateStatus(KafkaStatus.CRASHED, mode, topics));
+    consumer.on(consumer.events.CRASH, (event) => {
+      this.updateStatus(KafkaStatus.CRASHED, mode, topics);
+
+      if (!event.payload.restart && !this.isStop && !this.isConnecting) {
+        this.reconnect();
+      }
+    });
     consumer.on(consumer.events.GROUP_JOIN, () => this.updateStatus(KafkaStatus.CONNECTED, mode, topics));
+  }
+
+  protected waitForConsumerReady(consumer: Consumer, mode: ConsumerMode): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const removeListeners: (() => void)[] = [];
+
+      const cleanup = () => removeListeners.forEach((remove) => remove());
+
+      removeListeners.push(
+        consumer.on(consumer.events.GROUP_JOIN, () => {
+          cleanup();
+          resolve();
+        }),
+      );
+
+      removeListeners.push(
+        consumer.on(consumer.events.CRASH, (event: any) => {
+          if (!event.payload.restart) {
+            cleanup();
+            reject(new Error(`Consumer ${mode} crashed: ${event.payload.error?.message ?? 'unknown error'}`));
+          }
+        }),
+      );
+
+      removeListeners.push(
+        consumer.on(consumer.events.STOP, () => {
+          cleanup();
+          reject(new Error(`Consumer ${mode} stopped during startup`));
+        }),
+      );
+    });
   }
 
   protected abstract bindEachEvents(): Promise<void>;

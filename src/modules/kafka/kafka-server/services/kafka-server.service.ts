@@ -32,11 +32,11 @@ export class KafkaServerService extends KafkaServerBase {
     return [this.client, this.consumer, this.batchConsumer] as T;
   }
 
-  public async close(): Promise<void> {
-    await super.close();
-    await Promise.all([this.consumer?.disconnect(), this.batchConsumer?.disconnect()]);
+  protected async disconnect(): Promise<void> {
+    await Promise.all([this.consumer?.disconnect(), this.batchConsumer?.disconnect()]).catch(() => {});
     this.consumer = null;
     this.batchConsumer = null;
+    this.client = null;
   }
 
   protected async connect(): Promise<void> {
@@ -85,7 +85,10 @@ export class KafkaServerService extends KafkaServerBase {
       },
     ) as undefined as ConsumerRunConfig;
 
+    const readyPromise = this.waitForConsumerReady(this.consumer, ConsumerMode.EACH_MESSAGE);
+    readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()
     await this.consumer.run(consumerRunOptions);
+    await readyPromise;
   }
 
   @KafkaAsyncContext.define(() => ({
@@ -168,7 +171,10 @@ export class KafkaServerService extends KafkaServerBase {
       },
     ) as undefined as ConsumerRunConfig;
 
-    return this.batchConsumer.run(consumerRunOptions);
+    const readyPromise = this.waitForConsumerReady(this.batchConsumer, ConsumerMode.EACH_BATCH);
+    readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()
+    await this.batchConsumer.run(consumerRunOptions);
+    await readyPromise;
   }
 
   @KafkaAsyncContext.define(() => ({

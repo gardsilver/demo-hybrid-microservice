@@ -58,7 +58,7 @@ export class ElkLoggerConfig {
   }
 
   public setStoreFile(filePath?: string): void {
-    this.storeFilePath = filePath ?? null;
+    this.storeFilePath = filePath || null;
     if (this.storeFilePath !== null) {
       this.fileDescriptor = openSync(this.storeFilePath, 'a');
     } else {

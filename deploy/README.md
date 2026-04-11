@@ -12,16 +12,16 @@
 
 | **make**-команда | Описание |
 |---|---|
-|`sudo make init`| Создает необходимые volumes |
-|`sudo make dc-rm-all`| Удаляет все Docker контейнеры |
-|`sudo make dc-down`| Останавливает работу всех контейнеров |
-|`sudo make dc-start`| Запускает все контейнеры окружения и микросервис **Demo Hybrid Microservice**  |
-|`sudo make dc-down-postgres`| Останавливает работу **Postgres**  |
-|`sudo make dc-down-redis`| Останавливает работу **Redis**  |
-|`sudo make dc-down-kafka`| Останавливает работу **Kafka**  |
-|`sudo make dc-down-rabbitmq`| Останавливает работу **RabbitMq**  |
-|`sudo make dc-down-dhms`| Останавливает работу микросервис **Demo Hybrid Microservice**  |
-|`sudo make dc-logs-dhms`| Выводит логи микросервиса **Demo Hybrid Microservice**  |
+|`make init`| Создает необходимые volumes |
+|`make dc-rm-all`| Удаляет все Docker контейнеры |
+|`make dc-down`| Останавливает работу всех контейнеров |
+|`make dc-start`| Запускает все контейнеры окружения и микросервис **Demo Hybrid Microservice**  |
+|`make dc-down-postgres`| Останавливает работу **Postgres**  |
+|`make dc-down-redis`| Останавливает работу **Redis**  |
+|`make dc-down-kafka`| Останавливает работу **Kafka**  |
+|`make dc-down-rabbitmq`| Останавливает работу **RabbitMq**  |
+|`make dc-down-dhms`| Останавливает работу микросервис **Demo Hybrid Microservice**  |
+|`make dc-logs-dhms`| Выводит логи микросервиса **Demo Hybrid Microservice**  |
 
 После успешного запуска будут доступны следующие контейнеры:
 

@@ -6,7 +6,7 @@ import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 import { KafkaServerService } from './kafka-server.service';
 
 export class KafkaServerHealthIndicator {
-  private status: KafkaStatus;
+  private status: KafkaStatus = KafkaStatus.DISCONNECTED;
   private topics: string[];
   private admin: Admin;
 

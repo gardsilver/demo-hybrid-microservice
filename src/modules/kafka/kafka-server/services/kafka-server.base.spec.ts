@@ -47,6 +47,10 @@ describe(KafkaServerBase, () => {
   class TestKafkaServer extends KafkaServerBase {
     protected async start(): Promise<void> {}
 
+    protected async disconnect(): Promise<void> {
+      this.client = null;
+    }
+
     protected async bindEachEvents(): Promise<void> {}
 
     protected async bindBatchEvents(): Promise<void> {}

@@ -13,8 +13,8 @@ export abstract class PrometheusSummaryConfigDecoratorHelper {
       return false;
     }
 
-    let configObserve: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>>;
-    let configStartTimer: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>>;
+    let configObserve: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | undefined;
+    let configStartTimer: Partial<IPrometheusParams<ISummaryMetricConfig, ISummaryParams>> | undefined;
 
     if (config) {
       if (typeof config.observe === 'boolean') {
@@ -70,8 +70,8 @@ export abstract class PrometheusSummaryConfigDecoratorHelper {
     defaultLabels: PrometheusLabels | false,
     defaultPrams?: IParamsPrometheusValue,
     required?: string,
-  ): ISummaryParams {
-    let result: ISummaryParams;
+  ): ISummaryParams | undefined {
+    let result: ISummaryParams | undefined;
 
     if (params?.value !== undefined) {
       result = {
@@ -91,7 +91,7 @@ export abstract class PrometheusSummaryConfigDecoratorHelper {
 
     if (labels !== undefined) {
       result = {
-        ...result,
+        ...(result ?? ({} as ISummaryParams)),
         labels,
       };
     }

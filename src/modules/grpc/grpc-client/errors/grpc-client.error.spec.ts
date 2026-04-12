@@ -73,7 +73,11 @@ describe('GrpcClientError', () => {
   }
 
   it('default', async () => {
-    const error = new CustomGrpcClientError(undefined as unknown as string, undefined as unknown as string, undefined as unknown as string);
+    const error = new CustomGrpcClientError(
+      undefined as unknown as string,
+      undefined as unknown as string,
+      undefined as unknown as string,
+    );
 
     expect({
       message: error.message,

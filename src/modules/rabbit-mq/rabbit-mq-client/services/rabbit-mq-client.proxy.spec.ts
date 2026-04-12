@@ -44,7 +44,7 @@ const formatRabbitMqError = (error?: Error | unknown) => {
       isRabbitMqError: error && error instanceof RabbitMqError,
       name: error && 'name' in error ? error['name'] : undefined,
       message: error && 'message' in error ? error['message'] : undefined,
-      cause: error && 'cause' in error ? error['cause'].toString() : undefined,
+      cause: error && 'cause' in error ? (error['cause'] as { toString(): string })?.toString() : undefined,
       data: error && 'data' in error ? error['data'] : undefined,
     };
   }
@@ -54,7 +54,7 @@ const formatRabbitMqError = (error?: Error | unknown) => {
 
 describe(RabbitMqClientProxy.name, () => {
   let mockClient: AmqpConnectionManager;
-  let mockConnect;
+  let mockConnect: () => AmqpConnectionManager;
   let serverName: string;
   let error: Error;
   let errorInfo: RMQErrorInfo;
@@ -64,7 +64,7 @@ describe(RabbitMqClientProxy.name, () => {
   let serializer: IProducerSerializer;
   let clientProxy: RabbitMqClientProxy;
 
-  let spyLogBuilder;
+  let spyLogBuilder: jest.SpyInstance;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -356,7 +356,9 @@ describe(RabbitMqClientProxy.name, () => {
       expect(spyCreateChannel).toHaveBeenCalled();
       expect(clientProxy['channel']).toBeDefined();
 
-      const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+      const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+        'channelWrapper'
+      ] as MockChannelWrapper;
       const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
       const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
@@ -488,7 +490,7 @@ describe(RabbitMqClientProxy.name, () => {
     it('invalid request', async () => {
       let error;
       try {
-        await firstValueFrom(clientProxy.send(undefined, options));
+        await firstValueFrom(clientProxy.send(undefined as unknown as IRabbitMqProducerMessage, options));
       } catch (err) {
         error = err;
       }
@@ -525,7 +527,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -574,7 +578,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -600,7 +604,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         const crashError = new Error('Send error');
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -664,7 +670,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -689,7 +695,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -738,7 +746,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -765,7 +773,9 @@ describe(RabbitMqClientProxy.name, () => {
         const crashError = new Error('Send error');
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -828,7 +838,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -860,7 +870,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {
@@ -905,7 +917,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -930,7 +942,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {
@@ -975,7 +989,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },

@@ -8,19 +8,19 @@ export abstract class HttHeadersHelper {
     return BaseHeadersHelper.normalize(headers);
   }
 
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string {
-    return (
-      {
-        traceId: useZipkin
-          ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID
-          : HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-        spanId: useZipkin
-          ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID
-          : HttpGeneralAsyncContextHeaderNames.SPAN_ID,
-        correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
-        requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
-      }[name] ?? undefined
-    );
+  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
+    const map: Record<string, HttpGeneralAsyncContextHeaderNames> = {
+      traceId: useZipkin
+        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID
+        : HttpGeneralAsyncContextHeaderNames.TRACE_ID,
+      spanId: useZipkin
+        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID
+        : HttpGeneralAsyncContextHeaderNames.SPAN_ID,
+      correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
+      requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
+    };
+
+    return map[name];
   }
 
   public static toAsyncContext<Ctx extends IAsyncContext>(headers: IHeaders): Ctx {

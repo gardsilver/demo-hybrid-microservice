@@ -2,7 +2,12 @@ import { faker } from '@faker-js/faker';
 import { RabbitMqClientError } from './rabbit-mq-client.error';
 
 class TestRabbitMqError extends RabbitMqClientError {
-  constructor(message: string, statusCode: string | number, loggerMarker: string, cause?: unknown) {
+  constructor(
+    message: string | undefined,
+    statusCode: string | number | undefined,
+    loggerMarker: string,
+    cause?: unknown,
+  ) {
     super(message, statusCode, loggerMarker, cause);
   }
 }
@@ -25,7 +30,7 @@ describe(RabbitMqClientError.name, () => {
   it('constructor', async () => {
     let error: RabbitMqClientError;
 
-    error = new TestRabbitMqError(undefined, undefined, undefined);
+    error = new TestRabbitMqError(undefined, undefined, undefined as unknown as string);
     expect({
       name: error.name,
       message: error.message,
@@ -38,7 +43,7 @@ describe(RabbitMqClientError.name, () => {
       statusCode: 'UnknownError',
     });
 
-    error = new TestRabbitMqError(undefined, undefined, undefined, undefined);
+    error = new TestRabbitMqError(undefined, undefined, undefined as unknown as string, undefined);
     expect({
       name: error.name,
       message: error.message,

@@ -9,10 +9,10 @@ import { GrpcGeneralAsyncContext } from './grpc.general.async-context';
 
 describe('Decorators', () => {
   class Test {
-    public testAuth(@GrpcAuthInfo() value) {
+    public testAuth(@GrpcAuthInfo() value: unknown) {
       return value;
     }
-    public testGeneralAsyncContext(@GrpcGeneralAsyncContext() value) {
+    public testGeneralAsyncContext(@GrpcGeneralAsyncContext() value: unknown) {
       return value;
     }
   }
@@ -42,7 +42,7 @@ describe('Decorators', () => {
               },
             );
 
-            const grpcRequest = grpcMetadataFactory.build(headers);
+            const grpcRequest = grpcMetadataFactory.build(headers) as unknown as Record<string | symbol, unknown>;
 
             grpcRequest[METADATA_ASYNC_CONTEXT_KEY] = {
               traceId: header,

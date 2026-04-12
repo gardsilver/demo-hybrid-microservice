@@ -27,7 +27,7 @@ export abstract class HttpLoggerHelper {
     };
   }
 
-  public static httpStatusToLogLevel(status: HttpStatus): LogLevel {
+  public static httpStatusToLogLevel(status: HttpStatus): LogLevel | undefined {
     switch (status) {
       case HttpStatus.CREATED:
       case HttpStatus.OK:

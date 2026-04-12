@@ -72,7 +72,7 @@ describe(PrometheusSummaryConfigDecoratorHelper.name, () => {
   });
 
   it('build as false', async () => {
-    let result;
+    let result: false | ISummaryConfig;
 
     result = PrometheusSummaryConfigDecoratorHelper.build(undefined, false, false);
     expect(result).toBeFalsy();
@@ -123,14 +123,14 @@ describe(PrometheusSummaryConfigDecoratorHelper.name, () => {
   });
 
   it('build as success', async () => {
-    let mockLabel = undefined;
+    let mockLabel: PrometheusLabels | undefined = undefined;
     const spyConfig = jest.fn().mockImplementation(() => mockConfig);
     const spyLabel = jest.fn().mockImplementation(() => mockLabel);
 
     PrometheusDecoratorHelper.buildMetricConfig = spyConfig;
     PrometheusDecoratorHelper.buildLabels = spyLabel;
 
-    let result;
+    let result: false | ISummaryConfig | Error;
 
     result = PrometheusSummaryConfigDecoratorHelper.build(config, defaultOptions, defaultLabels);
     expect(spyConfig).toHaveBeenCalledWith(
@@ -173,11 +173,11 @@ describe(PrometheusSummaryConfigDecoratorHelper.name, () => {
     try {
       result = PrometheusSummaryConfigDecoratorHelper.build(config, defaultOptions, defaultLabels);
     } catch (e) {
-      result = e;
+      result = e as Error;
     }
 
     expect(result instanceof Error).toBeTruthy();
-    expect(result.message).toBe(
+    expect((result as Error).message).toBe(
       'Для метрики Summary.observe не задан params.value!\n' + 'Задайте опцию summary.observe.params.value.',
     );
 

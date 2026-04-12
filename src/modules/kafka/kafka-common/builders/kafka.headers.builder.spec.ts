@@ -12,7 +12,14 @@ import { KafkaHeadersBuilder } from './kafka.headers.builder';
 
 describe(KafkaHeadersBuilder.name, () => {
   let traceSpan: ITraceSpan;
-  let asyncContext: IKafkaAsyncContext;
+  let asyncContext: IKafkaAsyncContext & {
+    traceId: string;
+    spanId: string;
+    correlationId: string;
+    requestId: string;
+    replyTopic: string;
+    replyPartition: number;
+  };
   let headers: IHeaders;
   let builder: IKafkaHeadersBuilder;
 
@@ -21,23 +28,31 @@ describe(KafkaHeadersBuilder.name, () => {
 
     traceSpan = TraceSpanBuilder.build();
 
-    asyncContext = generalAsyncContextFactory.build(
+    const builtContext = generalAsyncContextFactory.build(
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
         },
       },
-    );
+    ) as IKafkaAsyncContext;
 
-    asyncContext.replyTopic = faker.string.alpha(4);
-    asyncContext.replyPartition = faker.number.int(2);
+    builtContext.replyTopic = faker.string.alpha(4);
+    builtContext.replyPartition = faker.number.int(2);
+
+    if (
+      builtContext.traceId === undefined ||
+      builtContext.spanId === undefined ||
+      builtContext.correlationId === undefined ||
+      builtContext.requestId === undefined
+    ) {
+      throw new Error('asyncContext is not fully populated by factory');
+    }
+
+    asyncContext = builtContext as typeof asyncContext;
 
     headers = kafkaHeadersFactory.build(
       {

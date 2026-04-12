@@ -1,10 +1,11 @@
 import { tap } from 'rxjs';
 import { HealthIndicatorResult } from '@nestjs/terminus';
 import { RmqStatus } from 'src/modules/rabbit-mq/rabbit-mq-common';
+import { IConsumerInfo } from '../types/types';
 import { RabbitMqServer } from './rabbit-mq-server';
 
 export class RabbitMqHealthIndicator {
-  private status: RmqStatus;
+  private status: RmqStatus = RmqStatus.DISCONNECTED;
 
   constructor(
     private readonly serverName: string,
@@ -20,7 +21,7 @@ export class RabbitMqHealthIndicator {
   }
 
   async isHealthy(): Promise<HealthIndicatorResult> {
-    const consumers = {};
+    const consumers: Record<string, IConsumerInfo> = {};
 
     this.server.getConsumersInfo().forEach((info, pattern) => {
       consumers[pattern] = info;

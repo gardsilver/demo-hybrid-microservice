@@ -64,7 +64,7 @@ describe(HttpClientErrorFormatter.name, () => {
       },
     });
 
-    axiosResponse.headers = undefined;
+    axiosResponse.headers = undefined as unknown as AxiosResponse['headers'];
 
     expect(formatter.transform(handleError)).toEqual({
       statusCode: 400,

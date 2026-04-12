@@ -107,10 +107,7 @@ describe(GrpcClientService.name, () => {
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
@@ -119,9 +116,15 @@ describe(GrpcClientService.name, () => {
     );
 
     metadataReq = new Metadata();
-    metadataReq.set('correlationId', asyncContext.correlationId);
-    metadataReq.set('traceId', asyncContext.traceId);
-    metadataReq.set('spanId', asyncContext.spanId);
+    if (asyncContext.correlationId !== undefined) {
+      metadataReq.set('correlationId', asyncContext.correlationId);
+    }
+    if (asyncContext.traceId !== undefined) {
+      metadataReq.set('traceId', asyncContext.traceId);
+    }
+    if (asyncContext.spanId !== undefined) {
+      metadataReq.set('spanId', asyncContext.spanId);
+    }
 
     jest.spyOn(GeneralAsyncContext.instance, 'extend').mockImplementation(() => asyncContext);
     jest.spyOn(metadataBuilder, 'build').mockImplementation(() => metadataReq);
@@ -268,7 +271,7 @@ describe(GrpcClientService.name, () => {
   });
 
   it('with Server error', async () => {
-    const serverError = new Error('Test Error Server');
+    const serverError: Error & { code?: number; metadata?: unknown } = new Error('Test Error Server');
     serverError['code'] = GrpcStatus.INTERNAL;
     serverError['metadata'] = null;
 
@@ -328,7 +331,7 @@ describe(GrpcClientService.name, () => {
   });
 
   it('with Not Found', async () => {
-    const serverError = new Error('Test Error Server');
+    const serverError: Error & { code?: number; metadata?: unknown } = new Error('Test Error Server');
     serverError['code'] = GrpcStatus.NOT_FOUND;
     serverError['metadata'] = null;
 
@@ -407,7 +410,7 @@ describe(GrpcClientService.name, () => {
   });
 
   it('with retry failed', async () => {
-    const serverError = new Error('Test Error Server');
+    const serverError: Error & { code?: number; metadata?: unknown } = new Error('Test Error Server');
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 
@@ -505,7 +508,7 @@ describe(GrpcClientService.name, () => {
   });
 
   it('with retry off', async () => {
-    const serverError = new Error('Test Error Server');
+    const serverError: Error & { code?: number; metadata?: unknown } = new Error('Test Error Server');
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 
@@ -596,7 +599,7 @@ describe(GrpcClientService.name, () => {
   });
 
   it('with retry and after Timeout', async () => {
-    const serverError = new Error('Test Error Server');
+    const serverError: Error & { code?: number; metadata?: unknown } = new Error('Test Error Server');
     serverError['code'] = GrpcStatus.UNAVAILABLE;
     serverError['metadata'] = null;
 

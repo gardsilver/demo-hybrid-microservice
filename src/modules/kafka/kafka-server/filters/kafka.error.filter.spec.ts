@@ -7,15 +7,16 @@ import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService } from 'src/modules/el
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { kafkaMessageFactory } from 'tests/modules/kafka';
 import { KafkaErrorFilter } from './kafka.error.filter';
+import { IKafkaMessageOptions } from '../types/types';
 import { KafkaServerHelper } from '../helpers/kafka-server.helper';
 import { ConsumerMode } from '../types/types';
 import { KafkaContext } from '../ctx-host/kafka.context';
 
 describe(KafkaErrorFilter.name, () => {
-  let error;
+  let error: Error;
   let logger: IElkLoggerService;
   let kafkaMessage: KafkaMessage;
-  let messageOptions;
+  let messageOptions: IKafkaMessageOptions;
   let kafkaContext: KafkaContext;
   let host: ArgumentsHost;
   let filter: KafkaErrorFilter;
@@ -55,7 +56,7 @@ describe(KafkaErrorFilter.name, () => {
 
     messageOptions = {
       serverName: faker.string.alpha(4),
-    };
+    } as IKafkaMessageOptions;
     kafkaContext = {
       getMode: jest.fn(),
       getMessage: jest.fn(),

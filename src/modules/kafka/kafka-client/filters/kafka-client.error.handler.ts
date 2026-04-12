@@ -110,29 +110,35 @@ export class KafkaClientErrorHandler {
           'KafkaJSServerDoesNotSupportApiKey',
           'KafkaJSUnsupportedMagicByteInMessageSet',
         ].includes(cause.name) ||
-        ('type' in cause && ['INVALID_RECORD'].includes(cause['type'] as string))
+        ('type' in cause && ['INVALID_RECORD'].includes((cause as unknown as { type: string })['type']))
       ) {
         resolvedError = new KafkaClientInternalError(
           cause.message,
-          cause['code'] ?? cause['type'] ?? cause.name,
+          (cause as unknown as Record<string, string | undefined>)['code'] ??
+            (cause as unknown as Record<string, string | undefined>)['type'] ??
+            cause.name,
           exception,
         );
       } else {
         resolvedError = new KafkaClientExternalError(
           cause.message,
-          cause['code'] ?? cause['type'] ?? cause.name,
+          (cause as unknown as Record<string, string | undefined>)['code'] ??
+            (cause as unknown as Record<string, string | undefined>)['type'] ??
+            cause.name,
           exception,
         );
       }
     } else if (cause instanceof Error) {
       resolvedError = new KafkaClientInternalError(
         cause.message,
-        cause['code'] ?? cause['type'] ?? cause.name,
+        (cause as unknown as Record<string, string | undefined>)['code'] ??
+          (cause as unknown as Record<string, string | undefined>)['type'] ??
+          cause.name,
         exception,
       );
     } else if (typeof exception === 'string') {
       resolvedError = new KafkaClientInternalError(exception, undefined, undefined);
-    } else if (typeof exception === 'object') {
+    } else if (typeof exception === 'object' && exception !== null) {
       resolvedError = new KafkaClientInternalError(
         'message' in exception && typeof exception['message'] === 'string' ? exception['message'] : undefined,
         undefined,

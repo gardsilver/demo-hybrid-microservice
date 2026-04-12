@@ -61,6 +61,7 @@ export class PrometheusSummaryService implements ISummaryService {
         },
         markers: ['prometheus', LoggerMarkers.ERROR],
       });
+      return () => 0;
     }
   }
 }

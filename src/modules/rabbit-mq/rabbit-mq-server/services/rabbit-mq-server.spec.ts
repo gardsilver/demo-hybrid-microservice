@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Observable, tap } from 'rxjs';
 import { CommonMessageFields, ConsumeMessage, MessagePropertyHeaders } from 'amqplib';
-import { Channel } from 'amqp-connection-manager';
+import { AmqpConnectionManager, Channel } from 'amqp-connection-manager';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -31,10 +31,10 @@ import {
   RABBIT_MQ_SERVER_CONNECTION_FAILED,
 } from '../types/metrics';
 import { RabbitMqContext } from '../ctx-host/rabbit-mq.context';
-import { IConsumerPacket } from '../types/types';
+import { IConsumerPacket, IEventRabbitMqMessageOptions } from '../types/types';
 
 describe(RabbitMqServer.name, () => {
-  let mockConnect;
+  let mockConnect: () => AmqpConnectionManager;
   let logger: IElkLoggerService;
   let nestLogger: INestElkLoggerService;
   let prometheusManager: PrometheusManager;
@@ -154,9 +154,9 @@ describe(RabbitMqServer.name, () => {
   });
 
   describe('base methods', () => {
-    let extras;
+    let extras: IEventRabbitMqMessageOptions;
     let messageHandler: MessageHandler;
-    let spyHandler;
+    let spyHandler: jest.Mock;
 
     beforeEach(async () => {
       server = new RabbitMqServer(
@@ -240,10 +240,10 @@ describe(RabbitMqServer.name, () => {
   });
 
   describe('methods when server start', () => {
-    let extras;
+    let extras: IEventRabbitMqMessageOptions;
     let messageHandler: MessageHandler;
-    let spyHandler;
-    let callback;
+    let spyHandler: jest.Mock;
+    let callback: jest.Mock;
 
     describe('default server start as success', () => {
       beforeEach(async () => {
@@ -433,7 +433,7 @@ describe(RabbitMqServer.name, () => {
           mockDeserializeMessage.data,
           new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             mockChannel as unknown as Channel,
             deserializeOptions,
           ]),
@@ -582,7 +582,7 @@ describe(RabbitMqServer.name, () => {
           mockDeserializeMessage.data,
           new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             mockChannel as unknown as Channel,
             deserializeOptions,
           ]),
@@ -634,7 +634,7 @@ describe(RabbitMqServer.name, () => {
     });
 
     describe('custom server start as success', () => {
-      let deserializer;
+      let deserializer: MockConsumerDeserializer;
       beforeEach(async () => {
         deserializer = new MockConsumerDeserializer();
         server = new RabbitMqServer(
@@ -738,7 +738,7 @@ describe(RabbitMqServer.name, () => {
           };
           const rmqContext = new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             channel,
             deserializeOptions,
           ]);
@@ -942,7 +942,7 @@ describe(RabbitMqServer.name, () => {
           };
           const rmqContext = new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             channel,
             deserializeOptions,
           ]);
@@ -1262,7 +1262,7 @@ describe(RabbitMqServer.name, () => {
     });
 
     describe('default server start as failed', () => {
-      let crashError;
+      let crashError: Error;
 
       beforeEach(async () => {
         server = new RabbitMqServer(

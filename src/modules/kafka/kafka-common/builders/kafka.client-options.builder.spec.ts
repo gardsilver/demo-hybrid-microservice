@@ -8,7 +8,7 @@ import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
 import { KafkaElkLoggerBuilder } from './kafka.ekf-logger.builder';
 
 describe(KafkaClientOptionsBuilder.name, () => {
-  let spyLog;
+  let spyLog: jest.SpyInstance;
   let mockHost: string;
   let retry: Omit<KafkaRetryConfig, 'restartOnFailure'>;
   let logger: IElkLoggerService;

@@ -3,7 +3,12 @@ import { LoggerMarkers } from 'src/modules/common';
 import { HttpClientError } from './http-client.error';
 
 export class HttpClientInternalError<T, D> extends HttpClientError<T, D> {
-  constructor(message: string, statusCode: string | number, cause?: unknown, response?: AxiosResponse<T, D>) {
+  constructor(
+    message: string | undefined,
+    statusCode: string | number | undefined,
+    cause?: unknown,
+    response?: AxiosResponse<T, D>,
+  ) {
     super(
       message === undefined ? 'Internal HTTP Server Error' : message,
       statusCode,

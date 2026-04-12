@@ -4,24 +4,25 @@ import { ILogFields, IElkLoggerServiceBuilder, IElkLoggerService, LogLevel } fro
 const kafkaLogLevelParser = (
   levelKafka: logLevel,
 ): {
-  level: LogLevel;
+  level: LogLevel | undefined;
   message: string;
 } => {
-  const message =
-    {
-      [logLevel.NOTHING]: 'nothing',
-      [logLevel.ERROR]: 'error',
-      [logLevel.WARN]: 'warning',
-      [logLevel.INFO]: 'info',
-      [logLevel.DEBUG]: 'debug',
-    }[levelKafka] ?? 'unknown';
-  const level: LogLevel =
-    {
-      [logLevel.ERROR]: LogLevel.ERROR,
-      [logLevel.WARN]: LogLevel.WARN,
-      [logLevel.INFO]: LogLevel.INFO,
-      [logLevel.DEBUG]: LogLevel.DEBUG,
-    }[levelKafka] ?? undefined;
+  const messageMap: Partial<Record<logLevel, string>> = {
+    [logLevel.NOTHING]: 'nothing',
+    [logLevel.ERROR]: 'error',
+    [logLevel.WARN]: 'warning',
+    [logLevel.INFO]: 'info',
+    [logLevel.DEBUG]: 'debug',
+  };
+  const message = messageMap[levelKafka] ?? 'unknown';
+
+  const levelMap: Partial<Record<logLevel, LogLevel>> = {
+    [logLevel.ERROR]: LogLevel.ERROR,
+    [logLevel.WARN]: LogLevel.WARN,
+    [logLevel.INFO]: LogLevel.INFO,
+    [logLevel.DEBUG]: LogLevel.DEBUG,
+  };
+  const level = levelMap[levelKafka];
 
   return {
     level,

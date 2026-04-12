@@ -5,7 +5,7 @@ import { RabbitMqServer } from './rabbit-mq-server';
 import { RabbitMqHealthIndicator } from './rabbit-mq.health-indicator';
 
 describe(RabbitMqServerStatusService.name, () => {
-  let spyClose;
+  let spyClose: jest.Mock;
   let serverName: string;
   let server: RabbitMqServer;
   let indicator: RabbitMqHealthIndicator;

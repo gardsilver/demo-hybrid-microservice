@@ -52,7 +52,7 @@ describe(RabbitMqMessagePropertiesToAsyncContextAdapter.name, () => {
           },
         },
       },
-    );
+    ) as unknown as IRabbitMqMessageProperties;
   });
 
   it('adapt', async () => {

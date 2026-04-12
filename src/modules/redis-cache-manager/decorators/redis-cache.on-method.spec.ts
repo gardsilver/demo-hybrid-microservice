@@ -10,9 +10,9 @@ const cacheAdapter: IRedisCacheAdapter = {
 } as unknown as IRedisCacheAdapter;
 
 describe(RedisCacheOnAsyncMethod.name, () => {
-  let spyGet;
-  let spySet;
-  let mockResult;
+  let spyGet: jest.Mock;
+  let spySet: jest.Mock;
+  let mockResult: { status: string };
   let cacheService: RedisCacheService;
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe(RedisCacheOnAsyncMethod.name, () => {
       set: spySet,
     } as unknown as RedisCacheService;
 
-    RedisCacheInstanceService.getInstance = () => undefined;
+    RedisCacheInstanceService.getInstance = () => undefined as unknown as RedisCacheService;
 
     jest.clearAllMocks();
   });
@@ -96,7 +96,7 @@ describe(RedisCacheOnAsyncMethod.name, () => {
   });
 
   describe('failed', () => {
-    let mockError;
+    let mockError: Error;
 
     class TestService {
       @RedisCacheOnAsyncMethod({
@@ -104,8 +104,7 @@ describe(RedisCacheOnAsyncMethod.name, () => {
         adapter: cacheAdapter,
         ttl: 10_000,
       })
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      async run(query: string) {
+      async run(_query: string) {
         throw mockError;
       }
     }

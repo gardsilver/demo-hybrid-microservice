@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+.vscode
+.idea
+*.log
+tests
+**/*.spec.ts
+**/*.e2e-spec.ts
+protos/compiled

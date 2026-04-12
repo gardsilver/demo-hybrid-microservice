@@ -50,7 +50,7 @@ export interface IKafkaClientProxyBuilderOptions extends Omit<
 }
 
 export interface IKafkaMessage<T> {
-  key?: string;
+  key?: string | null;
   value: T;
   headers?: IHeaders;
 }

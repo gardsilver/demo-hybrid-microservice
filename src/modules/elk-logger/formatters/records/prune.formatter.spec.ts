@@ -90,6 +90,11 @@ describe(PruneFormatter.name, () => {
     const encodeLogRecord = formatter.transform(logRecord);
 
     expect(logRecord).toEqual(copyLogRecord);
+
+    if (logRecord.markers === undefined) {
+      throw new Error('logRecord.markers is undefined');
+    }
+
     expect(encodeLogRecord).toEqual({
       ...logRecord,
       markers: logRecord.markers.concat([

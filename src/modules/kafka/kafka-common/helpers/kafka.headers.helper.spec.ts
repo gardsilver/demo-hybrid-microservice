@@ -15,7 +15,7 @@ describe(KafkaHeadersHelper.name, () => {
 
   describe('nameAsHeaderName', () => {
     it('default', async () => {
-      const map = {};
+      const map: Record<string, string | undefined> = {};
 
       ['traceId', 'spanId', 'correlationId', 'requestId', 'replyTopic', 'replyPartition', 'customParam'].forEach(
         (paramName) => {
@@ -34,7 +34,7 @@ describe(KafkaHeadersHelper.name, () => {
     });
 
     it('as zipkin', async () => {
-      const map = {};
+      const map: Record<string, string | undefined> = {};
 
       ['traceId', 'spanId', 'correlationId', 'requestId', 'replyTopic', 'replyPartition', 'customParam'].forEach(
         (paramName) => {

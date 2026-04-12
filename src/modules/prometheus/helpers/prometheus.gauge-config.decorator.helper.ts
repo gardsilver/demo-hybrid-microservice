@@ -12,8 +12,8 @@ export abstract class PrometheusGaugeConfigDecoratorHelper {
       return false;
     }
 
-    let configIncrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>>;
-    let configDecrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>>;
+    let configIncrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>> | undefined;
+    let configDecrement: Partial<IPrometheusParams<IGaugeMetricConfig, IGaugeParams>> | undefined;
 
     if (typeof config.increment === 'boolean') {
       configIncrement = config.increment ? {} : undefined;
@@ -56,8 +56,11 @@ export abstract class PrometheusGaugeConfigDecoratorHelper {
     return result.increment === false && result.decrement === false ? false : result;
   }
 
-  private static buildParams(params: IGaugeParams | undefined, defaultLabels: PrometheusLabels | false): IGaugeParams {
-    let result: IGaugeParams;
+  private static buildParams(
+    params: IGaugeParams | undefined,
+    defaultLabels: PrometheusLabels | false,
+  ): IGaugeParams | undefined {
+    let result: IGaugeParams | undefined;
 
     const labels = PrometheusDecoratorHelper.buildLabels(params?.labels, defaultLabels);
 

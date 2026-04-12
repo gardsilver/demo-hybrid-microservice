@@ -111,7 +111,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
   public async close(): Promise<void> {
     if (this.channels.size) {
-      const closeAll = [];
+      const closeAll: Promise<void>[] = [];
 
       this.channels.forEach((channel) => closeAll.push(channel.close()));
 
@@ -149,11 +149,11 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
         this.logger.log(this.logTitle + 'server start success.');
 
-        callback();
+        callback?.();
       } catch (error) {
         this.logger.error(this.logTitle + 'server start failed.', error);
 
-        callback(error);
+        callback?.(error);
       } finally {
         this.logger.debug(this.logTitle + 'server consumers is created.');
       }
@@ -167,7 +167,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
     this.registerConnectListener();
     this.registerDisconnectListener();
-    this.pendingEventListeners.forEach(({ event, callback }) => this.client.on(event, callback));
+    this.pendingEventListeners.forEach(({ event, callback }) => this.client?.on(event, callback));
     this.pendingEventListeners = [];
 
     this.client.once(
@@ -230,14 +230,14 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
   }
 
   protected registerConnectListener() {
-    this.client.on(RmqEventsMap.CONNECT, () => {
+    this.client?.on(RmqEventsMap.CONNECT, () => {
       this.connectionAttempts = 0;
       this.updateStatus(RmqStatus.CONNECTED);
     });
   }
 
   protected registerDisconnectListener() {
-    this.client.on(RmqEventsMap.DISCONNECT, (errorInfo?: RMQErrorInfo) => {
+    this.client?.on(RmqEventsMap.DISCONNECT, (errorInfo?: RMQErrorInfo) => {
       if (errorInfo?.err) {
         this.updateStatus(RmqStatus.CRASHED, errorInfo);
       } else {
@@ -255,7 +255,11 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
     registeredPatterns.forEach((pattern) => {
       const handler = this.getHandlers().get(pattern);
-      const extras: IEventRabbitMqMessageOptions = handler.extras as unknown as IEventRabbitMqMessageOptions;
+      const extras = (handler?.extras ?? {}) as unknown as IEventRabbitMqMessageOptions;
+
+      if (this.client === null) {
+        return;
+      }
 
       this.channels.set(
         pattern,
@@ -268,7 +272,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
   }
 
   protected parseOptions(extras?: IEventRabbitMqMessageOptions): {
-    options: IEventRabbitMqMessageOptions['consumer'];
+    options: NonNullable<IEventRabbitMqMessageOptions['consumer']>;
     queue: string;
     routing: string[];
     noAssert: boolean;
@@ -277,7 +281,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     prefetchCount: number;
     deserializer: IConsumerDeserializer;
   } {
-    const options: IEventRabbitMqMessageOptions['consumer'] = {
+    const options: NonNullable<IEventRabbitMqMessageOptions['consumer']> = {
       ...{
         ...this.options,
         deserializer: undefined,
@@ -330,11 +334,12 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     }
 
     if (options.exchange) {
-      const exchangeType = this.getOptionsProp(options, 'exchangeType', 'topic');
+      const exchange = options.exchange;
+      const exchangeType = options.exchangeType ?? 'topic';
 
-      consumerInfo.exchange = options.exchange;
+      consumerInfo.exchange = exchange;
 
-      await channel.assertExchange(options.exchange, exchangeType, {
+      await channel.assertExchange(exchange, exchangeType, {
         durable: true,
         arguments: options.exchangeArguments,
       });
@@ -343,7 +348,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
         consumerInfo.routing = routing;
         await Promise.all(
           routing.map((routingKey) => {
-            return channel.bindQueue(consumerInfo.queue, options.exchange, routingKey);
+            return channel.bindQueue(consumerInfo.queue, exchange, routingKey);
           }),
         );
       }
@@ -356,10 +361,15 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     await channel.consume(
       consumerInfo.queue,
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      async (msg) => await this.handleMessage(pattern, msg, channel, extras),
+      async (msg) => {
+        if (msg === null) {
+          return;
+        }
+        await this.handleMessage(pattern, msg, channel, extras);
+      },
       {
         noAck: noAck,
-        consumerTag: this.getOptionsProp(options, 'consumerTag', undefined),
+        consumerTag: options.consumerTag,
       },
     );
   }
@@ -374,19 +384,19 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     extras?: IEventRabbitMqMessageOptions,
   ): Promise<void> {
     const { options, noAck, routing, deserializer } = this.parseOptions(extras);
-    const queue = this.consumersInfo.has(pattern) ? this.consumersInfo.get(pattern).queue : RQM_DEFAULT_QUEUE;
+    const queue = this.consumersInfo.get(pattern)?.queue ?? RQM_DEFAULT_QUEUE;
 
     this.prometheusManager.counter().increment(RABBIT_MQ_HANDLE_MESSAGE, {
       labels: {
         service: this.serverName,
         queue,
-        exchange: extras.consumer?.exchange ?? '',
+        exchange: extras?.consumer?.exchange ?? '',
         routing: routing.join(','),
       },
       value: 1,
     });
 
-    let packet: IConsumerPacket;
+    let packet: IConsumerPacket | undefined;
 
     try {
       const messageOptions: IRabbitMqEventOptions & { pattern: string } = {
@@ -412,7 +422,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
       await this.handleEvent(pattern, packet, rmqContext);
     } catch (error) {
-      this.handleErrorInProcessMessage(pattern, messageRef, packet?.data, error, channel, extras);
+      this.handleErrorInProcessMessage(pattern, messageRef, packet?.data, error as Error, channel, extras);
     }
   }
 
@@ -425,7 +435,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     extras?: IEventRabbitMqMessageOptions,
   ): Promise<void> {
     const { noAck, routing } = this.parseOptions(extras);
-    const queue = this.consumersInfo.has(pattern) ? this.consumersInfo.get(pattern).queue : RQM_DEFAULT_QUEUE;
+    const queue = this.consumersInfo.get(pattern)?.queue ?? RQM_DEFAULT_QUEUE;
 
     this.logger.error(this.logTitle + `handle ${pattern} failed.`, {
       message: message ?? messageRef,
@@ -436,7 +446,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
       labels: {
         service: this.serverName,
         queue,
-        exchange: extras.consumer?.exchange ?? '',
+        exchange: extras?.consumer?.exchange ?? '',
         routing: routing.join(','),
         errorType: error.name ?? error.constructor.name,
       },
@@ -476,7 +486,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
           pattern,
           context.getMessageRef(),
           context.getMessage(),
-          error,
+          error as Error,
           context.getChannelRef(),
           extras,
         );

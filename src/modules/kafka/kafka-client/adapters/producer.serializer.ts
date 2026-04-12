@@ -3,11 +3,7 @@ import { IKafkaMessage } from 'src/modules/kafka/kafka-common';
 import { IProducerPacket, IProducerSerializerOptions, IProducerSerializer } from '../types/types';
 
 export class ProducerSerializer implements IProducerSerializer {
-  serialize(
-    value: IProducerPacket,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: IProducerSerializerOptions,
-  ): IKafkaMessage<string | Buffer> {
+  serialize(value: IProducerPacket, _options: IProducerSerializerOptions): IKafkaMessage<string | Buffer | null> {
     return {
       key: value.data.key ?? null,
       value: this.encode(value.data.value),

@@ -17,12 +17,12 @@ export type IProducerSerializerOptions = Record<string, unknown> & {
 
 export interface IProducerSerializer<T = unknown> extends Serializer<
   IRabbitMqProducerMessage<T>,
-  IRabbitMqProducerMessage<Buffer | string>
+  IRabbitMqProducerMessage<Buffer | string | null>
 > {
   serialize(
     value: IRabbitMqProducerMessage<T>,
     options: IProducerSerializerOptions,
-  ): IRabbitMqProducerMessage<Buffer | string>;
+  ): IRabbitMqProducerMessage<Buffer | string | null>;
 }
 
 export interface IRabbitMqClientOptions<T = unknown> {

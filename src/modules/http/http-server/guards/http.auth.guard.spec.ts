@@ -40,7 +40,7 @@ describe(HttpAuthGuard.name, () => {
   let authService: IAuthService;
   let headersAdapter: IHttpHeadersToAsyncContextAdapter;
   let guard: HttpAuthGuard;
-  let token;
+  let token: string | undefined;
 
   beforeEach(async () => {
     logger = new MockElkLoggerService();

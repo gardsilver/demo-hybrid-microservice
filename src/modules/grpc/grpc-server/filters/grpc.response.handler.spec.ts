@@ -99,7 +99,7 @@ describe(GrpcResponseHandler.name, () => {
   });
 
   describe('handleError', () => {
-    let spyLoggingResponse;
+    let spyLoggingResponse: jest.SpyInstance;
 
     beforeEach(async () => {
       spyLoggingResponse = jest.spyOn(handler, 'loggingResponse');
@@ -310,8 +310,8 @@ describe(GrpcResponseHandler.name, () => {
   });
 
   describe('loggingResponse', () => {
-    let spyLoggerBuilder;
-    let spyLogger;
+    let spyLoggerBuilder: jest.SpyInstance;
+    let spyLogger: jest.SpyInstance;
 
     beforeEach(async () => {
       spyLoggerBuilder = jest.spyOn(loggerBuilder, 'build');

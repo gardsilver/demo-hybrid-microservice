@@ -21,7 +21,7 @@ export class KafkaOptionsBuilder {
     this.isStop = true;
   }
 
-  public build(options: IKafkaClientProxyBuilderOptions): KafkaOptions['options'] {
+  public build(options: IKafkaClientProxyBuilderOptions): NonNullable<KafkaOptions['options']> {
     const clientOptions = KafkaClientOptionsBuilder.build(options.client, {
       ...this.kafkaLoggerBuilderOptions,
       loggerBuilder: this.loggerBuilder,

@@ -61,6 +61,7 @@ export class PrometheusHistogramService implements IHistogramService {
         },
         markers: ['prometheus', LoggerMarkers.ERROR],
       });
+      return () => 0;
     }
   }
 }

@@ -28,7 +28,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
           : (eventData.labels as unknown as PrometheusLabels)
         : false;
 
-      const useLabels: PrometheusLabels = PrometheusDecoratorHelper.buildLabels(
+      const useLabels: PrometheusLabels | undefined = PrometheusDecoratorHelper.buildLabels(
         baseLabels === false ? undefined : baseLabels,
         defaultPrometheusMetricConfig.labels,
       );
@@ -42,7 +42,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
       };
 
       const start = new DateTimestamp();
-      let duration: number;
+      let duration: number | undefined;
       let response;
       const endConfig = {
         histogram: false,
@@ -59,13 +59,13 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
               : eventData.before
             : false,
           defaultPrometheusMetricConfig,
-          useLabels,
+          useLabels ?? false,
         );
 
-        if (beforeCall.histogram !== false && beforeCall.histogram.startTimer) {
+        if (beforeCall.histogram !== undefined && beforeCall.histogram !== false && beforeCall.histogram.startTimer) {
           endConfig.histogram = true;
         }
-        if (beforeCall.summary !== false && beforeCall.summary.startTimer) {
+        if (beforeCall.summary !== undefined && beforeCall.summary !== false && beforeCall.summary.startTimer) {
           endConfig.summary = true;
         }
 
@@ -94,7 +94,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
               : eventData.throw
             : false,
           defaultPrometheusMetricConfig,
-          useLabels,
+          useLabels ?? false,
         );
 
         PrometheusEventService.emit(
@@ -121,14 +121,14 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
                 : eventData.finally
               : false,
             defaultPrometheusMetricConfig,
-            useLabels,
+            useLabels ?? false,
             {
               histogram: {
-                value: duration,
+                value: duration ?? 0,
                 end: endConfig.histogram,
               },
               summary: {
-                value: duration,
+                value: duration ?? 0,
                 end: endConfig.summary,
               },
             },
@@ -158,7 +158,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
               : eventData.after
             : false,
           defaultPrometheusMetricConfig,
-          useLabels,
+          useLabels ?? false,
         );
 
         PrometheusEventService.emit(
@@ -191,7 +191,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
                 : eventData.after
               : false,
             defaultPrometheusMetricConfig,
-            useLabels,
+            useLabels ?? false,
           );
 
           PrometheusEventService.emit(
@@ -219,7 +219,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
                 : eventData.throw
               : false,
             defaultPrometheusMetricConfig,
-            useLabels,
+            useLabels ?? false,
           );
 
           PrometheusEventService.emit(
@@ -246,14 +246,14 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
                 : eventData.finally
               : false,
             defaultPrometheusMetricConfig,
-            useLabels,
+            useLabels ?? false,
             {
               histogram: {
-                value: duration,
+                value: duration ?? 0,
                 end: endConfig.histogram,
               },
               summary: {
-                value: duration,
+                value: duration ?? 0,
                 end: endConfig.summary,
               },
             },

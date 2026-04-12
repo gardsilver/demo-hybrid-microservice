@@ -1,5 +1,5 @@
 import { RMQErrorInfo } from '../types/types';
-import { RabbitMqError } from './rabbit-mq.error';
+import { IRabbitMqErrorData, RabbitMqError } from './rabbit-mq.error';
 
 describe(RabbitMqError.name, () => {
   let error: Error;
@@ -16,7 +16,7 @@ describe(RabbitMqError.name, () => {
   });
 
   it('constructor', async () => {
-    rabbitMqError = new RabbitMqError(undefined, undefined);
+    rabbitMqError = new RabbitMqError(undefined, undefined as unknown as IRabbitMqErrorData);
 
     expect(rabbitMqError.data).toBeUndefined();
     expect(rabbitMqError.message).toBe('RabbitMq Unknown Error');
@@ -50,7 +50,11 @@ describe(RabbitMqError.name, () => {
   });
 
   it('buildFromRMQErrorInfo', async () => {
-    rabbitMqError = RabbitMqError.buildFromRMQErrorInfo(undefined, undefined, undefined);
+    rabbitMqError = RabbitMqError.buildFromRMQErrorInfo(
+      undefined as unknown as string,
+      undefined as unknown as string,
+      undefined as unknown as RMQErrorInfo,
+    );
 
     expect(rabbitMqError.data).toEqual({});
     expect(rabbitMqError.message).toBe('RabbitMq Unknown Error');

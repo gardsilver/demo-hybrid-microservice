@@ -14,7 +14,11 @@ describe(HybridErrorResponseFilter.name, () => {
   let rabbitMqErrorFilter: RabbitMqErrorFilter;
   let filter: HybridErrorResponseFilter;
 
-  let error, spyHttp, spyGrpc, spyKafka, spyRabbitMq;
+  let error: Error;
+  let spyHttp: jest.SpyInstance;
+  let spyGrpc: jest.SpyInstance;
+  let spyKafka: jest.SpyInstance;
+  let spyRabbitMq: jest.SpyInstance;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -124,7 +128,7 @@ describe(HybridErrorResponseFilter.name, () => {
       undefined,
       undefined,
       undefined,
-    ]);
+    ] as unknown as ConstructorParameters<typeof KafkaContext>[0]);
 
     const host = {
       getType: () => 'rpc',
@@ -143,7 +147,12 @@ describe(HybridErrorResponseFilter.name, () => {
   });
 
   it('RabbitMq', async () => {
-    const rabbitMqContext = new RabbitMqContext([undefined, undefined, undefined, undefined]);
+    const rabbitMqContext = new RabbitMqContext([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ] as unknown as ConstructorParameters<typeof RabbitMqContext>[0]);
 
     const host = {
       getType: () => 'rpc',

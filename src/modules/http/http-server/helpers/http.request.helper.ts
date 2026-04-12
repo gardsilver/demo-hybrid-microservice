@@ -3,20 +3,22 @@ import { IAsyncContext } from 'src/modules/async-context';
 import { IAuthInfo } from 'src/modules/auth';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from '../types/constants';
 
+type RequestWithExtras = Request & Record<string | symbol, unknown>;
+
 export abstract class HttpRequestHelper {
   public static setAuthInfo(authIfo: IAuthInfo, request: Request) {
-    request[METADATA_AUTH_INFO_KEY] = authIfo;
+    (request as RequestWithExtras)[METADATA_AUTH_INFO_KEY] = authIfo;
   }
 
   public static getAuthInfo(request: Request): IAuthInfo {
-    return request[METADATA_AUTH_INFO_KEY] as unknown as IAuthInfo;
+    return (request as RequestWithExtras)[METADATA_AUTH_INFO_KEY] as IAuthInfo;
   }
 
   public static setAsyncContext<Ctx = IAsyncContext>(ctx: Ctx, request: Request) {
-    request[METADATA_ASYNC_CONTEXT_KEY] = ctx;
+    (request as RequestWithExtras)[METADATA_ASYNC_CONTEXT_KEY] = ctx;
   }
 
   public static getAsyncContext<Ctx = IAsyncContext>(request: Request): Ctx {
-    return request[METADATA_ASYNC_CONTEXT_KEY] as unknown as Ctx;
+    return (request as RequestWithExtras)[METADATA_ASYNC_CONTEXT_KEY] as Ctx;
   }
 }

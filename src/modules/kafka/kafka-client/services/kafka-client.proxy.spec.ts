@@ -258,7 +258,7 @@ describe(KafkaClientProxy.name, () => {
       it('send Invalid Message', async () => {
         let error;
         try {
-          await firstValueFrom(clientProxy.send(undefined, undefined));
+          await firstValueFrom(clientProxy.send(undefined as unknown as IKafkaRequest, undefined));
         } catch (err) {
           error = err;
         }
@@ -314,7 +314,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -371,7 +371,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -427,7 +427,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -466,7 +466,7 @@ describe(KafkaClientProxy.name, () => {
       it('sendBatch Invalid Message', async () => {
         let error;
         try {
-          await firstValueFrom(clientProxy.sendBatch(undefined, undefined));
+          await firstValueFrom(clientProxy.sendBatch(undefined as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }

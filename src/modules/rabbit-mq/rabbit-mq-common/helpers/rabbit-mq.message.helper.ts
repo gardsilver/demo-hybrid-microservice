@@ -5,16 +5,24 @@ import { IRabbitMqAsyncContext } from '../types/rabbit-mq.async-context.type';
 import { IRabbitMqHeaders, IRabbitMqMessageProperties, RabbitMqHeadersValue } from '../types/types';
 
 export abstract class RabbitMqMessageHelper {
-  protected static normalizeHeaderValue(value: unknown): RabbitMqHeadersValue {
+  protected static normalizeHeaderValue(value: unknown): RabbitMqHeadersValue | undefined {
     if (value === undefined) {
       return undefined;
     }
 
     if (Array.isArray(value)) {
-      return value.length ? value.map((v) => RabbitMqMessageHelper.normalizeHeaderValue(v)) : undefined;
+      if (!value.length) {
+        return undefined;
+      }
+
+      const normalized: RabbitMqHeadersValue[] = value
+        .map((v) => RabbitMqMessageHelper.normalizeHeaderValue(v))
+        .filter((v): v is RabbitMqHeadersValue => v !== undefined);
+
+      return normalized.length ? normalized : undefined;
     }
 
-    if (typeof value === 'object') {
+    if (typeof value === 'object' && value !== null) {
       return RabbitMqMessageHelper.normalize(value);
     }
 
@@ -25,7 +33,7 @@ export abstract class RabbitMqMessageHelper {
     return value as RabbitMqHeadersValue;
   }
 
-  public static normalize<H = IKeyValue>(headers: H): IRabbitMqHeaders {
+  public static normalize<H extends object = IKeyValue>(headers: H): IRabbitMqHeaders {
     const tgt: IRabbitMqHeaders = {};
 
     for (const [k, v] of Object.entries(headers)) {
@@ -75,7 +83,7 @@ export abstract class RabbitMqMessageHelper {
     return ctx;
   }
 
-  protected static headerValueAsString(value?: RabbitMqHeadersValue): string {
+  protected static headerValueAsString(value?: RabbitMqHeadersValue): string | undefined {
     if (value === undefined) {
       return undefined;
     }
@@ -91,7 +99,7 @@ export abstract class RabbitMqMessageHelper {
     return value.toString().trim();
   }
 
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string {
+  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
     if (name === 'correlationId') {
       return undefined;
     }
@@ -103,10 +111,13 @@ export abstract class RabbitMqMessageHelper {
     headers: IRabbitMqHeaders,
     ...headerName: string[]
   ): {
-    header: string;
-    value: RabbitMqHeadersValue;
+    header: string | undefined;
+    value: RabbitMqHeadersValue | undefined;
   } {
-    const result = headerName.reduce(
+    const result = headerName.reduce<{
+      header: string | undefined;
+      value: RabbitMqHeadersValue | undefined;
+    }>(
       (result, useHeaderName) => {
         if (result.value !== undefined || !(useHeaderName in headers)) {
           return result;

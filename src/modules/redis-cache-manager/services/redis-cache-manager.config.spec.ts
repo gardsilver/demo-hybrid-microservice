@@ -4,8 +4,8 @@ import { RedisCacheManagerConfig } from './redis-cache-manager.config';
 import { REDIS_CACHE_MANAGER_DEFAULT_OPTIONS } from '../types/constants';
 
 describe(RedisCacheManagerConfig.name, () => {
-  let configService: ConfigService;
-  let redisCacheManagerConfig: RedisCacheManagerConfig;
+  let configService: ConfigService | undefined;
+  let redisCacheManagerConfig: RedisCacheManagerConfig | undefined;
 
   beforeEach(async () => {
     configService = undefined;

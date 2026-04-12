@@ -80,7 +80,7 @@ describe(HttpLoggerHelper.name, () => {
   });
 
   it('httpStatusToLogLevel', async () => {
-    const map = {
+    const map: Record<number, LogLevel | undefined> = {
       [HttpStatus.OK]: LogLevel.INFO,
       [HttpStatus.CREATED]: LogLevel.INFO,
       [HttpStatus.ACCEPTED]: LogLevel.INFO,
@@ -101,8 +101,10 @@ describe(HttpLoggerHelper.name, () => {
       [HttpStatus.LOOP_DETECTED]: LogLevel.FATAL,
     };
 
-    enumKeys(HttpStatus).forEach((status) => {
-      expect(HttpLoggerHelper.httpStatusToLogLevel(HttpStatus[status])).toEqual(map[HttpStatus[status]]);
+    enumKeys(HttpStatus).forEach((rawStatus) => {
+      const statusKey = rawStatus as keyof typeof HttpStatus;
+      const statusValue = HttpStatus[statusKey] as HttpStatus;
+      expect(HttpLoggerHelper.httpStatusToLogLevel(statusValue)).toEqual(map[statusValue]);
     });
   });
 });

@@ -4,7 +4,7 @@ import { AmqpConnectionManagerSocketOptions } from '@nestjs/microservices/extern
 
 export abstract class RabbitMqServerBuilder {
   public static build(options: {
-    urls: RmqOptions['options']['urls'];
+    urls: NonNullable<RmqOptions['options']>['urls'];
     socketOptions?: AmqpConnectionManagerSocketOptions;
   }): AmqpConnectionManager {
     return connect(options.urls, {

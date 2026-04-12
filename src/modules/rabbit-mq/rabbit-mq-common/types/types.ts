@@ -45,8 +45,8 @@ export interface IRabbitMqChannelOptions {
   queueOptions?: AmqplibQueueOptions;
   replyQueue: string;
   exchange?: string;
-  exchangeType?: RmqOptions['options']['exchangeType'];
-  exchangeArguments?: RmqOptions['options']['exchangeArguments'];
+  exchangeType?: NonNullable<RmqOptions['options']>['exchangeType'];
+  exchangeArguments?: NonNullable<RmqOptions['options']>['exchangeArguments'];
   routing?: string | string[];
 }
 

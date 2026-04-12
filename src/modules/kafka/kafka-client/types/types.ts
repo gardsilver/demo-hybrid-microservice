@@ -59,9 +59,9 @@ export interface IProducerPacket<T = unknown> {
 
 export interface IProducerSerializer<T = unknown> extends Serializer<
   IProducerPacket<T>,
-  IKafkaMessage<string | Buffer>
+  IKafkaMessage<string | Buffer | null>
 > {
-  serialize(value: IProducerPacket<T>, options: IProducerSerializerOptions): IKafkaMessage<string | Buffer>;
+  serialize(value: IProducerPacket<T>, options: IProducerSerializerOptions): IKafkaMessage<string | Buffer | null>;
 }
 
 export interface IKafkaClientServiceOptions extends Omit<

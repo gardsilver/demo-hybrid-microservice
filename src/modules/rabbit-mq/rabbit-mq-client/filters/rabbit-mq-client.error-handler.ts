@@ -76,14 +76,15 @@ export class RabbitMqClientErrorHandler {
     } else if (exception instanceof RabbitMqError) {
       resolvedError = new RabbitMqClientExternalError(exception.message, exception.data.eventType, exception);
     } else if (exception instanceof Error) {
+      const extras = exception as unknown as Record<string, string | undefined>;
       resolvedError = new RabbitMqClientInternalError(
         exception.message,
-        exception['code'] ?? exception['type'] ?? exception.name,
+        extras['code'] ?? extras['type'] ?? exception.name,
         exception,
       );
     } else if (typeof exception === 'string') {
       resolvedError = new RabbitMqClientInternalError(exception, undefined, undefined);
-    } else if (typeof exception === 'object') {
+    } else if (typeof exception === 'object' && exception !== null) {
       resolvedError = new RabbitMqClientInternalError(
         'message' in exception && typeof exception['message'] === 'string' ? exception['message'] : undefined,
         undefined,

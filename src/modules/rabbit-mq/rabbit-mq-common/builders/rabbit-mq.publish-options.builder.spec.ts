@@ -4,11 +4,15 @@ import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common
 import { messagePropertyHeadersFactory } from 'tests/amqplib';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { IRabbitMqAsyncContext } from '../types/rabbit-mq.async-context.type';
-import { IRabbitMqPublishOptions } from '../types/types';
+import { IRabbitMqPublishOptions, RabbitMqHeadersValue } from '../types/types';
 import { RabbitMqPublishOptionsBuilder } from './rabbit-mq.publish-options.builder';
 
 describe(RabbitMqPublishOptionsBuilder.name, () => {
-  let asyncContext: IRabbitMqAsyncContext;
+  let asyncContext: IRabbitMqAsyncContext & {
+    traceId: string;
+    spanId: string;
+    correlationId: string;
+  };
   let publishOptions: IRabbitMqPublishOptions;
   let builder: RabbitMqPublishOptionsBuilder;
 
@@ -73,10 +77,10 @@ describe(RabbitMqPublishOptionsBuilder.name, () => {
   it('build with zipkin', async () => {
     publishOptions.headers = {
       ...publishOptions.headers,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined,
+      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
       ...httpHeadersFactory.build(
         {},
         {
@@ -96,8 +100,8 @@ describe(RabbitMqPublishOptionsBuilder.name, () => {
         ...publishOptions.headers,
         [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
         [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
-        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined,
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
+        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
       },
       correlationId: asyncContext.correlationId,
       messageId: asyncContext.messageId,
@@ -108,10 +112,10 @@ describe(RabbitMqPublishOptionsBuilder.name, () => {
   it('build as array', async () => {
     publishOptions.headers = {
       ...publishOptions.headers,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined,
+      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
+      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
       ...httpHeadersFactory.build(
         {},
         {

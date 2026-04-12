@@ -16,7 +16,7 @@ import { CRYPTO_MOCK } from 'tests/crypto';
 
 jest.mock('crypto', () => ({ ...jest.requireActual('crypto'), ...jest.requireActual('tests/crypto').CRYPTO_MOCK }));
 
-let mockUuid;
+let mockUuid: string;
 
 const eventConfigBuilder = (): IPrometheusEventConfig => {
   return {
@@ -144,16 +144,16 @@ const useEventConfig: IPrometheusOnMethod = {
 };
 
 describe('PrometheusOnMethod', () => {
-  let spyBuildLabels;
-  let spyBuildEventConfig;
-  let spyEmit;
+  let spyBuildLabels: jest.Mock;
+  let spyBuildEventConfig: jest.Mock;
+  let spyEmit: jest.Mock;
 
   let context: IGeneralAsyncContext;
 
   let defaultLabels: PrometheusLabels;
   let eventConfig: IPrometheusEventConfig;
 
-  let mockError;
+  let mockError: Error;
 
   beforeEach(async () => {
     spyBuildLabels = jest.fn().mockImplementation(() => defaultLabels);

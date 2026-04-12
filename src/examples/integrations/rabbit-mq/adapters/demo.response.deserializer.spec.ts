@@ -75,7 +75,7 @@ describe(DemoResponseDeserializer.name, () => {
         content,
         properties: {
           ...request.properties,
-          headers: RabbitMqMessageHelper.normalize(request.properties.headers),
+          headers: RabbitMqMessageHelper.normalize(request.properties.headers ?? {}),
         },
       },
     });

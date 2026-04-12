@@ -132,9 +132,9 @@ describe(KafkaServerBase, () => {
   });
 
   describe('base methods', () => {
-    let extras;
+    let extras: Record<string, unknown>;
     let messageHandler: MessageHandler;
-    let spyHandler;
+    let spyHandler: jest.Mock;
 
     beforeEach(async () => {
       spyHandler = jest.fn();
@@ -187,7 +187,7 @@ describe(KafkaServerBase, () => {
 
       expect(client instanceof MockKafka).toBeTruthy();
       expect({
-        ...client['config'],
+        ...(client as unknown as MockKafka)['config'],
         logCreator: undefined,
       }).toEqual({
         enforceRequestTimeout: false,
@@ -205,7 +205,7 @@ describe(KafkaServerBase, () => {
       const consumer = await server['createConsumer'](ConsumerMode.EACH_BATCH, ['topic']);
 
       expect(consumer instanceof MockConsumer).toBeTruthy();
-      expect(consumer['config']).toEqual({
+      expect((consumer as unknown as MockConsumer)['config']).toEqual({
         groupId: KAFKA_DEFAULT_GROUP + '-server' + '-' + ConsumerMode.EACH_BATCH.toString(),
       });
       expect(spyOn).toHaveBeenCalledTimes(6);
@@ -321,7 +321,7 @@ describe(KafkaServerBase, () => {
       };
 
       server.getHandlerByPattern = () => {
-        return undefined;
+        return null;
       };
 
       await server.handleEvent('eachMessage', packet, mockContext);
@@ -386,6 +386,10 @@ describe(KafkaServerBase, () => {
           },
         },
       });
+
+      if (kafkaMessage.headers === undefined) {
+        throw new Error('kafkaMessage.headers is not populated by factory');
+      }
 
       expect(server['getMessageOptionsAndAdapters']('eachMessage', kafkaMessage, handle)).toEqual({
         messageOptions: {

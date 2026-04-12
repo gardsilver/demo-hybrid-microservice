@@ -6,7 +6,7 @@ import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 import { KafkaContext } from './kafka.context';
 
 describe(KafkaContext.name, () => {
-  let spy;
+  let spy: jest.Mock;
   let serverName: string;
   let topic: string;
   let partition: number;

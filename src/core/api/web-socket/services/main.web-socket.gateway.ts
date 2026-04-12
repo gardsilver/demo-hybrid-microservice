@@ -61,11 +61,13 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
       return;
     }
 
-    if (!this.userMap.has(userEmail)) {
-      this.userMap.set(userEmail, new Map<SocketId, IUserSocketData>());
+    let userSockets = this.userMap.get(userEmail);
+    if (userSockets === undefined) {
+      userSockets = new Map<SocketId, IUserSocketData>();
+      this.userMap.set(userEmail, userSockets);
     }
 
-    this.userMap.get(userEmail).set(client.id, {
+    userSockets.set(client.id, {
       socket: client,
       context: asyncContext,
     });

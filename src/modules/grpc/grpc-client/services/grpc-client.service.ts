@@ -1,4 +1,4 @@
-import { catchError, finalize, firstValueFrom, of, retry, tap, throwError, timeout, identity } from 'rxjs';
+import { catchError, finalize, firstValueFrom, Observable, of, retry, tap, throwError, timeout, identity } from 'rxjs';
 import { ClientGrpcProxy } from '@nestjs/microservices';
 import { Inject, Injectable } from '@nestjs/common';
 import { GeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
@@ -87,126 +87,132 @@ export class GrpcClientService {
       markers: [LoggerMarkers.REQUEST, LoggerMarkers.EXTERNAL],
     });
 
-    let timerRetry: NodeJS.Timeout;
+    let timerRetry: NodeJS.Timeout | undefined;
 
-    let end = this.prometheusManager.histogram().startTimer(GRPC_EXTERNAL_REQUEST_DURATIONS, { labels });
+    let end: (() => void) | undefined = this.prometheusManager
+      .histogram()
+      .startTimer(GRPC_EXTERNAL_REQUEST_DURATIONS, { labels });
 
-    const args = [];
+    const args: unknown[] = [];
 
     if (request.data !== null) {
       args.push(request.data);
     }
     args.push(metadata);
 
-    const resp$ = this.clientProxy
-      .getService(request.service)
-      [request.method](...args)
-      .pipe(
-        timeout({
-          each: requestOptions.requestOptions.timeout,
-          with: () =>
-            throwError(
-              () =>
-                new TimeoutError(
-                  `gRPC Request Timeout (${requestOptions.requestOptions.timeout / MILLISECONDS_IN_SECOND} sec)`,
-                ),
-            ),
-        }),
-        tap((response) => {
-          this.responseHandler.loggingResponse(response, { fieldsLogs });
-        }),
-        requestOptions.retryOptions.retry === false
-          ? identity
-          : retry({
-              count:
-                requestOptions.retryOptions.retryMaxCount === 0 ? undefined : requestOptions.retryOptions.retryMaxCount,
-              delay: (exception, retryCount) => {
-                const handleError = this.responseHandler.handleError(exception, {
-                  fieldsLogs,
-                  skipLog: true,
-                });
+    const service = this.clientProxy.getService(request.service) as unknown as Record<
+      string,
+      (...args: unknown[]) => Observable<Res>
+    >;
 
-                if (handleError instanceof GrpcClientError) {
-                  if (GrpcClientHelper.canRetry(handleError, requestOptions)) {
-                    this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_FAILED, {
-                      labels: {
-                        ...labels,
-                        statusCode: handleError.statusCode?.toString(),
-                        type: handleError.loggerMarker,
-                      },
-                    });
+    const resp$ = service[request.method](...args).pipe(
+      timeout({
+        each: requestOptions.requestOptions.timeout,
+        with: () =>
+          throwError(
+            () =>
+              new TimeoutError(
+                `gRPC Request Timeout (${requestOptions.requestOptions.timeout / MILLISECONDS_IN_SECOND} sec)`,
+              ),
+          ),
+      }),
+      tap((response) => {
+        this.responseHandler.loggingResponse(response, { fieldsLogs });
+      }),
+      requestOptions.retryOptions.retry === false
+        ? identity
+        : retry({
+            count:
+              requestOptions.retryOptions.retryMaxCount === 0 ? undefined : requestOptions.retryOptions.retryMaxCount,
+            delay: (exception, retryCount) => {
+              const handleError = this.responseHandler.handleError(exception, {
+                fieldsLogs,
+                skipLog: true,
+              });
+
+              if (handleError instanceof GrpcClientError) {
+                if (GrpcClientHelper.canRetry(handleError, requestOptions)) {
+                  this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_FAILED, {
+                    labels: {
+                      ...labels,
+                      statusCode: handleError.statusCode?.toString(),
+                      type: handleError.loggerMarker,
+                    },
+                  });
+                  if (end !== undefined) {
                     end();
-                    end = undefined;
-
-                    this.responseHandler.loggingResponse(handleError, { fieldsLogs, retryCount: retryCount - 1 });
-
-                    return new Promise(
-                      (resolve) =>
-                        (timerRetry = setTimeout(() => {
-                          this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_RETRY, {
-                            labels: {
-                              ...labels,
-                              statusCode: handleError.statusCode?.toString(),
-                              type: handleError.loggerMarker,
-                            },
-                          });
-                          end = this.prometheusManager
-                            .histogram()
-                            .startTimer(GRPC_EXTERNAL_REQUEST_DURATIONS, { labels });
-
-                          logger.warn('gRPC request retry', {
-                            markers: [LoggerMarkers.REQUEST, LoggerMarkers.RETRY, handleError.loggerMarker],
-                            payload: {
-                              retryCount: retryCount,
-                            },
-                          });
-                          resolve(true);
-                        }, requestOptions.retryOptions.delay)),
-                    );
                   }
+                  end = undefined;
 
-                  return throwError(() => exception);
+                  this.responseHandler.loggingResponse(handleError, { fieldsLogs, retryCount: retryCount - 1 });
+
+                  return new Promise(
+                    (resolve) =>
+                      (timerRetry = setTimeout(() => {
+                        this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_RETRY, {
+                          labels: {
+                            ...labels,
+                            statusCode: handleError.statusCode?.toString(),
+                            type: handleError.loggerMarker,
+                          },
+                        });
+                        end = this.prometheusManager
+                          .histogram()
+                          .startTimer(GRPC_EXTERNAL_REQUEST_DURATIONS, { labels });
+
+                        logger.warn('gRPC request retry', {
+                          markers: [LoggerMarkers.REQUEST, LoggerMarkers.RETRY, handleError.loggerMarker],
+                          payload: {
+                            retryCount: retryCount,
+                          },
+                        });
+                        resolve(true);
+                      }, requestOptions.retryOptions.delay)),
+                  );
                 }
 
                 return throwError(() => exception);
-              },
-            }),
-        requestOptions.retryOptions.retry === false || requestOptions.retryOptions.timeout === 0
-          ? identity
-          : timeout({
-              each: requestOptions.retryOptions.timeout,
-              with: () =>
-                throwError(
-                  () =>
-                    new TimeoutError(
-                      `gRPC Retry-Request Timeout (${requestOptions.retryOptions.timeout / MILLISECONDS_IN_SECOND} sec)`,
-                    ),
-                ),
-            }),
-        catchError((exception) => {
-          const handleError = this.responseHandler.handleError(exception, { fieldsLogs });
+              }
 
-          if (handleError instanceof GrpcClientError) {
-            this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_FAILED, {
-              labels: {
-                ...labels,
-                statusCode: handleError.statusCode?.toString(),
-                type: handleError.loggerMarker,
-              },
-            });
-            return throwError(() => handleError);
-          }
+              return throwError(() => exception);
+            },
+          }),
+      requestOptions.retryOptions.retry === false || requestOptions.retryOptions.timeout === 0
+        ? identity
+        : timeout({
+            each: requestOptions.retryOptions.timeout,
+            with: () =>
+              throwError(
+                () =>
+                  new TimeoutError(
+                    `gRPC Retry-Request Timeout (${requestOptions.retryOptions.timeout / MILLISECONDS_IN_SECOND} sec)`,
+                  ),
+              ),
+          }),
+      catchError((exception) => {
+        const handleError = this.responseHandler.handleError(exception, { fieldsLogs });
 
-          return of(handleError as Res);
-        }),
+        if (handleError instanceof GrpcClientError) {
+          this.prometheusManager.counter().increment(GRPC_EXTERNAL_REQUEST_FAILED, {
+            labels: {
+              ...labels,
+              statusCode: handleError.statusCode?.toString(),
+              type: handleError.loggerMarker,
+            },
+          });
+          return throwError(() => handleError);
+        }
 
-        finalize(() => {
-          clearTimeout(timerRetry);
-          if (end !== undefined) {
-            end();
-          }
-        }),
-      );
+        return of(handleError as Res);
+      }),
+
+      finalize(() => {
+        clearTimeout(timerRetry);
+        if (end !== undefined) {
+          end();
+        }
+      }),
+    );
 
     return await firstValueFrom(resp$);
   }

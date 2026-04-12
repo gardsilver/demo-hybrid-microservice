@@ -79,21 +79,24 @@ describe(ConsumerDeserializer.name, () => {
     let result = await deserializer.deserialize(consumeMessage, options);
 
     expect(result.pattern).toEqual(options.pattern);
-    expect(result.data.properties.headers).toEqual({});
+    expect(result.data?.properties.headers).toEqual({});
 
     expect(spy).toHaveBeenCalledWith(consumeMessage.properties.headers);
 
-    consumeMessage.properties.headers = undefined;
+    consumeMessage.properties.headers = undefined as unknown as MessagePropertyHeaders;
 
     result = await deserializer.deserialize(consumeMessage, options);
 
     expect(result.pattern).toEqual(options.pattern);
-    expect(result.data.properties.headers).toEqual({});
+    expect(result.data?.properties.headers).toEqual({});
   });
 
   it('skip', async () => {
     const spy = jest.spyOn(RabbitMqMessageHelper, 'normalize').mockImplementation(() => ({}));
-    let result = await deserializer.deserialize(consumeMessage, undefined);
+    let result = await deserializer.deserialize(
+      consumeMessage,
+      undefined as unknown as IRabbitMqEventOptions & { pattern: string },
+    );
 
     expect(result).toEqual({
       pattern: undefined,
@@ -103,7 +106,7 @@ describe(ConsumerDeserializer.name, () => {
     result = await deserializer.deserialize(
       {
         ...consumeMessage,
-        content: undefined,
+        content: undefined as unknown as Buffer,
       },
       options,
     );

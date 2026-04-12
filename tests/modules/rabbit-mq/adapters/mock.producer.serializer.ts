@@ -4,8 +4,7 @@ import { IProducerSerializer, IProducerSerializerOptions } from 'src/modules/rab
 export class MockProducerSerializer implements IProducerSerializer {
   serialize(
     value: IRabbitMqProducerMessage,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: IProducerSerializerOptions,
+    _options: IProducerSerializerOptions,
   ): IRabbitMqProducerMessage<Buffer | string> {
     return {
       ...value,

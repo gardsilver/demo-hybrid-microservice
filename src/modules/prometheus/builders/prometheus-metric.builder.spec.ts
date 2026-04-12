@@ -13,8 +13,8 @@ jest.mock('prom-client', () => ({
 }));
 
 describe(PrometheusMetricBuilder.name, () => {
-  let spySetDefaultLabels;
-  let spyCollectDefaultMetrics;
+  let spySetDefaultLabels: jest.SpyInstance;
+  let spyCollectDefaultMetrics: jest.SpyInstance;
   let builder: PrometheusMetricBuilder;
 
   beforeAll(async () => {

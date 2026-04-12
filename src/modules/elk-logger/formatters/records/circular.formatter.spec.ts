@@ -62,6 +62,10 @@ describe(CircularFormatter.name, () => {
 
     expect(logRecord).toEqual(copyLogRecord);
 
+    if (logRecord.payload === undefined) {
+      throw new Error('logRecord.payload is undefined');
+    }
+
     expect(encodeLogRecord).toEqual({
       ...logRecord,
       payload: {

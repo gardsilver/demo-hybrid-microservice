@@ -42,7 +42,7 @@ import { HttpClientConfigService } from './http-client.config.service';
 
 describe(HttpClientService.name, () => {
   let traceSpan: ITraceSpan;
-  let asyncContext: IGeneralAsyncContext;
+  let asyncContext: IGeneralAsyncContext & { correlationId: string; traceId: string; spanId: string };
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let headersBuilder: IHttpHeadersRequestBuilder;
@@ -97,20 +97,23 @@ describe(HttpClientService.name, () => {
     httpClient = module.get(HttpClientService);
 
     traceSpan = TraceSpanBuilder.build();
-    asyncContext = generalAsyncContextFactory.build(
+    const builtContext = generalAsyncContextFactory.build(
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
         },
       },
     );
+
+    if (builtContext.correlationId === undefined) {
+      throw new Error('asyncContext.correlationId is not populated by factory');
+    }
+
+    asyncContext = builtContext as typeof asyncContext;
 
     jest.spyOn(GeneralAsyncContext.instance, 'extend').mockImplementation(() => asyncContext);
     jest.spyOn(headersBuilder, 'build').mockImplementation(() => ({

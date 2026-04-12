@@ -2,7 +2,7 @@ import { KafkaHeadersHelper } from '../helpers/kafka.headers.helper';
 import { KafkaHeadersToAsyncContextAdapter } from './kafka.headers-to-async-context.adapter';
 
 describe(KafkaHeadersToAsyncContextAdapter.name, () => {
-  let spyKafkaHeadersHelper;
+  let spyKafkaHeadersHelper: jest.SpyInstance;
   let adapter: KafkaHeadersToAsyncContextAdapter;
 
   beforeEach(async () => {

@@ -71,16 +71,16 @@ export class HttpClientResponseHandler {
       skipLog?: boolean;
     },
   ): IHttpClientError<T, D> | AxiosResponse<T, D> {
-    let logLevel: LogLevel;
-    let response: AxiosResponse;
-    let statusCode: number | string;
+    let logLevel: LogLevel | undefined;
+    let response: AxiosResponse | undefined;
+    let statusCode: number | string | undefined;
     let resolvedError: IHttpClientError<T, D> | AxiosResponse<T, D>;
 
     if (isAxiosError(exception)) {
       response = exception.response;
       if (response) {
         statusCode = response.status;
-        if ([HttpStatusCode.NotFound, HttpStatusCode.NoContent].includes(exception.status)) {
+        if ([HttpStatusCode.NotFound, HttpStatusCode.NoContent].includes(response.status)) {
           resolvedError = Object.assign({}, response, { data: null }) as AxiosResponse;
           logLevel = LogLevel.WARN;
         } else {
@@ -89,7 +89,9 @@ export class HttpClientResponseHandler {
       } else {
         statusCode = exception.code;
 
-        if ([AxiosError.ECONNABORTED, AxiosError.ETIMEDOUT].includes(exception.code)) {
+        const exceptionCode = exception.code ?? '';
+
+        if ([AxiosError.ECONNABORTED, AxiosError.ETIMEDOUT].includes(exceptionCode)) {
           resolvedError = new HttpClientTimeoutError(exception.message, exception.code, exception);
         } else {
           if (
@@ -99,7 +101,7 @@ export class HttpClientResponseHandler {
               AxiosError.ERR_BAD_RESPONSE,
               AxiosError.ERR_NETWORK,
               AxiosError.ERR_CANCELED,
-            ].includes(exception.code)
+            ].includes(exceptionCode)
           ) {
             resolvedError = new HttpClientExternalError(exception.message, statusCode, exception, response);
           } else {
@@ -119,7 +121,10 @@ export class HttpClientResponseHandler {
       }
     }
 
-    this.loggingResponse(resolvedError instanceof HttpClientError ? resolvedError : response, { ...options, logLevel });
+    this.loggingResponse(resolvedError instanceof HttpClientError ? resolvedError : (response ?? resolvedError), {
+      ...options,
+      logLevel,
+    });
 
     return resolvedError;
   }

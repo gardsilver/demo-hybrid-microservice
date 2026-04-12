@@ -2,7 +2,12 @@ import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MessageHandler } from '@nestjs/microservices';
-import { EachBatchPayload, EachMessagePayload, KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
+import {
+  Consumer,
+  EachBatchPayload,
+  EachMessagePayload,
+  KafkaMessage,
+} from '@nestjs/microservices/external/kafka.interface';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
@@ -34,7 +39,7 @@ jest.mock('src/modules/date-timestamp', () => {
 });
 
 describe(KafkaServerService.name, () => {
-  let extras;
+  let extras: Record<string, unknown>;
   let logger: IElkLoggerService;
   let prometheusManager: PrometheusManager;
   let messageHandler: MessageHandler;
@@ -216,7 +221,7 @@ describe(KafkaServerService.name, () => {
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value.toString(),
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }
@@ -236,7 +241,7 @@ describe(KafkaServerService.name, () => {
         kafkaMessage,
         payload.partition,
         payload.topic,
-        server['consumer'],
+        server['consumer'] as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_MESSAGE,
         {
@@ -425,7 +430,7 @@ describe(KafkaServerService.name, () => {
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value.toString(),
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }
@@ -447,7 +452,7 @@ describe(KafkaServerService.name, () => {
         [kafkaMessage],
         payload.batch.partition,
         payload.batch.topic,
-        server['consumer'],
+        server['consumer'] as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_BATCH,
         [

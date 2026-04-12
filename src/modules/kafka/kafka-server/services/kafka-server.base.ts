@@ -57,7 +57,7 @@ export abstract class KafkaServerBase extends Server {
   declare protected deserializer: IConsumerDeserializer;
   protected readonly eachMessageHandlers: string[] = [];
   protected readonly batchMessageHandlers: string[] = [];
-  protected readonly headerAdapter?: IKafkaHeadersToAsyncContextAdapter;
+  protected readonly headerAdapter!: IKafkaHeadersToAsyncContextAdapter;
 
   constructor(
     protected readonly options: Required<KafkaOptions>['options'] & {
@@ -84,11 +84,10 @@ export abstract class KafkaServerBase extends Server {
     this.headerAdapter = this.options?.headerAdapter ?? new KafkaHeadersToAsyncContextAdapter();
   }
 
-  public on<
-    EventKey extends string | number | symbol = string | number | symbol,
-    EventCallback = any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  >(event: EventKey, callback: EventCallback) {
+  public on<EventKey extends string | number | symbol = string | number | symbol, EventCallback = any>(
+    _event: EventKey,
+    _callback: EventCallback,
+  ) {
     throw new Error('Method is not supported for Kafka server');
   }
 
@@ -180,6 +179,7 @@ export abstract class KafkaServerBase extends Server {
 
           return;
         } catch (error) {
+          const err = error as Error;
           await this.disconnect().catch(() => {});
 
           this.logger.error(this.logTitle + 'connection failed.', error);
@@ -187,7 +187,7 @@ export abstract class KafkaServerBase extends Server {
           this.prometheusManager.counter().increment(KAFKA_SERVER_START_FAILED, {
             labels: {
               service: this.serverName,
-              errorType: error.name ?? error.constructor.name,
+              errorType: err.name ?? err.constructor.name,
             },
           });
 
@@ -242,6 +242,10 @@ export abstract class KafkaServerBase extends Server {
   }
 
   protected async createConsumer(mode: ConsumerMode, topics: string[]): Promise<Consumer> {
+    if (this.client === null) {
+      throw new Error('Kafka client is not initialized');
+    }
+
     const consumerOptions = Object.assign(this.options.consumer || {}, {
       groupId: this.groupId + '-' + mode.toString(),
     });
@@ -346,10 +350,10 @@ export abstract class KafkaServerBase extends Server {
     };
   } {
     const eventKafkaMessageOptions = {
-      ...handler.extras,
+      ...(handler?.extras ?? {}),
     } as unknown as Record<string, any> & IEventKafkaMessageOptions;
 
-    const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
+    const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers ?? {});
     const headerAdapter = eventKafkaMessageOptions.headerAdapter ?? this.headerAdapter;
     const deserializer = eventKafkaMessageOptions.deserializer ?? this.deserializer;
     const asyncContext = headerAdapter.adapt(headers);

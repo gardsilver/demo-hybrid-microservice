@@ -41,7 +41,7 @@ describe(GrpcAuthGuard.name, () => {
   let authService: IAuthService;
   let headersAdapter: IGrpcHeadersToAsyncContextAdapter;
   let guard: GrpcAuthGuard;
-  let token;
+  let token: string | undefined;
 
   beforeEach(async () => {
     jest.clearAllMocks();

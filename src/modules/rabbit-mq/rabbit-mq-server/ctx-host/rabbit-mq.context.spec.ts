@@ -78,6 +78,10 @@ describe(RabbitMqContext.name, () => {
       pattern: mockDeserializeMessage.pattern,
     };
 
+    if (mockDeserializeMessage.data === undefined) {
+      throw new Error('mockDeserializeMessage.data is not populated');
+    }
+
     rmqContext = new RabbitMqContext<string>([consumeMessage, mockDeserializeMessage.data, channel, options]);
   });
 

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { EventEmitter } from 'events';
 import * as amqp from 'amqplib';
 import { AmqpConnectionManager, ChannelWrapper, CreateChannelOpts } from 'amqp-connection-manager';

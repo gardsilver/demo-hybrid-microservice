@@ -16,7 +16,7 @@ export const EventKafkaMessage: {
     | (Record<string, any> & IEventKafkaMessageOptions<K>)
     | (() => Record<string, any> & IEventKafkaMessageOptions<K>),
 ): MethodDecorator => {
-  const params: Record<string, any> & IEventKafkaMessageOptions<K> =
+  const params: (Record<string, any> & IEventKafkaMessageOptions<K>) | undefined =
     typeof options === 'function' ? options() : options;
 
   const extras = {

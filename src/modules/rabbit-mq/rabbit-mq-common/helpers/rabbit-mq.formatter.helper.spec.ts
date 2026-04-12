@@ -4,7 +4,7 @@ import { RabbitMqFormatterHelper } from './rabbit-mq.formatter.helper';
 import { RABBIT_MQ_DEFAULT_URL_PARAMS } from '../types/constants';
 
 describe(RabbitMqFormatterHelper.name, () => {
-  let hostname;
+  let hostname: string;
   let errorInfo: RMQErrorInfo;
 
   beforeEach(async () => {

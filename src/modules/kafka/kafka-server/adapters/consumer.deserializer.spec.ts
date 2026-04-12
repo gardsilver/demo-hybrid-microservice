@@ -81,6 +81,6 @@ describe(ConsumerDeserializer.name, () => {
   });
 
   it('deserialize as unknown', async () => {
-    expect(deserializer.deserialize(kafkaMessage, undefined)).toEqual({});
+    expect(deserializer.deserialize(kafkaMessage, undefined as unknown as IKafkaMessageOptions)).toEqual({});
   });
 });

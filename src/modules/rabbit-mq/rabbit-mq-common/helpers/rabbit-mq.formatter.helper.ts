@@ -8,7 +8,7 @@ const REPLACE_VALUE = ' ***** ';
 const IS_FULL_URL = new RegExp(`^\\S*://\\S+$`);
 
 export abstract class RabbitMqFormatterHelper {
-  public static errorInfoFormat(errorInfo?: RMQErrorInfo): IKeyValue<unknown> {
+  public static errorInfoFormat(errorInfo?: RMQErrorInfo): IKeyValue<unknown> | undefined {
     let url = errorInfo?.url;
 
     if (url && typeof url === 'object') {

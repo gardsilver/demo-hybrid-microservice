@@ -8,19 +8,19 @@ import { PrometheusEventArgs, PrometheusEventService } from './prometheus.event-
 import { PrometheusManager } from './prometheus.manager';
 
 describe(PrometheusEventService.name, () => {
-  let spyCountInc;
-  let spyGaugeInc;
-  let spyGaugeDec;
+  let spyCountInc: jest.Mock;
+  let spyGaugeInc: jest.Mock;
+  let spyGaugeDec: jest.Mock;
 
-  let spyHistogramObs;
-  let spyHistogramStr;
-  let spyHistogramEnd;
+  let spyHistogramObs: jest.Mock;
+  let spyHistogramStr: jest.Mock;
+  let spyHistogramEnd: jest.Mock;
 
-  let spySummaryObs;
-  let spySummaryStr;
-  let spySummaryEnd;
+  let spySummaryObs: jest.Mock;
+  let spySummaryStr: jest.Mock;
+  let spySummaryEnd: jest.Mock;
 
-  let spyCustom;
+  let spyCustom: jest.Mock;
 
   let counterService: ICounterService;
   let gaugeService: IGaugeService;

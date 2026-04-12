@@ -39,8 +39,8 @@ import { ProducerSerializer } from '../adapters/producer.serializer';
 
 export class RabbitMqClientProxy {
   private serverName: string;
-  private connection$: ReplaySubject<unknown>;
-  private connectionPromise: Promise<void | unknown>;
+  private connection$: ReplaySubject<unknown> | undefined;
+  private connectionPromise: Promise<void | unknown> | undefined;
   private isInitialConnect = true;
   private client: AmqpConnectionManager | null = null;
   private channel: ChannelWrapper | null = null;
@@ -48,9 +48,22 @@ export class RabbitMqClientProxy {
     event: keyof RmqEvents;
     callback: RmqEvents[keyof RmqEvents];
   }> = [];
-  private serializer: IProducerSerializer;
-  private publishOptionsBuilder: IRabbitMqPublishOptionsBuilder;
-  private options: IRabbitMqClientOptions['producer'];
+  private serializer!: IProducerSerializer;
+  private publishOptionsBuilder!: IRabbitMqPublishOptionsBuilder;
+  private options: NonNullable<IRabbitMqClientOptions['producer']> & {
+    urls: NonNullable<NonNullable<IRabbitMqClientOptions['producer']>['urls']>;
+    queue: string;
+    queueOptions: NonNullable<NonNullable<IRabbitMqClientOptions['producer']>['queueOptions']>;
+    routing: Array<string>;
+    exchangeArguments: NonNullable<NonNullable<IRabbitMqClientOptions['producer']>['exchangeArguments']>;
+    exchangeType: NonNullable<NonNullable<IRabbitMqClientOptions['producer']>['exchangeType']>;
+    publishOptions: NonNullable<NonNullable<IRabbitMqClientOptions['producer']>['publishOptions']> & {
+      headers: NonNullable<IRabbitMqPublishOptions['headers']>;
+    };
+    publishOptionsBuilderOptions: NonNullable<
+      NonNullable<IRabbitMqClientOptions['producer']>['publishOptionsBuilderOptions']
+    > & { skip: boolean };
+  };
 
   private logger: IElkLoggerService;
 
@@ -121,7 +134,7 @@ export class RabbitMqClientProxy {
     errorEvent = 'error',
     connectEvent = 'connect',
   ): Observable<unknown> {
-    const error$ = fromEvent(instance, errorEvent).pipe(
+    const error$ = fromEvent<RMQErrorInfo | RabbitMqError>(instance, errorEvent).pipe(
       map((errorInfo: RMQErrorInfo | RabbitMqError) => {
         throw errorInfo instanceof RabbitMqError
           ? errorInfo
@@ -135,7 +148,7 @@ export class RabbitMqClientProxy {
 
   private mergeDisconnectEvent<T = unknown>(instance: AmqpConnectionManager, source$: Observable<T>): Observable<T> {
     const eventToError = (eventType: string) =>
-      fromEvent(instance, eventType).pipe(
+      fromEvent<RMQErrorInfo | RabbitMqError>(instance, eventType).pipe(
         map((errorInfo: RMQErrorInfo | RabbitMqError) => {
           throw errorInfo instanceof RabbitMqError
             ? errorInfo
@@ -144,14 +157,17 @@ export class RabbitMqClientProxy {
       );
     const disconnect$ = eventToError(RmqEventsMap.DISCONNECT);
 
-    const urls = this.options.urls.map((url: string | RmqUrl) => {
+    const urls = (this.options.urls as Array<string | RmqUrl>).map((url: string | RmqUrl) => {
       return JSON.stringify(RabbitMqFormatterHelper.parseUrl(url));
     });
 
     const connectFailed$ = eventToError('connectFailed').pipe(
       retry({
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        delay: (error: RabbitMqError, retryCount) => {
+        delay: (error: RabbitMqError, _retryCount) => {
+          if (error.data.url === undefined) {
+            return throwError(() => error);
+          }
+
           const search = JSON.stringify(RabbitMqFormatterHelper.parseUrl(error.data.url));
 
           if (urls.indexOf(search) >= urls.length - 1) {
@@ -169,7 +185,7 @@ export class RabbitMqClientProxy {
 
   public connect(): Promise<void | unknown> {
     if (this.client) {
-      return this.connectionPromise;
+      return this.connectionPromise ?? Promise.resolve();
     }
     this.client = this.createClient();
 
@@ -199,6 +215,9 @@ export class RabbitMqClientProxy {
   }
 
   private async convertConnectionToPromise() {
+    if (this.connection$ === undefined) {
+      return;
+    }
     try {
       return firstValueFrom(this.connection$);
     } catch (err) {
@@ -233,15 +252,19 @@ export class RabbitMqClientProxy {
     }
 
     if (this.options.exchange) {
-      await channel.assertExchange(this.options.exchange, this.options.exchangeType, {
+      const exchange = this.options.exchange;
+
+      await channel.assertExchange(exchange, this.options.exchangeType, {
         durable: true,
         arguments: this.options.exchangeArguments,
       });
 
       if (this.options.queue !== RQM_DEFAULT_QUEUE && this.options.routing.length) {
+        const queue = this.options.queue;
+
         await Promise.all(
           (this.options.routing as Array<string>).map((routingKey) => {
-            return channel.bindQueue(this.options.queue, this.options.exchange, routingKey);
+            return channel.bindQueue(queue, exchange, routingKey);
           }),
         );
       }
@@ -364,7 +387,7 @@ export class RabbitMqClientProxy {
     return new Promise<boolean>((resolve, reject) => {
       const errorCallback = (err: Error | null | undefined, result?: boolean): void => {
         if (err === undefined || err === null) {
-          resolve(result);
+          resolve(result ?? false);
         } else {
           reject(
             new RabbitMqError(
@@ -379,6 +402,17 @@ export class RabbitMqClientProxy {
         }
       };
 
+      if (this.channel === null) {
+        reject(
+          new RabbitMqError('Channel is not initialized', {
+            serverName: this.serverName,
+            eventType: serializedPacket.exchange ? 'publishFailed' : 'sendToQueueFailed',
+          }),
+        );
+
+        return;
+      }
+
       return serializedPacket.exchange
         ? this.channel.publish(
             serializedPacket.exchange,
@@ -387,7 +421,12 @@ export class RabbitMqClientProxy {
             publishOptions,
             errorCallback,
           )
-        : this.channel.sendToQueue(serializedPacket.queue, serializedPacket.content, publishOptions, errorCallback);
+        : this.channel.sendToQueue(
+            serializedPacket.queue ?? RQM_DEFAULT_QUEUE,
+            serializedPacket.content,
+            publishOptions,
+            errorCallback,
+          );
     });
   }
 }

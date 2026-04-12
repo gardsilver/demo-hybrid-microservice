@@ -34,7 +34,7 @@ export interface ICounterParams extends Partial<IParamsPrometheusLabels & IParam
 export interface ICounterService {
   increment(metricConfig: ICounterMetricConfig, params?: ICounterParams): void;
 
-  get(metricConfig: ICounterMetricConfig): Promise<ICounterMetricValues>;
+  get(metricConfig: ICounterMetricConfig): Promise<ICounterMetricValues | undefined>;
 }
 
 export interface IGaugeMetricConfig extends IMetricConfig {}
@@ -46,7 +46,7 @@ export interface IGaugeService {
 
   decrement(metricConfig: IGaugeMetricConfig, params?: IGaugeParams): void;
 
-  get(metricConfig: IGaugeMetricConfig): Promise<IGaugeMetricValues>;
+  get(metricConfig: IGaugeMetricConfig): Promise<IGaugeMetricValues | undefined>;
 }
 
 export interface IHistogramMetricConfig extends IMetricConfig {

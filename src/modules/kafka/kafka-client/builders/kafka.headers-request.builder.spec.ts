@@ -21,10 +21,7 @@ describe(KafkaHeadersRequestBuilder.name, () => {
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,

@@ -41,7 +41,7 @@ describe(HttHeadersHelper.name, () => {
 
   describe('nameAsHeaderName', () => {
     it('default', async () => {
-      const map = {};
+      const map: Record<string, string | undefined> = {};
 
       ['traceId', 'spanId', 'correlationId', 'requestId', 'customParam'].forEach((paramName) => {
         map[paramName] = HttHeadersHelper.nameAsHeaderName(paramName);
@@ -56,7 +56,7 @@ describe(HttHeadersHelper.name, () => {
     });
 
     it('as zipkin', async () => {
-      const map = {};
+      const map: Record<string, string | undefined> = {};
 
       ['traceId', 'spanId', 'correlationId', 'requestId', 'customParam'].forEach((paramName) => {
         map[paramName] = HttHeadersHelper.nameAsHeaderName(paramName, true);

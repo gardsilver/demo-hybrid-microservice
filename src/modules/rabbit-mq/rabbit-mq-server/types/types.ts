@@ -1,7 +1,7 @@
 import { ConsumeMessage } from 'amqplib';
 import { Provider } from '@nestjs/common';
 import { Deserializer, ReadPacket } from '@nestjs/microservices';
-import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceFactoryProvider, IServiceValueProvider } from 'src/modules/common';
 import {
   IRabbitMqMessagePropertiesToAsyncContextAdapter,
   IRabbitMqConsumeMessage,
@@ -45,9 +45,9 @@ export interface IRabbitMqServerModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   messagePropertiesAdapter?:
-    | ServiceClassProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>
-    | ServiceValueProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>
-    | ServiceFactoryProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>;
+    | IServiceClassProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>
+    | IServiceValueProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>
+    | IServiceFactoryProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>;
 }
 
 export interface IEventRabbitMqMessageOptions<T = unknown> extends IRabbitMqEventOptions {

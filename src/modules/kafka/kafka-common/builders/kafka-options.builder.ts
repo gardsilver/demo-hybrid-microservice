@@ -6,7 +6,7 @@ import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
 import { KafkaConsumerOptionsBuilder } from './kafka.consumer-options.builder';
 import { KafkaProducerOptionsBuilder } from './kafka.producer-options.builder';
 import { KAFKA_CONNECTION_RESTART } from '../types/metrics';
-import { KafkaElkLoggerBuilderOptions } from './kafka.ekf-logger.builder';
+import { IKafkaElkLoggerBuilderOptions } from './kafka.elk-logger.builder';
 
 export class KafkaOptionsBuilder {
   private isStop: boolean = false;
@@ -14,7 +14,7 @@ export class KafkaOptionsBuilder {
   constructor(
     private readonly loggerBuilder: IElkLoggerServiceBuilder,
     private readonly prometheusManager: PrometheusManager,
-    private readonly kafkaLoggerBuilderOptions?: Omit<KafkaElkLoggerBuilderOptions, 'loggerBuilder'>,
+    private readonly kafkaLoggerBuilderOptions?: Omit<IKafkaElkLoggerBuilderOptions, 'loggerBuilder'>,
   ) {}
 
   public stop(): void {

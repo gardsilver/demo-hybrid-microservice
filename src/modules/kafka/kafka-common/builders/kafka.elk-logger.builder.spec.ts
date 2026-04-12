@@ -9,7 +9,7 @@ import {
   ILogFields,
 } from 'src/modules/elk-logger';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { KafkaElkLoggerBuilder, kafkaLogFilter } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder, kafkaLogFilter } from './kafka.elk-logger.builder';
 
 describe(KafkaElkLoggerBuilder.name, () => {
   const logFields: ILogFields = {

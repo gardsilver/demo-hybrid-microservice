@@ -1,6 +1,6 @@
 import { Provider } from '@nestjs/common';
 import { Serializer } from '@nestjs/microservices';
-import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceFactoryProvider, IServiceValueProvider } from 'src/modules/common';
 import {
   IRabbitMqChannelOptions,
   IRabbitMqConnectionOptions,
@@ -47,15 +47,15 @@ export interface IRabbitMqClientModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   clientProxyBuilderOptions:
-    | ServiceClassProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
-    | ServiceValueProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
-    | ServiceFactoryProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>;
+    | IServiceClassProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
+    | IServiceValueProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
+    | IServiceFactoryProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>;
   serializer?:
-    | ServiceClassProvider<IProducerSerializer>
-    | ServiceValueProvider<IProducerSerializer>
-    | ServiceFactoryProvider<IProducerSerializer>;
+    | IServiceClassProvider<IProducerSerializer>
+    | IServiceValueProvider<IProducerSerializer>
+    | IServiceFactoryProvider<IProducerSerializer>;
   publishOptionsBuilder?:
-    | ServiceClassProvider<IRabbitMqPublishOptionsBuilder>
-    | ServiceValueProvider<IRabbitMqPublishOptionsBuilder>
-    | ServiceFactoryProvider<IRabbitMqPublishOptionsBuilder>;
+    | IServiceClassProvider<IRabbitMqPublishOptionsBuilder>
+    | IServiceValueProvider<IRabbitMqPublishOptionsBuilder>
+    | IServiceFactoryProvider<IRabbitMqPublishOptionsBuilder>;
 }

@@ -4,7 +4,7 @@ import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { ConfigServiceHelper } from 'src/modules/common';
 import { RabbitMqFormatterHelper } from 'src/modules/rabbit-mq/rabbit-mq-common';
 
-export interface RabbitMqRetryConfig {
+export interface IRabbitMqRetryConfig {
   maxConnectionAttempts?: number;
   heartbeatIntervalInSeconds?: number;
   reconnectTimeInSeconds?: number;
@@ -42,7 +42,7 @@ export class AppRabbitMqConfig {
     return this.pass;
   }
 
-  getRetryConfig(): RabbitMqRetryConfig {
+  getRetryConfig(): IRabbitMqRetryConfig {
     return {
       heartbeatIntervalInSeconds: 5,
       reconnectTimeInSeconds: 10,

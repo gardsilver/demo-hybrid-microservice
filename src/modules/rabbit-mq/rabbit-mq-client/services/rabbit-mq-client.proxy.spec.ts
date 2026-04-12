@@ -28,7 +28,7 @@ import {
   RabbitMqFormatterHelper,
   RabbitMqPublishOptionsBuilder,
   RabbitMqServerBuilder,
-  RMQErrorInfo,
+  IRMQErrorInfo,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
 import { MockAmqpConnectionManager, MockChannel, MockChannelWrapper } from 'tests/amqp-connection-manager';
 import { MockConfigService } from 'tests/nestjs';
@@ -57,7 +57,7 @@ describe(RabbitMqClientProxy.name, () => {
   let mockConnect: () => AmqpConnectionManager;
   let serverName: string;
   let error: Error;
-  let errorInfo: RMQErrorInfo;
+  let errorInfo: IRMQErrorInfo;
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let publishOptionsBuilder: IRabbitMqPublishOptionsBuilder;

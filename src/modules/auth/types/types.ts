@@ -1,4 +1,4 @@
-export interface AuthModuleOptions {
+export interface IAuthModuleOptions {
   useCertificate?: false | string;
 }
 

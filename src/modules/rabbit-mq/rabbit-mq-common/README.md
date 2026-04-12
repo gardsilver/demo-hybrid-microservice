@@ -51,7 +51,7 @@ const headers = RabbitMqMessageHelper.normalize(message.properties?.headers ?? {
 
 ### `RabbitMqError`
 
-Библиотеки `amqplib` и `amqp-connection-manager` не предоставляются специализированных классов ошибок возникающих при взаимодействии с брокером **RabbitMq**. `RabbitMqError` является оболочкой на ошибки получаемые в обработчиках соответствующих событий `RMQErrorInfo`.
+Библиотеки `amqplib` и `amqp-connection-manager` не предоставляются специализированных классов ошибок возникающих при взаимодействии с брокером **RabbitMq**. `RabbitMqError` является оболочкой на ошибки получаемые в обработчиках соответствующих событий `IRMQErrorInfo`.
 
 ### `RabbitMqErrorObjectFormatter`
 

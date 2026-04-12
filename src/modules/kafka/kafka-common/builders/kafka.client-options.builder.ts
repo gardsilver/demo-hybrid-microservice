@@ -1,10 +1,10 @@
 import { logLevel } from 'kafkajs';
 import { UrlHelper } from 'src/modules/common';
 import { KafkaClientConfig, IKafkaClientOptions } from '../types/types';
-import { KafkaElkLoggerBuilder, KafkaElkLoggerBuilderOptions } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder, IKafkaElkLoggerBuilderOptions } from './kafka.elk-logger.builder';
 
 export abstract class KafkaClientOptionsBuilder {
-  public static build(options: IKafkaClientOptions, params?: KafkaElkLoggerBuilderOptions): KafkaClientConfig {
+  public static build(options: IKafkaClientOptions, params?: IKafkaElkLoggerBuilderOptions): KafkaClientConfig {
     const brokers = options?.normalizeUrl
       ? options.brokers.map((url) => {
           const normalizeUrl = UrlHelper.normalize(url);

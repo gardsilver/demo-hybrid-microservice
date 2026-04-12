@@ -5,7 +5,7 @@ import { IElkLoggerService, IElkLoggerServiceBuilder, ILogFields } from 'src/mod
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { IKafkaClientOptions, KafkaRetryConfig } from '../types/types';
 import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
-import { KafkaElkLoggerBuilder } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder } from './kafka.elk-logger.builder';
 
 describe(KafkaClientOptionsBuilder.name, () => {
   let spyLog: jest.SpyInstance;

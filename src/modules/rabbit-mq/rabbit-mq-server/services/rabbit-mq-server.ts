@@ -22,7 +22,7 @@ import {
   IRabbitMqConsumeMessage,
   RabbitMqAsyncContext,
   RabbitMqServerBuilder,
-  RMQErrorInfo,
+  IRMQErrorInfo,
   RmqStatus,
   RabbitMqFormatterHelper,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
@@ -173,7 +173,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     this.client.once(
       'connectFailed',
       // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      async (errorInfo?: RMQErrorInfo) => {
+      async (errorInfo?: IRMQErrorInfo) => {
         if (errorInfo?.err) {
           this.updateStatus(RmqStatus.CRASHED, errorInfo);
 
@@ -207,7 +207,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     });
   }
 
-  protected updateStatus(status: RmqStatus, errorInfo?: RMQErrorInfo): void {
+  protected updateStatus(status: RmqStatus, errorInfo?: IRMQErrorInfo): void {
     this._status$.next(status);
     this.logger.debug(this.logTitle + `status[${status}]!`);
 
@@ -237,7 +237,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
   }
 
   protected registerDisconnectListener() {
-    this.client?.on(RmqEventsMap.DISCONNECT, (errorInfo?: RMQErrorInfo) => {
+    this.client?.on(RmqEventsMap.DISCONNECT, (errorInfo?: IRMQErrorInfo) => {
       if (errorInfo?.err) {
         this.updateStatus(RmqStatus.CRASHED, errorInfo);
       } else {

@@ -30,7 +30,7 @@ import {
   RabbitMqAsyncContext,
   IRabbitMqPublishOptionsBuilder,
   RabbitMqPublishOptionsBuilder,
-  RMQErrorInfo,
+  IRMQErrorInfo,
   RabbitMqFormatterHelper,
   RabbitMqError,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
@@ -134,8 +134,8 @@ export class RabbitMqClientProxy {
     errorEvent = 'error',
     connectEvent = 'connect',
   ): Observable<unknown> {
-    const error$ = fromEvent<RMQErrorInfo | RabbitMqError>(instance, errorEvent).pipe(
-      map((errorInfo: RMQErrorInfo | RabbitMqError) => {
+    const error$ = fromEvent<IRMQErrorInfo | RabbitMqError>(instance, errorEvent).pipe(
+      map((errorInfo: IRMQErrorInfo | RabbitMqError) => {
         throw errorInfo instanceof RabbitMqError
           ? errorInfo
           : RabbitMqError.buildFromRMQErrorInfo(this.serverName, errorEvent, errorInfo);
@@ -148,8 +148,8 @@ export class RabbitMqClientProxy {
 
   private mergeDisconnectEvent<T = unknown>(instance: AmqpConnectionManager, source$: Observable<T>): Observable<T> {
     const eventToError = (eventType: string) =>
-      fromEvent<RMQErrorInfo | RabbitMqError>(instance, eventType).pipe(
-        map((errorInfo: RMQErrorInfo | RabbitMqError) => {
+      fromEvent<IRMQErrorInfo | RabbitMqError>(instance, eventType).pipe(
+        map((errorInfo: IRMQErrorInfo | RabbitMqError) => {
           throw errorInfo instanceof RabbitMqError
             ? errorInfo
             : RabbitMqError.buildFromRMQErrorInfo(this.serverName, eventType, errorInfo);
@@ -274,7 +274,7 @@ export class RabbitMqClientProxy {
   }
 
   private registerErrorListener(client: AmqpConnectionManager): void {
-    client.addListener(RmqEventsMap.ERROR, (errorInfo: RMQErrorInfo) => {
+    client.addListener(RmqEventsMap.ERROR, (errorInfo: IRMQErrorInfo) => {
       this.logger.error('RMQ connection failed.', {
         payload: { error: RabbitMqFormatterHelper.errorInfoFormat(errorInfo) },
       });
@@ -282,7 +282,7 @@ export class RabbitMqClientProxy {
   }
 
   private registerDisconnectListener(client: AmqpConnectionManager): void {
-    client.addListener(RmqEventsMap.DISCONNECT, (errorInfo: RMQErrorInfo) => {
+    client.addListener(RmqEventsMap.DISCONNECT, (errorInfo: IRMQErrorInfo) => {
       if (!this.isInitialConnect) {
         this.connectionPromise = Promise.reject(
           RabbitMqError.buildFromRMQErrorInfo(this.serverName, RmqEventsMap.DISCONNECT, errorInfo),

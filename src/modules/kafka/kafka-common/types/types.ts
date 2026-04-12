@@ -1,7 +1,7 @@
 import { KafkaOptions } from '@nestjs/microservices';
 import { IHeaders, IHeadersToContextAdapter } from 'src/modules/common';
 import { IKafkaAsyncContext } from './kafka.async-context.type';
-import { IKafkaLogFilterParams } from '../builders/kafka.ekf-logger.builder';
+import { IKafkaLogFilterParams } from '../builders/kafka.elk-logger.builder';
 
 export interface IKafkaHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IKafkaAsyncContext> {}
 

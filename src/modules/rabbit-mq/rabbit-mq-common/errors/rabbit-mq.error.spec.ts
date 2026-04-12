@@ -1,9 +1,9 @@
-import { RMQErrorInfo } from '../types/types';
+import { IRMQErrorInfo } from '../types/types';
 import { IRabbitMqErrorData, RabbitMqError } from './rabbit-mq.error';
 
 describe(RabbitMqError.name, () => {
   let error: Error;
-  let errorInfo: RMQErrorInfo;
+  let errorInfo: IRMQErrorInfo;
   let rabbitMqError: RabbitMqError;
 
   beforeEach(async () => {
@@ -53,7 +53,7 @@ describe(RabbitMqError.name, () => {
     rabbitMqError = RabbitMqError.buildFromRMQErrorInfo(
       undefined as unknown as string,
       undefined as unknown as string,
-      undefined as unknown as RMQErrorInfo,
+      undefined as unknown as IRMQErrorInfo,
     );
 
     expect(rabbitMqError.data).toEqual({});

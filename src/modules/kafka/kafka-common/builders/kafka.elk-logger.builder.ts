@@ -68,14 +68,14 @@ export const kafkaLogFilter = (logEntry: LogEntry, params: IKafkaLogFilterParams
   }, false);
 };
 
-export interface KafkaElkLoggerBuilderOptions {
+export interface IKafkaElkLoggerBuilderOptions {
   loggerBuilder: IElkLoggerServiceBuilder;
   logTitle?: string;
   logFields?: ILogFields;
   logFilterParams?: IKafkaLogFilterParams[];
 }
 export abstract class KafkaElkLoggerBuilder {
-  public static build(params?: KafkaElkLoggerBuilderOptions): logCreator {
+  public static build(params?: IKafkaElkLoggerBuilderOptions): logCreator {
     if (!params?.loggerBuilder) {
       return (_level: logLevel) => {
         return (_entry: LogEntry) => {

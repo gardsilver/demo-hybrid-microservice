@@ -4,13 +4,13 @@ import { ElkLoggerModule } from 'src/modules/elk-logger';
 import { AUTH_CERTIFICATE_SERVICE_DI, AUTH_SERVICE_DI } from './types/tokens';
 import { MockCertificateService } from './services/mock.certificate.service';
 import { AuthService } from './services/auth.service';
-import { AuthModuleOptions } from './types/types';
+import { IAuthModuleOptions } from './types/types';
 import { AuthHealthIndicatorService } from './services/auth.health-indicator.service';
 import { TerminusModule } from '@nestjs/terminus';
 
 @Module({})
 export class AuthModule {
-  public static forRoot(options?: AuthModuleOptions): DynamicModule {
+  public static forRoot(options?: IAuthModuleOptions): DynamicModule {
     return {
       module: AuthModule,
       global: true,

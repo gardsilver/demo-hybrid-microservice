@@ -23,9 +23,9 @@
 ### Динамические модули
 
 - `ImportsType` - синоним для `ModuleMetadata['imports']` (`@nestjs/common`).
-- `ServiceClassProvider<T>` - Упрощенный интерфейс `ClassProvider` (`@nestjs/common`).
-- `ServiceValueProvider<T>` - Упрощенный интерфейс `ValueProvider` (`@nestjs/common`).
-- `ServiceFactoryProvider<T>` - Упрощенный интерфейс `FactoryProvider` (`@nestjs/common`).
+- `IServiceClassProvider<T>` - Упрощенный интерфейс `ClassProvider` (`@nestjs/common`).
+- `IServiceValueProvider<T>` - Упрощенный интерфейс `ValueProvider` (`@nestjs/common`).
+- `IServiceFactoryProvider<T>` - Упрощенный интерфейс `FactoryProvider` (`@nestjs/common`).
 - `ProviderBuilder.build` - возвращает `Provider` (`@nestjs/common`);
 - `MetadataExplorer` - Сервис реализующий поиск `providers` по всем зарегистрированным `providers` в `NestApplication`, у которых имеются привязанные метаданные к методу с заданным `metadataKey`. Может быть полезен, когда реализуется декоратор фиксирующий метод сервиса, который в последствии нужно будет вызвать третьему лицу. (**@see** `GracefulShutdownOnEvent` (`src/modules/graceful-shutdown`))
 

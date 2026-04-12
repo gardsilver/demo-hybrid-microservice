@@ -8,7 +8,7 @@ import { MessageProperties, ConsumeMessage, Options } from 'amqplib';
 import { IHeadersToContextAdapter } from 'src/modules/common';
 import { IRabbitMqAsyncContext } from './rabbit-mq.async-context.type';
 
-export interface RMQErrorInfo {
+export interface IRMQErrorInfo {
   err?: Error;
   url?: string | Options.Connect;
 }

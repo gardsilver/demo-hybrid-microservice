@@ -2,134 +2,161 @@
 
 ## Описание
 
-Модуль для создания `GrpcClientService` **gRPC**-клиента - пишет логи интеграции и фиксирует соответствующие метрики, реализована логика обработки полученных ошибок и повторной отправки запросов.
+Модуль для создания `GrpcClientService` — **gRPC**-клиента с логированием интеграций, метриками Prometheus, обработкой ошибок и повторной отправкой запросов.
 
-Все ошибки, возникшие при отправке запроса будут приведены к виду:
+Все ошибки, возникшие при отправке запроса, приводятся к одному из типов:
 
-- `GrpcClientExternalError` - если возникла сетевая ошибка или ошибка на стороне внешней системы.
-- `GrpcClientInternalError` - если ошибка возникла в клиентском коде. Например подготовленные данные для отправки некорректны: url неподдерживаемого протокола, или данные запроса не возможно сериализовать (содержат циклические ссылки) и т.п..
-- `GrpcClientTimeoutError` - ответ не был получен в рамках установленных временных ограничений.
+- `GrpcClientExternalError` — сетевая ошибка или ошибка на стороне внешней системы (любой `ServiceError` с `code`-статусом gRPC).
+- `GrpcClientInternalError` — ошибка в клиентском коде (некорректные данные запроса, сериализация, конфигурация и т. п.).
+- `GrpcClientTimeoutError` — ответ не получен в рамках установленных временных ограничений (`requestOptions.timeout` или `retryOptions.timeout`).
 
-### Параметры окружения
+Все три наследуются от абстрактного `GrpcClientError` и содержат `LoggerMarker` (INTERNAL / EXTERNAL / UNKNOWN) для классификации в логах.
 
-| Параметры окружения (**env**)| Обязательный | Возможные значения | Описание|
+## Параметры окружения
+
+| Параметр окружения (**env**) | Обязательный | Значения | Описание |
 |---|---|---|---|
-|`GRPC_CLIENT_RETRY_ENABLED`|нет. По умолчанию: **yes** | Строка: **yes** или **no** (без учета регистра) | Позволяет включать/отключать процесс повторной отправки **gRPC**-запроса. |
-|`GRPC_CLIENT_REQUEST_TIMEOUT`|нет. По умолчанию: **15_000** | Целое число в миллисекундах | Задает **timeout** **gRPC**-запроса. Будет выброшена ошибка `GrpcClientTimeoutError` |
-|`GRPC_CLIENT_RETRY_TIMEOUT`|нет. | Целое число в миллисекундах | Если задано и общая длительность выполнения метода `GrpcClientService.request` превысит заданное значение, то будет выброшена ошибка `GrpcClientTimeoutError`. |
-|`GRPC_CLIENT_RETRY_MAX_COUNT`|нет. По умолчанию: **5** | Целое число | Задает максимальное кол-во переотправок запроса. Если будет превышено, то будет выброшена последняя полученная ошибка. |
-|`GRPC_CLIENT_RETRY_STATUS_CODES`|нет. По умолчанию: **4,14,timeout** | Через запятую указываются статусы полученных ответов | При получении ошибки со статусом из указанного списка, будет выполнен повторный **gRPC**-запрос |
+| `GRPC_CLIENT_RETRY_ENABLED` | нет. По умолчанию: **no** (`.example.env` ставит **yes**) | Строка: **yes** / **no** (без учёта регистра) | Включает/отключает повторную отправку **gRPC**-запросов. |
+| `GRPC_CLIENT_REQUEST_TIMEOUT` | нет. По умолчанию: **15000** | Целое число (мс) | Таймаут одного **gRPC**-запроса. При превышении выбрасывается `GrpcClientTimeoutError`. |
+| `GRPC_CLIENT_RETRY_TIMEOUT` | нет. По умолчанию: **120000** | Целое число (мс) | Общий таймаут процесса переотправки (`GrpcClientService.request`). При превышении выбрасывается `GrpcClientTimeoutError`. Значение `0` отключает общий таймаут. |
+| `GRPC_CLIENT_RETRY_DELAY` | нет. По умолчанию: **5000** | Целое число (мс) | Пауза между повторными попытками. |
+| `GRPC_CLIENT_RETRY_MAX_COUNT` | нет. По умолчанию: **5** | Целое число | Максимальное количество повторных попыток. При превышении выбрасывается последняя полученная ошибка. `0` — неограниченное количество (ограничено `RETRY_TIMEOUT`). |
+| `GRPC_CLIENT_RETRY_STATUS_CODES` | нет. По умолчанию: **4,14,timeout** | Список через запятую | Статусы, при которых выполняется повторный запрос. Значения — числовые gRPC-статусы (`4` = `DEADLINE_EXCEEDED`, `14` = `UNAVAILABLE`) либо строка `timeout` для локального таймаута. |
 
-## `IGrpcMetadataRequestBuilder`
+## `GrpcClientService`
 
-Для формирования `Metadata` **gRPC**-запроса используйте сервис соответствующий интерфейсу `IGrpcMetadataRequestBuilder`.  Можно использовать `GrpcMetadataRequestBuilder` или реализовать свой.
+Основной сервис клиента. Принимает `IGrpcRequest<R>` и возвращает `Promise<Res>`. Под капотом:
 
-## `GrpcClientBuilder`
+1. Формирует `Metadata` через `IGrpcMetadataRequestBuilder` (по DI-токену `GRPC_CLIENT_METADATA_REQUEST_BUILDER_DI`), включая данные из `GeneralAsyncContext.instance.extend()`.
+2. Запускает таймер гистограммы `GRPC_EXTERNAL_REQUEST_DURATIONS`.
+3. Вызывает метод `ClientGrpcProxy.getService(...)[method](...)`.
+4. При ошибке — нормализует её в `GrpcClientError`, инкрементит `GRPC_EXTERNAL_REQUEST_FAILED`. Если статус входит в `retryOptions.statusCodes` и не превышены лимиты — выполняет повтор с `GRPC_EXTERNAL_REQUEST_RETRY` и паузой `retryOptions.delay`.
 
-Позволяет создавать **gRPC**-клиент на основе **proto**-файлов.
-Можно применять как самостоятельно (не рекомендуется), для создания нужного **gRPC**-клиента или подключить `GrpcClientModule` и использовать `GrpcClientService`.
+```ts
+import { GrpcClientService } from 'src/modules/grpc/grpc-client';
 
-Пример создания provide **gRPC**-клиента в модуле:
+constructor(private readonly grpcClient: GrpcClientService) {}
 
-```typescript
-import { join } from 'path';
-import { ConfigModule, ConfigService} from '@nestjs/config';
-import { Module } from '@nestjs/common';
-import { ClientGrpcProxy } from '@nestjs/microservices';
-import { GrpcClientBuilder } from 'src/modules/grpc/grpc-client';
-import { GrpcClient } from 'protos/compiled/...';
-import { GRPC_CLIENT_PROXY_DI, GRPC_CLIENT_DI } from './types/tokens';
-
-@Module({
-  imports: [ConfigModule, ...],
-  providers: [
-    {
-      provide: GRPC_CLIENT_PROXY_DI,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): ClientGrpcProxy => {
-        return GrpcClientBuilder.buildClientGrpcProxy({
-          url: config.get(...),
-          package: 'grpc.client',
-          baseDir: join(__dirname, '../protos'),
-          protoPath: ['/grpc/client/GrpcClient.proto'],
-        });
-      },
-    },
-    {
-      provide: GRPC_CLIENT_DI,
-      inject: [GRPC_CLIENT_PROXY_DI],
-      useFactory: (clientGrpcProxy: ClientGrpcProxy): GrpcClient => {
-        return GrpcClientBuilder.buildClientGrpc<GrpcClient>('GrpcClient', clientGrpcProxy);
-      },
-    },
-    ...
-  ],
-  exports: [GRPC_CLIENT_DI],
-})
-export class AppModule {}
+const response = await this.grpcClient.request<IMainRequest, IMainResponse>({
+  service: 'MainService',
+  method: 'doSomething',
+  data: { id: 42 },
+});
 ```
 
-`GrpcClientBuilder.buildGrpcOptions` позволяет получить `GrpcOptions` (**@see** `@nestjs/microservices`), необходимые для создания `ClientGrpcProxy`. Может быть полезно для настройки `GRPCHealthIndicator` (**@see** `@nestjs/terminus`).
+При необходимости можно точечно переопределить опции для конкретного запроса:
 
-## `GrpcServiceErrorFormatter`
-
-Лог-форматер ошибки `ServiceError` (**@see** `@grpc/grpc-js`): `IObjectFormatter<ServiceError>`
-
-## `GrpcClientErrorFormatter`
-
-Лог-форматер ошибки `GrpcClientError`: `IObjectFormatter<GrpcClientError>`
-
-## `GrpcClientResponseHandler`
-
-Обработчик ошибок: приводит ошибки к `GrpcClientError` и пишет соответствующий лог.
-
-## Метрики
-
-| Метрика| Метки |Описание|
-|---|---|---|
-|`GRPC_EXTERNAL_REQUEST_DURATIONS`|**labelNames** `['service', 'method']`| Гистограмма длительностей запросов по **gRPC** к внешним системам и их количество |
-|`GRPC_EXTERNAL_REQUEST_FAILED`|**labelNames** `['service', 'method', 'statusCode', 'type']`| Количество запросов по **gRPC** к внешним системам с ошибками |
-|`GRPC_EXTERNAL_REQUEST_RETRY`|**labelNames** `['service', 'method', 'statusCode', 'type']`| Количество повторных запросов по **gRPC** к внешним системам |
+```ts
+await this.grpcClient.request<IReq, IRes>(
+  { service: 'MainService', method: 'doSomething', data },
+  {
+    requestOptions: { timeout: 30_000 },
+    retryOptions: { retry: false },
+    metadataBuilderOptions: { authToken: 'Bearer ...' },
+  },
+);
+```
 
 ## `GrpcClientModule`
 
-Динамический модуль, предназначенный для создания **gRPC**-клиента.
+Динамический модуль для создания **gRPC**-клиента. Не является глобальным — регистрируется в каждом потребителе через `register(...)`.
 
-Пример подключения:
-
-```typescript
+```ts
+import { join } from 'path';
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GrpcClientModule } from 'src/modules/grpc/grpc-client';
-import { MAIN_SERVICE_CLIENT_DI } from './types/tokens';
 
 @Module({
   imports: [
-    ...,
     GrpcClientModule.register({
       grpcClientProxyBuilderOptions: {
         inject: [ConfigService],
-        useFactory: (configService: ConfigService) => {
-          return {
-            url: configService.get(...),
-            package: 'demo.service',
-            baseDir: join(__dirname, '../../../../protos'),
-            protoPath: ['/demo/service/MainService.proto'],
-            includeDirs: [],
-          };
-        },
+        useFactory: (configService: ConfigService) => ({
+          url: `${configService.get('REMOTE_GRPC_HOST')}:${configService.get('REMOTE_GRPC_PORT')}`,
+          package: 'demo.service',
+          baseDir: join(__dirname, '../../../../protos'),
+          protoPath: ['/demo/service/MainService.proto'],
+          includeDirs: [],
+        }),
       },
-    })
-  ]
+    }),
+  ],
 })
+export class MainServiceIntegrationModule {}
 ```
 
-### Описание опций `GrpcClientModule`
+### Опции `GrpcClientModule.register(options)` — `IGrpcClientModuleOptions`
 
-| Опция| Описание|
-|---|---|
-|`imports`| Подключение дополнительных модулей, если providers из них могут быть нужны для inject |
-|`providers`| Включение дополнительных providers, если нужны для inject |
-|`grpcClientProxyBuilderOptions`| Конструктор опций `IGrpcClientProxyBuilderOptions` для создания `ClientGrpcProxy` (**@see** `@nestjs/microservices`). Созданный `ClientGrpcProxy` будет доступен через **DI-token** `GRPC_CLIENT_PROXY_DI`|
-|`metadataRequestBuilder`| Конструктор `IGrpcMetadataRequestBuilder`,  будет доступен через **DI-token** `GRPC_CLIENT_METADATA_REQUEST_BUILDER_DI`, если не задан, то будет использован `GrpcMetadataRequestBuilder`|
-|`requestOptions`| Конструктор дополнительных опций запроса, которые будут применены как по умолчанию. при вызове метода `GrpcClientService.request()` всегда можно указать новые значение, которые будут применены к текущему запросу.|
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `imports` | `ImportsType` (`ModuleMetadata['imports']`) | Нет | `[]` | Дополнительные модули к базовому списку (`ConfigModule`, `ElkLoggerModule`, `AuthModule`, `PrometheusModule`). Нужны, если `providers` из них используются в фабриках `useFactory`. |
+| `providers` | `Provider[]` (`@nestjs/common`) | Нет | `[]` | Дополнительные provider-ы модуля. |
+| `grpcClientProxyBuilderOptions` | `IServiceClassProvider<IGrpcClientProxyBuilderOptions>` \| `IServiceValueProvider<...>` \| `IServiceFactoryProvider<...>` | Да | — | Provider опций построения `ClientGrpcProxy`; результат привязывается к токену `GRPC_CLIENT_PROXY_BUILDER_OPTIONS_DI`, итоговый `ClientGrpcProxy` — к `GRPC_CLIENT_PROXY_DI`. |
+| `grpcClientProxyBuilderOptions.useClass` | `Type<IGrpcClientProxyBuilderOptions>` | — | — | Класс опций для `useClass`. |
+| `grpcClientProxyBuilderOptions.useValue` | `IGrpcClientProxyBuilderOptions` | — | — | Готовое значение опций. |
+| `grpcClientProxyBuilderOptions.useFactory` | `(...deps) => IGrpcClientProxyBuilderOptions \| Promise<...>` | — | — | Фабрика опций. |
+| `grpcClientProxyBuilderOptions.inject` | `FactoryProvider['inject']` | Нет | `[]` | Зависимости фабрики (например, `ConfigService`). |
+| `grpcClientProxyBuilderOptions.useValue.url` | `string` | Да | — | Адрес целевого **gRPC**-сервера (`host:port`). |
+| `grpcClientProxyBuilderOptions.useValue.package` | `string` | Да | — | Имя пакета из **proto**-файла. |
+| `grpcClientProxyBuilderOptions.useValue.baseDir` | `string` | Да | — | Корневой каталог для разрешения `protoPath`. |
+| `grpcClientProxyBuilderOptions.useValue.protoPath` | `string \| string[]` | Да | — | Путь (или список путей) к **proto**-файлам относительно `baseDir`. |
+| `grpcClientProxyBuilderOptions.useValue.includeDirs` | `string[]` | Нет | `[]` | Дополнительные каталоги поиска импортов `.proto`. |
+| `grpcClientProxyBuilderOptions.useValue.normalizeUrl` | `boolean` | Нет | `false` | Нормализовать ли `url` через `UrlHelper.normalize` (удаление схемы, и т. п.). |
+| `metadataRequestBuilder` | `IServiceClassProvider<IGrpcMetadataRequestBuilder>` \| `IServiceValueProvider<...>` \| `IServiceFactoryProvider<...>` | Нет | `{ useClass: GrpcMetadataRequestBuilder }` | Реализация `IGrpcMetadataRequestBuilder`, привязываемая к `GRPC_CLIENT_METADATA_REQUEST_BUILDER_DI`. |
+| `metadataRequestBuilder.useClass` | `Type<IGrpcMetadataRequestBuilder>` | — | `GrpcMetadataRequestBuilder` | Класс реализации. |
+| `metadataRequestBuilder.useValue` | `IGrpcMetadataRequestBuilder` | — | — | Готовый экземпляр. |
+| `metadataRequestBuilder.useFactory` | `(...deps) => IGrpcMetadataRequestBuilder \| Promise<...>` | — | — | Фабрика. |
+| `metadataRequestBuilder.inject` | `FactoryProvider['inject']` | Нет | `[]` | Зависимости фабрики. |
+| `requestOptions` | `IServiceClassProvider<IGrpcRequestOptions>` \| `IServiceValueProvider<IGrpcRequestOptions>` \| `IServiceFactoryProvider<IGrpcRequestOptions>` | Нет | `{ useValue: {} }` | Provider `IGrpcRequestOptions` — значения по умолчанию для `GrpcClientService.request()`; переопределяются во втором аргументе вызова. Привязан к `GRPC_CLIENT_REQUEST_OPTIONS_DI`. |
+| `requestOptions.useValue.metadataBuilderOptions.useZipkin` | `boolean` | Нет | `false` | Проставлять Zipkin-заголовки в `Metadata`. |
+| `requestOptions.useValue.metadataBuilderOptions.asArray` | `boolean` | Нет | `false` | Передавать значения `Metadata` массивами. |
+| `requestOptions.useValue.metadataBuilderOptions.authToken` | `string` | Нет | — | Значение заголовка `Authorization`. |
+| `requestOptions.useValue.requestOptions.timeout` | `number` (мс) | Нет | `GRPC_CLIENT_REQUEST_TIMEOUT` | Таймаут одного **gRPC**-запроса. |
+| `requestOptions.useValue.retryOptions.retry` | `boolean` | Нет | Значение `GRPC_CLIENT_RETRY_ENABLED` | Включить/отключить retry. |
+| `requestOptions.useValue.retryOptions.timeout` | `number` (мс) | Нет | `GRPC_CLIENT_RETRY_TIMEOUT` | Общий таймаут процесса `request()`. |
+| `requestOptions.useValue.retryOptions.delay` | `number` (мс) | Нет | `GRPC_CLIENT_RETRY_DELAY` | Пауза между повторами. |
+| `requestOptions.useValue.retryOptions.retryMaxCount` | `number` | Нет | `GRPC_CLIENT_RETRY_MAX_COUNT` | Максимальное число повторов. |
+| `requestOptions.useValue.retryOptions.statusCodes` | `Array<string \| number>` | Нет | `GRPC_CLIENT_RETRY_STATUS_CODES` | Статусы, при которых выполняется retry. |
+
+Экспортируется: `GRPC_CLIENT_PROXY_DI`, `GRPC_CLIENT_METADATA_REQUEST_BUILDER_DI`, `GrpcClientResponseHandler`, `GrpcClientService`.
+
+## `GrpcClientBuilder`
+
+Низкоуровневый билдер, используемый внутри `GrpcClientModule`. Применять напрямую, как правило, не нужно — предпочтительнее `GrpcClientModule.register(...)`.
+
+- `GrpcClientBuilder.buildGrpcOptions(options)` — возвращает `GrpcOptions` (**@see** `@nestjs/microservices`), полезно для настройки `GRPCHealthIndicator` (**@see** `@nestjs/terminus`).
+- `GrpcClientBuilder.buildClientGrpcProxy(options)` — создаёт `ClientGrpcProxy` на основе **proto**-файлов.
+- `GrpcClientBuilder.buildClientGrpc<T>(serviceName, clientGrpcProxy)` — получает типизированный сервис из `ClientGrpcProxy`.
+
+## `IGrpcMetadataRequestBuilder`
+
+Интерфейс билдера `Metadata` для исходящих **gRPC**-запросов (расширение `IGrpcMetadataBuilder` из `grpc-common`). Дефолтная реализация — `GrpcMetadataRequestBuilder`. Дополнительные опции:
+
+- `useZipkin` — включить распространение Zipkin-заголовков.
+- `asArray` — передавать значения заголовков в виде массивов.
+- `authToken` — проставить авторизационный токен в `Metadata`.
+
+## `GrpcClientResponseHandler`
+
+Обработчик ответа и ошибок: приводит исключения к `GrpcClientError` и пишет соответствующий лог. Используется `GrpcClientService` как на успешном пути (`loggingResponse`), так и в `retry`/`catchError`.
+
+## Форматеры логов
+
+- `GrpcServiceErrorFormatter` — лог-форматер `ServiceError` (**@see** `@grpc/grpc-js`): `IObjectFormatter<ServiceError>`.
+- `GrpcClientErrorFormatter` — лог-форматер `GrpcClientError`: `IObjectFormatter<GrpcClientError>`.
+
+## DI-токены
+
+- `GRPC_CLIENT_PROXY_BUILDER_OPTIONS_DI` — опции построения `ClientGrpcProxy`.
+- `GRPC_CLIENT_PROXY_DI` — созданный `ClientGrpcProxy`.
+- `GRPC_CLIENT_METADATA_REQUEST_BUILDER_DI` — билдер `Metadata` исходящего запроса.
+- `GRPC_CLIENT_REQUEST_OPTIONS_DI` — `IGrpcRequestOptions`, применяемые по умолчанию.
+
+## Метрики
+
+| Метрика | Метки | Описание |
+|---|---|---|
+| `GRPC_EXTERNAL_REQUEST_DURATIONS` | **labelNames** `['service', 'method']` | Гистограмма длительностей **gRPC**-запросов к внешним системам и их количество. |
+| `GRPC_EXTERNAL_REQUEST_FAILED` | **labelNames** `['service', 'method', 'statusCode', 'type']` | Количество **gRPC**-запросов к внешним системам с ошибками. |
+| `GRPC_EXTERNAL_REQUEST_RETRY` | **labelNames** `['service', 'method', 'statusCode', 'type']` | Количество повторных **gRPC**-запросов к внешним системам. |

@@ -52,6 +52,7 @@
     "class-validator": "^0.15.1",
     "cookie": "^1.1.1",
     "cookie-parser": "^1.4.7",
+    "ejs": "^5.0.2",
     "fishery": "^2.4.0",
     "grpc-health-check": "^2.1.0",
     "jsonwebtoken": "^9.0.3",

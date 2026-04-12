@@ -19,14 +19,15 @@ export enum ConsumerMode {
 
 export interface IConsumerPacket<T = unknown> extends ReadPacket<IKafkaMessage<T> | undefined> {}
 
-export type IKafkaMessageOptions = Record<string, unknown> & {
+export interface IKafkaMessageOptions {
+  [key: string]: unknown;
   serverName: string;
   mode: ConsumerMode;
   topic: string;
   correlationId?: string;
   replyTopic?: string;
   replyPartition?: number;
-};
+}
 
 export interface IConsumerDeserializer<T = unknown> extends Deserializer<KafkaMessage, IConsumerPacket<T>> {
   deserialize(value: KafkaMessage, options: IKafkaMessageOptions): IConsumerPacket<T> | Promise<IConsumerPacket<T>>;

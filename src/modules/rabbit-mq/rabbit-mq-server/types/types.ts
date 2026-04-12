@@ -27,10 +27,11 @@ export interface IRabbitMqMicroserviceBuilderOptions<T = unknown> {
   rabbitMqStatusService: RabbitMqServerStatusService;
 }
 
-export type IRabbitMqEventOptions = Record<string, unknown> & {
+export interface IRabbitMqEventOptions {
+  [key: string]: unknown;
   serverName: string;
   consumer?: Partial<IRabbitMqChannelOptions & IRabbitMqConsumerOptions>;
-};
+}
 
 export interface IConsumerPacket<T = unknown> extends ReadPacket<IRabbitMqConsumeMessage<T> | undefined> {}
 

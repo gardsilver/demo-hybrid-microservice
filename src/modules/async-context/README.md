@@ -5,6 +5,24 @@
 Позволяет хранить данные на протяжении всего жизненного цикла любой асинхронной операции.
 [**@see** node:async_hooks](https://nodejs.org/api/async_context.html#class-asynclocalstorage)
 
+Модуль — уровень 1 (core), не является `DynamicModule` и не регистрируется в NestJS.
+
+## Публичное API
+
+- `AbstractAsyncContext<T>` — базовый класс контекста. Для собственного контекста наследуется пользователем и создаётся статический `instance`.
+  - `static define(initCallback?)` — декоратор метода, создающий контекст на время его вызова.
+  - `runWithContext(fn, context)` / `runWithContextAsync(fn, context)` — императивный запуск c контекстом.
+  - `get(key)` / `getSafe(key)` — получение значения по ключу. `getSafe` не бросает исключение при отсутствии контекста.
+  - `set(key, value)` / `setMultiple(values)` — модификация текущего контекста.
+  - `extend()` — возвращает копию всех значений текущего контекста.
+- `IAsyncContext` — базовый интерфейс контекста (`extends IKeyValue`).
+- `GetAsyncContextValueType<T, K>` — утилитарный тип для значения по ключу.
+- `EmptyAsyncContextError` — ошибка, выбрасываемая при обращении к контексту вне `runWithContext*` / `@define`.
+
+## Параметры окружения
+
+Модуль не читает переменные окружения.
+
 ### Как применять
 
 #### 1. Опишите свой асинхронный контекст

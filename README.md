@@ -1,129 +1,247 @@
 # Demo Hybrid Microservice
 
-Минимальное серверное приложение [NodeJs v22](http://nodejs.org).
+Минимальное серверное приложение на [Node.js v24](https://nodejs.org) и [NestJS v11](https://nestjs.com), демонстрирующее **гибридную микросервисную архитектуру** с поддержкой нескольких транспортов: **REST (HTTP)**, **gRPC**, **Kafka**, **RabbitMq** и **WebSocket**.
+
+Стек: **TypeScript 5.9**, **Node.js >= 24**, **PostgreSQL** (Sequelize ORM), **Redis**, **Kafka** (kafkajs), **RabbitMq** (amqp-connection-manager), **gRPC** (`@grpc/grpc-js`, `ts-proto`), **Prometheus**, **Docker**.
 
 Реализован и настроен базовый системный функционал:
 
 - Настроено сквозное логирование в формате **ElasticSearch** с поддержкой пользовательского асинхронного контекста выполнения и возможностью добавления различных лог-форматеров.
-- Прозрачность и наблюдаемость за состоянием сервера: метрики **Prometheus** и **Health Check Monitor**
-- Корректное завершение приложение **Graceful Shutdown**.
+- Прозрачность и наблюдаемость за состоянием сервера: метрики **Prometheus** и **Health Check Monitor**.
+- Корректное завершение приложения **Graceful Shutdown**.
 - Реализовано взаимодействие с базой данных **Postgres**: логирование, базовые метрики, авто-применение миграций.
-- Настроено кеширование с использованием **Redis** (не блокирует выполнение приложения в случае не доступности **Redis** и реализовано автоматическое восстановление соединения).
-- Настроена интеграция с сервером очередей **Kafka**: автоматическое восстановление соединения, логирование, метрики, запуск консъюмеров `eachMessage` или `eachBatch`, отправка сообщений `send` или `sendBatch` с возможностью переотправки.
-- Настроена интеграция с сервером очередей **RabbitMq**: автоматическое восстановление соединения, логирование, метрики, запуск консъюмеров и отправка сообщений.
+- Настроено кеширование с использованием **Redis** (не блокирует выполнение приложения в случае недоступности **Redis** и реализовано автоматическое восстановление соединения).
+- Настроена интеграция с сервером очередей **Kafka**: автоматическое восстановление соединения, логирование, метрики, запуск консьюмеров `eachMessage` или `eachBatch`, отправка сообщений `send` или `sendBatch` с возможностью переотправки.
+- Настроена интеграция с сервером очередей **RabbitMq**: автоматическое восстановление соединения, логирование, метрики, запуск консьюмеров и отправка сообщений.
 
-Добавлен простой `WebSocket` чат.
+Добавлен простой `WebSocket`-чат.
 
-## Установка и настройка
+> Полная архитектурная схема, разбивка модулей по слоям и соглашения проекта описаны в [`CLAUDE.md`](./CLAUDE.md).
 
-### Настройки окружения
+## Быстрый старт
 
-Для работы приложения необходимо:
+Минимальный путь от клонирования до работающего приложения со Swagger.
 
-- Установить компилятор [protobuf](https://protobuf.dev/installation/)
-- Создать БД **Postgres**
-- Настроить параметры подключения `.env`.
+> В проекте **два** `makefile`: корневой — для сборки/запуска/тестов приложения, и `deploy/makefile` — для управления Docker-инфраструктурой. Каждая команда ниже снабжена пометкой, **откуда она запускается**.
 
-Общая конфигурация параметров окружения:
+### 1. Предварительные требования
 
-- `.example.env` Содержит все доступные параметры окружения. Носит описательный характер и не влияет на работу приложения. Более подробную информацию по каждому параметру можно найти в `README.md` соответствующего модуля.
-- `.default.env` Задает значения параметров окружения, которые будут использованы по умолчанию для всех окружений.
-- `.env` Определяет значения параметров окружения, которые будут применены для текущего развертывания.
+- **Node.js** ≥ 24, **npm** ≥ 10.
+- Компилятор [**protobuf**](https://protobuf.dev/installation/) (`protoc`) в `PATH`.
+- **Docker** и **Docker Compose** — для локальной инфраструктуры (Postgres, Redis, Kafka, RabbitMQ).
 
-Например, если указать следующие параметры:
+### 2. Конфигурация окружения
 
-```env
-SERVICE_PORT=3000
-GRPC_HOST=127.0.0.1
-GRPC_PORT=3001
+Приложение читает переменные окружения из трёх файлов:
+
+- `.example.env` — **справочник**: перечисляет все доступные переменные с описаниями и значениями, которыми пользуется `deploy/`-инфраструктура. Носит описательный характер, **на работу приложения не влияет**, коммитится в репозиторий. Подробности каждой переменной — в `README.md` соответствующего модуля.
+- `.default.env` — **значения по умолчанию**, применяемые автоматически; коммитится в репозиторий.
+- `.env` — **параметры текущего развёртывания**; переопределяет `.default.env`, **не коммитится**. Создаётся автоматически командой `make i` (копия из `.example.env`) либо вручную.
+
+### 3. Установка зависимостей и компиляция proto
+
+Запускается **из корня проекта**:
+
+```bash
+make i                  # npm i + создаст .env из .example.env, если его нет
+make proto-compile      # Linux/macOS (или `make proto-compile-win` на Windows)
 ```
 
-То будут доступны:
+### 4. Подъём локальной инфраструктуры
 
-- <http://127.0.0.1:3000> - **Swagger**
-- <http://127.0.0.1:3001> - **gRPS**-сервис с настроенным **Reflection-Service**.
+Запускается **из каталога `deploy/`** (другой makefile):
 
-### Сборка микросервиса
+```bash
+cd deploy
+make init               # один раз: создаёт docker-volumes (postgres, redis, kafka, rabbitmq)
+make dc-start           # поднимает Postgres (:5432), Redis (:6379), Kafka (:9092), RabbitMQ (:5672)
+cd ..
+```
+
+Полный набор docker-команд — в [`deploy/README.md`](./deploy/README.md).
+
+### 5. Запуск приложения
+
+Запускается **из корня проекта**:
+
+```bash
+make start-dev          # nest start --watch
+```
+
+После старта доступны:
+
+- <http://127.0.0.1:3000/> — **Swagger UI**.
+- <http://127.0.0.1:3000/health/liveness-probe> — liveness.
+- <http://127.0.0.1:3000/health/readiness-probe> — readiness.
+- <http://127.0.0.1:3000/health/our-metrics> — метрики **Prometheus**.
+- <http://127.0.0.1:3000/health/test-jwt-token> — тестовый JWT-токен.
+- <http://127.0.0.1:3000/chat> — WebSocket-чат (EJS-вьюха).
+- <http://127.0.0.1:3000/api/app> — пример защищённого REST-эндпоинта (`HttpApiController`).
+- **gRPC** на `127.0.0.1:3001` с включённым **Reflection-Service**.
+
+> Глобальный префикс `/api` настраивается в [`src/main.ts`](./src/main.ts) через `app.setGlobalPrefix('api', { exclude: ['health{*path}', 'chat{*path}'] })`. Маршруты `/health/*` и `/chat` **исключены** из префикса и доступны из корня.
+
+### 6. Проверка качества
+
+Запускается **из корня проекта**:
+
+```bash
+make lint-all           # ESLint + Prettier
+make test-cov           # unit-тесты с покрытием (порог 90% по всем метрикам)
+```
+
+## Порты и эндпоинты
+
+| Сервис | Порт | Параметр | Описание |
+|---|---|---|---|
+| HTTP / Swagger / WebSocket | 3000 | `SERVICE_PORT` | REST API, Swagger UI, WebSocket-чат |
+| gRPC | 3001 | `GRPC_PORT` | gRPC-сервер с Reflection-Service |
+
+Глобальный префикс — `/api`, но маршруты `health{*path}` и `chat{*path}` **исключены** из префикса (см. `app.setGlobalPrefix` в [`src/main.ts`](./src/main.ts)).
+
+Эндпоинты, доступные из корня (без `/api`):
+
+- `GET /` — **Swagger UI**.
+- `GET /health/liveness-probe` — проверка жизнеспособности.
+- `GET /health/readiness-probe` — проверка готовности (Postgres, Redis, Kafka, RabbitMq).
+- `GET /health/our-metrics` — метрики **Prometheus**.
+- `GET /health/test-jwt-token` — тестовый JWT-токен для Swagger.
+- `GET /chat` — EJS-вьюха WebSocket-чата (`ChatController`).
+
+Эндпоинты под глобальным префиксом `/api`:
+
+- `GET /api/app` — пример защищённого REST-эндпоинта (`HttpApiController`).
+
+## Пример: bootstrap и вызов HTTP-эндпоинта
+
+Точка входа — [`src/main.ts`](./src/main.ts). Приложение создаётся через `NestFactory.create<NestExpressApplication>(MainModule, ...)`; затем последовательно регистрируются глобальные pipes/filters/guards/interceptors, поднимается HTTP-слой, после чего `GrpcMicroserviceBuilder`, `KafkaMicroserviceBuilder` и `RabbitMqMicroserviceBuilder` подключают остальные транспорты:
+
+```typescript
+const app = await NestFactory.create<NestExpressApplication>(MainModule, { logger: nestLogger, bufferLogs: true });
+
+app.useGlobalFilters(app.get(HybridErrorResponseFilter));
+app.useGlobalGuards(app.get(HttpAuthGuard), app.get(GrpcAuthGuard));
+app.useGlobalInterceptors(
+  app.get(HttpLogging), app.get(HttpPrometheus), app.get(HttpHeadersResponse),
+  app.get(GrpcLogging), app.get(GrpcPrometheus),
+);
+
+GrpcMicroserviceBuilder.setup(app, { /* ... */ });
+KafkaMicroserviceBuilder.setup(app, { /* ... */ });
+RabbitMqMicroserviceBuilder.setup(app, { /* ... */ });
+
+await app.listen(appConfig.getServicePort());
+await app.startAllMicroservices();
+```
+
+Пример HTTP-контроллера — [`src/core/api/http/controllers/http.api.controller.ts`](./src/core/api/http/controllers/http.api.controller.ts):
+
+```typescript
+@Controller('app')
+@ApiTags('app')
+@ApiBearerAuth()
+export class HttpApiController {
+  constructor(private readonly service: HttpApiService) {}
+
+  @Get()
+  @GracefulShutdownOnCount()
+  async getHello(@HttpGeneralAsyncContext() asyncContext: IGeneralAsyncContext): Promise<string> {
+    return GeneralAsyncContext.instance.runWithContextAsync(
+      async () => this.service.getHello(),
+      asyncContext,
+    );
+  }
+}
+```
+
+Проверить работу эндпоинта можно так:
+
+```bash
+# Получить тестовый JWT-токен (маршрут /health исключён из глобального префикса /api)
+TOKEN=$(curl -s http://127.0.0.1:3000/health/test-jwt-token)
+
+# Вызвать защищённый эндпоинт (глобальный префикс /api + маршрут контроллера /app)
+curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app
+```
+
+## Команды
 
 Все часто используемые команды указаны в `makefile`.
 
 | **make**-команда | Аналог **npm** | Описание |
 |---|---|---|
-|`make i`| `npm i` | Выполняет установку зависимостей |
-|`make proto-compile`| `npm run proto-compile` | Выполняет компиляцию **proto**-файлов в `Lunix` (**@see** `compile-protos.js`) |
-|`make proto-compile-win`| `npm run proto-compile-win` | Выполняет компиляцию **proto**-файлов в `Windows` (**@see** `compile-protos.js`) |
-|`make start`| `npm run start` | Запуск микросервиса без отслеживания изменения файлов. |
-|`make start-dev`| `npm run start:dev` | Запуск микросервиса c отслеживанием изменений файлов. |
-|`make rebuild`| `rmdir /s /q .\dist` <br> `rmdir /s /q .\node_modules` <br> `npm i` <br> `npm run proto-compile` | Осуществляет полную пересборку микросервиса в `Lunix` |
-|`make rebuild-win`| `rmdir /s /q .\dist` <br> `rmdir /s /q .\node_modules` <br> `npm i` <br> `npm run proto-compile-win` | Осуществляет полную пересборку микросервиса в `Windows` |
-|`make lint`| `npm run format` <br> `git diff --name-only --diff-filter=AM origin/master > .eslint-list` <br> `npm run lint:diff` | Авто коррекция code-style для измененных файлов. (Применимо только для `Lunix`) |
-|`make lint-all`| `npm run format` <br> `npm run lint:all` | Авто коррекция code-style файлов. |
-|`make test`| `npm run test` | Запускает **unit**-тесты без расчета уровня покрытия тестами. |
-|`make test-cov`| `npm run test:cov` | Запускает **unit**-тесты c расчетом уровня покрытия тестами. |
-|`make test-e2e`| `npm run test:e2e` | Запускает **end-to-end**-тесты. |
+| `make i` | `npm i` | Создаёт `.env` (если нет) и устанавливает зависимости |
+| `make proto-compile` | `npm run proto-compile` | Компиляция **proto**-файлов в Linux (**@see** `compile-protos.js`) |
+| `make proto-compile-win` | `npm run proto-compile-win` | Компиляция **proto**-файлов в Windows |
+| `make start` | `npm run start` | Запуск без отслеживания изменений |
+| `make start-dev` | `npm run start:dev` | Запуск c отслеживанием изменений (`nest start --watch`) |
+| — | `npm run start:debug` | Запуск с отладчиком (`nest start --debug --watch`) |
+| — | `npm run build` | Сборка (`nest build`) |
+| — | `npm run start:prod` | Запуск собранного кода (`node dist/main`) |
+| `make rebuild` | `rm -rf dist node_modules` <br> `npm i` <br> `npm run proto-compile` | Полная пересборка в Linux |
+| `make rebuild-win` | то же для Windows | Полная пересборка в Windows |
+| `make lint` | `npm run format` <br> `npm run lint:diff` | Форматирование + линтинг изменённых файлов (относительно `origin/master`; только Linux) |
+| `make lint-all` | `npm run format` <br> `npm run lint:all` | Форматирование + линтинг всего кода |
+| `make test` | `npm run test` | Unit-тесты без покрытия |
+| `make test-cov` | `npm run test:cov` | Unit-тесты с покрытием (порог 90% по всем метрикам) |
+| `make test-e2e` | `npm run test:e2e` | End-to-end тесты |
+| — | `npm run migrate:generate <имя>` | Генерация новой Sequelize-миграции |
+
+## Структура проекта
+
+```
+src/
+├── main.ts                    # Точка входа, bootstrap всех микросервисов
+├── main.module.ts             # Корневой модуль NestJS
+├── core/
+│   ├── app/                   # Конфигурация, фабрики форматеров
+│   ├── api/                   # Бизнес-логика по транспортам (http/grpc/kafka/rabbit-mq/web-socket/common)
+│   └── repositories/postgres/ # Модели БД
+├── modules/                   # Переиспользуемые инфраструктурные и транспортные модули
+├── examples/integrations/     # Примеры клиентских интеграций
+└── health/                    # Health Check эндпоинты
+protos/                        # Protocol Buffer определения
+front/                         # Статические ресурсы и вьюхи (WebSocket-чат)
+migrations/                    # Sequelize-миграции
+deploy/                        # Docker и Docker Compose
+tests/                         # Моки и фабрики для тестов (сами тесты лежат рядом с исходниками в src/)
+```
 
 ## Локальная среда разработки
 
-Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды позволяющие быстро поднимать минимально-необходимое окружение, эмулировать различные аварийные ситуации (например отказ **Postgres** или другой интеграции). **@see** `deploy`.
+Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды, позволяющие быстро поднимать минимально-необходимое окружение и эмулировать различные аварийные ситуации (например, отказ **Postgres** или другой интеграции). Подробнее — в [`deploy/README.md`](./deploy/README.md).
 
-## Логирование и асинхронный контекст выполнения  
+## Документация модулей
 
-- `GeneralAsyncContext` (**@see** `src/modules/common`)
-- `ElkLoggerModule` (**@see** `src/modules/elk-logger`)
+Каждый модуль сопровождается собственным `README.md` с описанием назначения, зависимостей и переменных окружения.
 
-## Метрики **Prometheus**
+### Инфраструктурные модули
 
-- `PrometheusModule` (**@see** `src/modules/prometheus`).
+- **Логирование и async-контекст**: [`src/modules/common`](./src/modules/common/README.md), [`src/modules/elk-logger`](./src/modules/elk-logger/README.md), [`src/modules/async-context`](./src/modules/async-context/README.md), [`src/modules/date-timestamp`](./src/modules/date-timestamp/README.md).
+- **Метрики и наблюдаемость**: [`src/modules/prometheus`](./src/modules/prometheus/README.md).
+- **Аутентификация**: [`src/modules/auth`](./src/modules/auth/README.md).
+- **Жизненный цикл**: [`src/modules/graceful-shutdown`](./src/modules/graceful-shutdown/README.md).
+- **Хранилища**: [`src/modules/database`](./src/modules/database/README.md), [`src/modules/redis-cache-manager`](./src/modules/redis-cache-manager/README.md).
 
-## **Hybrid Microservice**: **REST**, **gRPC**, **Kafka**, **RabbitMq**
+### Транспортные модули
 
-А именно реализована поддержка глобальных **Guard**, **Interceptor**, **Errors Filter**.
+Каждый транспорт разбит на слои `*-common / *-server / *-client`:
 
-- `HybridErrorResponseFilter` ( **@see** `src/modules/hybrid/hybrid-server`)
-- `HttpAuthGuard`, `HttpLogging`, `HttpPrometheus`, `HttpHeadersResponse` и многое другое (**@see**  `src/modules/http/http-server`)
-- `HttpClientService` (**@see**  `src/modules/http/http-client`)
-- `GrpcAuthGuard`, `GrpcLogging`, `GrpcPrometheus` и многое другое (**@see**  `src/modules/grpc/grpc-server`)
-- `GrpcClientService` (**@see**  `src/modules/grpc/grpc-client`)
-- `KafkaErrorFilter`, `KafkaServerService` (**@see**  `src/modules/kafka/kafka-server`)
-- `KafkaClientService` (**@see**  `src/modules/kafka/kafka-client`)
-- `RabbitMqErrorFilter`, `RabbitMqServer` (**@see**  `src/modules/rabbit-mq/rabbit-mq-server`)
-- `RabbitMqClientService` (**@see**  `src/modules/rabbit-mq/rabbit-mq-client`)
+- **HTTP**: [`src/modules/http`](./src/modules/http/README.md).
+- **gRPC**: [`src/modules/grpc`](./src/modules/grpc/README.md).
+- **Kafka**: [`src/modules/kafka`](./src/modules/kafka/README.md).
+- **RabbitMq**: [`src/modules/rabbit-mq`](./src/modules/rabbit-mq/README.md).
+- **Hybrid (агрегатор)**: [`src/modules/hybrid/hybrid-server`](./src/modules/hybrid/hybrid-server/README.md) — `HybridErrorResponseFilter`, общий error-filter, объединяющий все транспортные `*-server` модули.
 
-## **Graceful Shutdown**
+## Известные проблемы
 
-Реализована логика плавного завершения приложения **Graceful Shutdown** (**@see** `src/modules/graceful-shutdown`), включающая в себя отслеживание активных процессов и запуск пользовательских сценариев завершения приложения. Например перед закрытием приложения можно остановить работу всех **Consumer**-ов и дождаться завершения работы всех активных процессов.
+**kafkajs: TimeoutNegativeWarning** — при запуске в логах может появиться:
 
-## **Health Check Monitor**
+```
+(node:XX) TimeoutNegativeWarning: -XXXXXXXXXX is a negative number.
+Timeout duration was set to 1.
+```
 
-Реализован **Health Check Monitor**, включающий в себя методы: `liveness-probe`, `readiness-probe` и `our-metrics`.
-
-## **Postgres**
-
-Организовано подключение к БД  **Postgres** (**@see** `src/modules/database`), механизм отслеживания новых миграций и автоматическое их применение.
-
-## **Redis Cache Manager**
-
-Гибкая настройка соединения с [**Redis**](https://www.npmjs.com/package/@keyv/redis).
-По умолчанию используется стандартная конфигурация (`host` и `port`) для подключения к **Redis** (**@see** `src/modules/redis-cache-manager`)
-
-## **Kafka**
-
-Гибкая настройка подключения к **Kafka**, логирование, метрики и **Health Check**.
-Реализованы возможности:
-
-- Запуск **Consumer**: `eachMessage` и `eachBatch`. (**@see**  `src/modules/kafka/kafka-server`).
-- Оправка сообщений **Producer**: `send` и `sendBatch`. (**@see**  `src/modules/kafka/kafka-client`).
-- Настройка восстановления подключения и переотправка сообщений: [retry](https://kafka.js.org/docs/configuration#default-retry)
-- Настроено отслеживание состояние **Kafka**-сервера в **Health Check Monitor** и отключение консъюмеров в сценарии плавного завершения работы приложения.
-
-## **RabbitMq**
-
-Гибкая настройка подключения к **RabbitMq**, логирование, метрики и **Health Check**.
-Реализованы возможности:
-
-- Запуск **Consumer** (**@see**  `src/modules/rabbit-mq/rabbit-mq-server`).
-- Оправка сообщений **Producer** (**@see**  `src/modules/rabbit-mq/rabbit-mq-client`).
-- Настроено автоматическое восстановление подключения к **RabbitMq** брокеру при его потере.
-- Настроено отслеживание состояния **RabbitMq**-сервера в **Health Check Monitor** и отключение консъюмеров в сценарии плавного завершения работы приложения.
+Причина — баг в kafkajs (`node_modules/kafkajs/src/consumer/index.js:300`): в `KafkaJSNumberOfRetriesExceeded` сохраняется экспоненциально выросшее значение `retryTime`, которое передаётся в `setTimeout()`. В Node < 24 это молча приводилось к 1 мс, в Node 24 — выдаёт warning в stderr. kafkajs [фактически заброшен](https://github.com/tulios/kafkajs/issues/1572) с 2023 года (последняя стабильная версия — 2.2.4). На работу приложения warning не влияет. При необходимости подавить его — добавить `--disable-warning=TimeoutNegativeWarning` в `NODE_OPTIONS`.
 
 [email](mailto:gardsilver@list.ru)

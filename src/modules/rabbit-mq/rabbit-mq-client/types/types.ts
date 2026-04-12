@@ -10,10 +10,11 @@ import {
   IRabbitMqPublishOptionsBuilderOptions,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
 
-export type IProducerSerializerOptions = Record<string, unknown> & {
+export interface IProducerSerializerOptions {
+  [key: string]: unknown;
   serverName: string;
   pattern?: string;
-};
+}
 
 export interface IProducerSerializer<T = unknown> extends Serializer<
   IRabbitMqProducerMessage<T>,

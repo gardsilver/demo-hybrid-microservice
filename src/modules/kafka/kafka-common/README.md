@@ -27,12 +27,41 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 Описаны имена **Kafka**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common` и др.).
 
+```ts
+export enum KafkaAsyncContextHeaderNames {
+  REPLY_TOPIC = 'x-reply-topic',
+  REPLY_PARTITION = 'x-reply-partition',
+}
+```
+
 - `KafkaHeadersHelper.nameAsHeaderName` - позволяет получить имя заголовка для параметра `IKafkaAsyncContext`
 - `KafkaHeadersHelper.toAsyncContext` - позволяет получить `IKafkaAsyncContext` из  **Kafka** заголовков `IHeaders` (**@see** `src/modules/common`).
 
 #### ВАЖНО
 
 Не следует на прямую использовать `KafkaHeadersHelper` для получения данных асинхронного контекста. Для этого нужно использовать адаптер соответствующий интерфейсу `IKafkaHeadersToAsyncContextAdapter`. Можно использовать `KafkaHeadersToAsyncContextAdapter` или реализовать свой.
+
+```ts
+import { KafkaHeadersToAsyncContextAdapter, KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
+import { GeneralAsyncContext } from 'src/modules/async-context';
+
+const adapter = new KafkaHeadersToAsyncContextAdapter();
+const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
+const asyncContext = adapter.adapt(headers);
+
+await GeneralAsyncContext.instance.runWithContextAsync(asyncContext, async () => {
+  // контекст (traceId, spanId, replyTopic, replyPartition) доступен ниже по стеку
+});
+```
+
+### Общие типы
+
+Модуль экспортирует базовые типы сообщений и опций, используемые и в `kafka-server`, и в `kafka-client`:
+
+- `IKafkaMessage<T>` — `{ key?: string | null; value: T; headers?: IHeaders }`.
+- `IKafkaClientOptions`, `IKafkaConsumerOptions`, `IKafkaProducerOptions` — обёртки над `KafkaOptions` из `@nestjs/microservices` с упрощённым доступом к `retry`-настройкам и поддержкой `logFilterParams`.
+- `IKafkaClientProxyBuilderOptions` — корневые опции для `KafkaOptionsBuilder` (включая обязательное поле `serverName`).
+- `IKafkaHealthIndicatorOptions` — параметры `KafkaServerHealthIndicator` (`useAdmin`, `retry`).
 
 ### Record Formatters
 
@@ -42,7 +71,7 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 ```typescript
 import { ElkLoggerConfig, ElkLoggerModule } from 'src/modules/elk-logger';
-import { KafkaJsErrorObjectFormatter } from 'src/modules/http/http-common';
+import { KafkaJsErrorObjectFormatter } from 'src/modules/kafka/kafka-common';
 ...
 
   imports: [
@@ -70,7 +99,7 @@ export interface RetryOptions {
 }
 ```
 
-Поскольку в разных сценариях могут быть задействованы только определенные параметры, то реализованы билдеры для формирования соответствующего набора в каждом из сценарии **@see** `KafkaOptionsBuilder`. В частности для консъюмеров всегда будет добавляться метод `restartOnFailure`, который фиксирует лог и вернет `false`, если был послан сигнал о завершении работы приложения **SIGTERM**  (**@see** `src/modules/graceful-shutdown`).
+Поскольку в разных сценариях могут быть задействованы только определенные параметры, то реализованы билдеры для формирования соответствующего набора в каждом из сценарии **@see** `KafkaOptionsBuilder`. В частности для консьюмеров всегда будет добавляться метод `restartOnFailure`, который фиксирует лог и вернет `false`, если был послан сигнал о завершении работы приложения **SIGTERM**  (**@see** `src/modules/graceful-shutdown`).
 
 ### Метрики
 

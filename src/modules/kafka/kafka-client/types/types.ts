@@ -37,10 +37,11 @@ export interface IKafkaRequest<T = unknown> {
   data: IKafkaMessage<T> | IKafkaMessage<T>[];
 }
 
-export type IProducerSerializerOptions = Record<string, unknown> & {
+export interface IProducerSerializerOptions {
+  [key: string]: unknown;
   serverName: string;
   mode: ProducerMode;
-};
+}
 
 export interface IKafkaSendOptions
   extends Omit<ProducerRecord, 'topic' | 'messages'>, Omit<Message, 'key' | 'value' | 'headers'> {

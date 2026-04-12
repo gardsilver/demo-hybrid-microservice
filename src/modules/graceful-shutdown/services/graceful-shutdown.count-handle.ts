@@ -115,8 +115,8 @@ export class GracefulShutdownCountHandler implements OnModuleInit {
       if (value.value) {
         total.total += value.value;
         total.details.push({
-          service: value.labels.service.toString(),
-          method: value.labels.method.toString(),
+          service: value.labels.service?.toString() ?? '',
+          method: value.labels.method?.toString() ?? '',
           count: value.value,
         });
       }

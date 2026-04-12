@@ -14,13 +14,13 @@ describe(KafkaServerStatusService.name, () => {
 
     optionsBuilder = {
       stop: jest.fn(),
-    } as undefined as KafkaOptionsBuilder;
+    } as unknown as KafkaOptionsBuilder;
 
     server = {
       close: jest.fn(),
-    } as undefined as Server;
+    } as unknown as Server;
 
-    indicator = {} as undefined as KafkaServerHealthIndicator;
+    indicator = {} as unknown as KafkaServerHealthIndicator;
 
     jest.clearAllMocks();
   });

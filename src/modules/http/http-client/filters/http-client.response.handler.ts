@@ -58,7 +58,7 @@ export class HttpClientResponseHandler {
       logger.log(options?.logLevel ?? LogLevel.INFO, 'HTTP response success', {
         markers: [LoggerMarkers.RESPONSE, LoggerMarkers.SUCCESS, LoggerMarkers.EXTERNAL],
         payload: {
-          response: this.axiosResponseToLogFormat(response as undefined as AxiosResponse<T, D>),
+          response: this.axiosResponseToLogFormat(response as unknown as AxiosResponse<T, D>),
         },
       });
     }

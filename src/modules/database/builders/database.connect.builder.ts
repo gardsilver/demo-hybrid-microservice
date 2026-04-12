@@ -96,7 +96,7 @@ export abstract class DatabaseConnectBuilder {
 
       const tables: any = await DatabaseConnectBuilder.db.query(sqlTables, { type: QueryTypes.SELECT });
 
-      if (!tables.some((table) => table.tablename === migrationsTable)) {
+      if (!tables.some((table: { tablename: string }) => table.tablename === migrationsTable)) {
         await DatabaseConnectBuilder.db.query(
           `CREATE TABLE ${databaseSchema}.${migrationsTable} (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);`,
         );
@@ -111,10 +111,10 @@ export abstract class DatabaseConnectBuilder {
         .readdirSync(path.relative(process.cwd(), 'migrations'))
         .filter((file) => path.extname(file) === '.js');
 
-      const tasks = [];
+      const tasks: string[] = [];
 
       migrations.forEach((migration) => {
-        if (!migrationsCompleted.some((m) => m.name === migration)) {
+        if (!migrationsCompleted.some((m: { name: string }) => m.name === migration)) {
           tasks.push(migration);
         }
       });

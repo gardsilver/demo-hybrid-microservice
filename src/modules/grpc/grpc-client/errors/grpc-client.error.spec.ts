@@ -14,7 +14,7 @@ describe('isGrpcServiceError', () => {
     expect(isGrpcServiceError({})).toBeFalsy();
     expect(isGrpcServiceError([])).toBeFalsy();
 
-    const error = new Error();
+    const error = new Error() as unknown as Record<string, unknown>;
 
     expect(isGrpcServiceError(error)).toBeFalsy();
 
@@ -73,7 +73,7 @@ describe('GrpcClientError', () => {
   }
 
   it('default', async () => {
-    const error = new CustomGrpcClientError(undefined, undefined, undefined);
+    const error = new CustomGrpcClientError(undefined as unknown as string, undefined as unknown as string, undefined as unknown as string);
 
     expect({
       message: error.message,
@@ -108,7 +108,7 @@ describe('GrpcClientError', () => {
 
   it('with ServiceError', async () => {
     const headers = grpcHeadersFactory.build({ programsIds: ['1', '2'] });
-    const grpcError = new Error();
+    const grpcError = new Error() as unknown as Record<string, unknown>;
     grpcError['code'] = 1;
     grpcError['metadata'] = grpcMetadataFactory.build(headers);
 

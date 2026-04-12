@@ -36,7 +36,7 @@ export const getElkLoggerOptions = (target: object): ElkLoggerOptions => {
   const option: ElkLoggerOptions = Reflect.getMetadata(ELK_LOGGER_CONFIG_KEY, target.constructor);
 
   return {
-    fields: false,
     ...option,
+    fields: option?.fields ?? false,
   };
 };

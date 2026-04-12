@@ -344,7 +344,7 @@ describe(HttpClientResponseHandler.name, () => {
 
       it('HttpClientError with response', async () => {
         axiosError.stack = undefined;
-        axiosError.cause = { description: 'Test error' } as undefined as Error;
+        axiosError.cause = { description: 'Test error' } as unknown as Error;
 
         const error = new HttpClientInternalError('Bed request', AxiosError.ERR_BAD_REQUEST, axiosError, axiosResponse);
 

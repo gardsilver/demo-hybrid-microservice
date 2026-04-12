@@ -3,14 +3,14 @@ import { IElkLoggerService } from 'src/modules/elk-logger';
 import { DatabaseConfig } from '../services/database.config';
 
 export interface IConnectOptions extends Pick<
-  Required<Options>,
+  Options,
   'dialect' | 'host' | 'port' | 'schema' | 'database' | 'username' | 'password' | 'logging' | 'benchmark'
 > {}
 
 export abstract class DatabaseConnectOptionsBuilder {
   public static build(config: DatabaseConfig, logger: IElkLoggerService): IConnectOptions {
     return {
-      dialect: config.getDialect() as undefined as Dialect,
+      dialect: config.getDialect() as unknown as Dialect,
       host: config.getHost(),
       port: config.getPort(),
       schema: config.getDatabaseSchema(),

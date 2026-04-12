@@ -19,7 +19,7 @@ describe(MockConsumerDeserializer.name, () => {
       headers: {
         'x-header': faker.string.alpha(3),
       },
-    } as undefined as KafkaMessage;
+    } as unknown as KafkaMessage;
   });
 
   it('default', async () => {

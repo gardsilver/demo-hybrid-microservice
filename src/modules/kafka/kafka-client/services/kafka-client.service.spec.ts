@@ -58,13 +58,13 @@ describe(KafkaClientService.name, () => {
       connect: jest.fn(),
       unwrap: jest.fn(),
       getServerName: () => serverName,
-    } as undefined as KafkaClientProxy;
+    } as unknown as KafkaClientProxy;
 
     requestOptions = {};
     handler = {
       loggingStatus: jest.fn(),
       handleError: jest.fn(),
-    } as undefined as KafkaClientErrorHandler;
+    } as unknown as KafkaClientErrorHandler;
 
     const module = await Test.createTestingModule({
       imports: [ConfigModule, ElkLoggerModule.forRoot(), PrometheusModule],

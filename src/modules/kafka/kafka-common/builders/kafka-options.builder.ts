@@ -27,7 +27,7 @@ export class KafkaOptionsBuilder {
       loggerBuilder: this.loggerBuilder,
     });
 
-    const brokers: string[] = clientOptions.brokers as undefined as string[];
+    const brokers: string[] = clientOptions.brokers as unknown as string[];
 
     return {
       ...{

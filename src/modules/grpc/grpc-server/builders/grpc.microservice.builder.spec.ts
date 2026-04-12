@@ -27,7 +27,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
     });
     statusService = {
       addGrpcHealthImplementation: jest.fn(),
-    } as undefined as GrpcServerStatusService;
+    } as unknown as GrpcServerStatusService;
   });
 
   it('Должен подключить Микросервис', async () => {

@@ -16,6 +16,10 @@ export abstract class ProviderBuilder {
       };
     }
 
+    if (!params?.defaultType) {
+      throw new Error(`ProviderBuilder: defaultType is not defined for ${di.toString()}`);
+    }
+
     return {
       provide: di,
       ...params.defaultType,

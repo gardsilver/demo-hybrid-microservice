@@ -83,7 +83,7 @@ export class KafkaServerService extends KafkaServerBase {
       {
         eachMessage: async (payload: EachMessagePayload) => this.handleEachMessage(payload),
       },
-    ) as undefined as ConsumerRunConfig;
+    ) as unknown as ConsumerRunConfig;
 
     const readyPromise = this.waitForConsumerReady(this.consumer, ConsumerMode.EACH_MESSAGE);
     readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()
@@ -169,7 +169,7 @@ export class KafkaServerService extends KafkaServerBase {
       {
         eachBatch: async (payload: EachBatchPayload) => this.handleBatchMessages(payload),
       },
-    ) as undefined as ConsumerRunConfig;
+    ) as unknown as ConsumerRunConfig;
 
     const readyPromise = this.waitForConsumerReady(this.batchConsumer, ConsumerMode.EACH_BATCH);
     readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()

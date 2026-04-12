@@ -101,9 +101,7 @@ describe(LogFieldsHelper.name, () => {
       payload: {
         ...logRecordA.payload,
         ...logRecordB.payload,
-        details: (logRecordA.payload.details as undefined as Array<string>).concat(
-          logRecordB.payload.details as undefined as Array<string>,
-        ),
+        details: (logRecordA.payload.details as Array<string>).concat(logRecordB.payload.details as Array<string>),
       },
     });
   });

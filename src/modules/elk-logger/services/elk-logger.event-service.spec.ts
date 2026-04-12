@@ -90,8 +90,8 @@ describe(ElkLoggerEventService.name, () => {
   });
 
   describe('handleOnMethod', () => {
-    let spyLoggerBuilder;
-    let spyLogger;
+    let spyLoggerBuilder: jest.SpyInstance;
+    let spyLogger: jest.SpyInstance;
     let fields: ILogFields;
 
     beforeEach(async () => {

@@ -347,7 +347,7 @@ export abstract class KafkaServerBase extends Server {
   } {
     const eventKafkaMessageOptions = {
       ...handler.extras,
-    } as undefined as Record<string, any> & IEventKafkaMessageOptions;
+    } as unknown as Record<string, any> & IEventKafkaMessageOptions;
 
     const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
     const headerAdapter = eventKafkaMessageOptions.headerAdapter ?? this.headerAdapter;

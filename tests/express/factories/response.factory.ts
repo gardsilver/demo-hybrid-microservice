@@ -7,6 +7,6 @@ export const responseFactory = {
     return new MockResponse({
       status: params?.status ?? HttpStatus.INTERNAL_SERVER_ERROR,
       headers: params?.headers,
-    }) as undefined as Response;
+    }) as unknown as Response;
   },
 };

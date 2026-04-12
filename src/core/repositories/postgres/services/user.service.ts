@@ -29,9 +29,9 @@ export class UserService {
   ) {}
 
   @PrometheusOnMethod({
-    labels: ({ labels }) => {
+    labels: (params) => {
       return {
-        ...labels,
+        ...params?.labels,
         method: 'findUser',
       };
     },
@@ -48,7 +48,7 @@ export class UserService {
   })
   @ElkLoggerOnMethod({
     fields: ({ methodsArgs }) => {
-      const identity = methodsArgs[0] as undefined as IIdentityUser;
+      const identity = methodsArgs?.[0] as unknown as IIdentityUser;
 
       return {
         payload: {

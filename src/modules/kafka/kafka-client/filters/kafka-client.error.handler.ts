@@ -110,7 +110,7 @@ export class KafkaClientErrorHandler {
           'KafkaJSServerDoesNotSupportApiKey',
           'KafkaJSUnsupportedMagicByteInMessageSet',
         ].includes(cause.name) ||
-        ('type' in cause && ['INVALID_RECORD'].includes(cause['type'] as undefined as string))
+        ('type' in cause && ['INVALID_RECORD'].includes(cause['type'] as string))
       ) {
         resolvedError = new KafkaClientInternalError(
           cause.message,

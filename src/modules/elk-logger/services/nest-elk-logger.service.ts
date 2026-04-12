@@ -149,16 +149,17 @@ export class NestElkLoggerService extends BaseElkLoggerService implements INestE
     level: LogLevel,
     message: unknown,
     options: {
-      context: string;
+      context?: string;
       errorStack?: string;
     },
   ): ILogFields {
+    const payload: Record<string, unknown> = {};
     const logFields: ILogFields = {
       level,
       module: options.context,
       message: undefined,
       businessData: undefined,
-      payload: {},
+      payload,
       traceId: undefined,
       spanId: undefined,
       parentSpanId: undefined,
@@ -180,10 +181,10 @@ export class NestElkLoggerService extends BaseElkLoggerService implements INestE
       if (logFields.message === undefined) {
         logFields.message = message.message;
       }
-      logFields.payload['error'] = message;
-    } else if (typeof message === 'object') {
+      payload['error'] = message;
+    } else if (message !== null && typeof message === 'object') {
       if (this.elkLoggerConfig.isIgnoreObject(message)) {
-        logFields.payload['message'] = message;
+        payload['message'] = message;
       } else {
         const errors = [];
         for (const [k, v] of Object.entries(message)) {
@@ -200,11 +201,11 @@ export class NestElkLoggerService extends BaseElkLoggerService implements INestE
             continue;
           }
 
-          logFields.payload[k] = v;
+          payload[k] = v;
         }
 
         if (errors.length) {
-          logFields.payload['errors'] = errors;
+          payload['errors'] = errors;
         }
       }
     } else {
@@ -212,7 +213,7 @@ export class NestElkLoggerService extends BaseElkLoggerService implements INestE
     }
 
     if (options.errorStack) {
-      logFields.payload['errorStack'] = options.errorStack
+      payload['errorStack'] = options.errorStack
         ?.split('\n')
         ?.map((line) => line?.trim())
         ?.filter((line) => line || line !== '');

@@ -60,14 +60,14 @@ describe(KafkaErrorFilter.name, () => {
       getMode: jest.fn(),
       getMessage: jest.fn(),
       getMessageOptions: jest.fn(),
-    } as undefined as KafkaContext;
+    } as unknown as KafkaContext;
 
     host = {
       switchToRpc: () =>
         ({
           getContext: () => kafkaContext,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ArgumentsHost;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ArgumentsHost;
 
     jest.spyOn(KafkaServerHelper, 'isKafka').mockImplementation(() => true);
   });

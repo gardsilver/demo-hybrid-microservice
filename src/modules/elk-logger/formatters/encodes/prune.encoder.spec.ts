@@ -1,6 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
+import { CheckObjectsType } from 'src/modules/common';
 import { MockConfigService } from 'tests/nestjs';
 import { PruneEncoder } from './prune.encoder';
 import {
@@ -13,7 +14,6 @@ import { ElkLoggerConfig } from '../../services/elk-logger.config';
 import { PruneConfig } from '../prune.config';
 import { ILogFields, LogFormat } from '../../types/elk-logger.types';
 import { PruneMessages } from '../../types/prune.types';
-import { CheckObjectsType } from 'src/modules/common';
 import { ObjectFormatter } from '../records/object.formatter';
 
 describe(PruneEncoder.name, () => {
@@ -70,7 +70,7 @@ describe(PruneEncoder.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
               sortFields,
               defaultFields,
             );

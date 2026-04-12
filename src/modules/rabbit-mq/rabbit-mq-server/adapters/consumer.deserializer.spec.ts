@@ -68,8 +68,8 @@ describe(ConsumerDeserializer.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
     jest.clearAllMocks();
   });

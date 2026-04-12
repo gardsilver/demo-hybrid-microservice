@@ -24,7 +24,7 @@ describe(RabbitMqHealthIndicator.name, () => {
           ],
         ]);
       },
-    } as undefined as RabbitMqServer;
+    } as unknown as RabbitMqServer;
   });
 
   it('as up', async () => {

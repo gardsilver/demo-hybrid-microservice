@@ -34,19 +34,22 @@ export class PruneConfig {
 
     this.applyForFormats = configServiceHelper
       .parseArray('APPLY_FOR_FORMATS')
-      .map((format) => format.trim() as undefined as LogFormat)
+      .map((format) => format.trim() as unknown as LogFormat)
       .filter((format) => !!format);
 
-    this.maxLengthFields = configServiceHelper.parseArray('MAX_LENGTH_FIELDS').reduce((store, limit) => {
-      const [fieldName, lim] = limit.split('=').map((val) => val.trim());
-      if (fieldName) {
-        const val = Number(lim);
+    this.maxLengthFields = configServiceHelper.parseArray('MAX_LENGTH_FIELDS').reduce(
+      (store, limit) => {
+        const [fieldName, lim] = limit.split('=').map((val) => val.trim());
+        if (fieldName) {
+          const val = Number(lim);
 
-        store[fieldName] = val > 0 ? val : Infinity;
-      }
+          store[fieldName] = val > 0 ? val : Infinity;
+        }
 
-      return store;
-    }, {});
+        return store;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   getElkLoggerConfig(): ElkLoggerConfig {

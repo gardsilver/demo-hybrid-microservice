@@ -9,7 +9,7 @@ export class DemoResponseSerializer implements IProducerSerializer<MainResponse>
   ): IRabbitMqProducerMessage<Buffer | string> {
     return {
       ...value,
-      content: Buffer.from(MainResponse.encode(value.content).finish()),
+      content: value.content ? Buffer.from(MainResponse.encode(value.content).finish()) : undefined,
     };
   }
 }

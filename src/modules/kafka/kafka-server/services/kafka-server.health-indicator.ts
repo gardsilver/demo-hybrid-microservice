@@ -21,7 +21,7 @@ export class KafkaServerHealthIndicator {
     this.server.status
       .pipe(
         tap((status) => {
-          this.status = status as undefined as KafkaStatus;
+          this.status = status as unknown as KafkaStatus;
         }),
       )
       .subscribe();

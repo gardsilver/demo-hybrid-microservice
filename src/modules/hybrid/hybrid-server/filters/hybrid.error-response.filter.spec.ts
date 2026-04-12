@@ -74,7 +74,7 @@ describe(HybridErrorResponseFilter.name, () => {
   it('ignore', async () => {
     const host = {
       getType: () => 'tcp',
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -87,7 +87,7 @@ describe(HybridErrorResponseFilter.name, () => {
   it('http', async () => {
     const host = {
       getType: () => 'http',
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -104,7 +104,7 @@ describe(HybridErrorResponseFilter.name, () => {
       switchToRpc: () => ({
         getContext: () => new Metadata(),
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -131,7 +131,7 @@ describe(HybridErrorResponseFilter.name, () => {
       switchToRpc: () => ({
         getContext: () => kafkaContext,
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -150,7 +150,7 @@ describe(HybridErrorResponseFilter.name, () => {
       switchToRpc: () => ({
         getContext: () => rabbitMqContext,
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 

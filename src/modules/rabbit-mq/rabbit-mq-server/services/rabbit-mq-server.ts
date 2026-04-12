@@ -255,7 +255,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
     registeredPatterns.forEach((pattern) => {
       const handler = this.getHandlers().get(pattern);
-      const extras: IEventRabbitMqMessageOptions = handler.extras as undefined as IEventRabbitMqMessageOptions;
+      const extras: IEventRabbitMqMessageOptions = handler.extras as unknown as IEventRabbitMqMessageOptions;
 
       this.channels.set(
         pattern,
@@ -450,7 +450,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
   public async handleEvent(pattern: string, packet: ReadPacket, context: RabbitMqContext): Promise<any> {
     const handler = this.getHandlerByPattern(pattern);
-    const extras: IEventRabbitMqMessageOptions = handler?.extras as undefined as IEventRabbitMqMessageOptions;
+    const extras: IEventRabbitMqMessageOptions = handler?.extras as unknown as IEventRabbitMqMessageOptions;
     const { noAck } = this.parseOptions(extras);
 
     if (!handler) {

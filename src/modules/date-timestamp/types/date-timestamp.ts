@@ -151,11 +151,11 @@ export class DateTimestamp {
           } else if (REGEXP_CORRECT_DATE_TIME.test(dateTime)) {
             const format = DateTimestampHelper.parseFormat(dateTime);
 
-            this.moment = moment(dateTime, format);
+            this.moment = moment(dateTime, format ?? undefined);
 
             const hasTimezone = REGEXP_WITH_TIMEZONE_OFFSET.test(dateTime);
             if (hasTimezone) {
-              const parsedOffset = DateTimestampHelper.parseOffset(dateTime, format);
+              const parsedOffset = DateTimestampHelper.parseOffset(dateTime, format ?? undefined);
 
               if (!isNaN(parsedOffset) && parsedOffset !== undefined && parsedOffset !== null) {
                 this.setUtcOffset(parsedOffset);

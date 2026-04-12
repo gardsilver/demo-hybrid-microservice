@@ -16,17 +16,17 @@ import { DATABASE_DI } from './types/tokens';
 import { DatabaseConfig } from './services/database.config';
 
 describe(DatabaseModule.name, () => {
-  let spy;
+  let spy: jest.SpyInstance;
   let configService: ConfigService;
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let prometheusManager: PrometheusManager;
-  let db;
+  let db: unknown;
 
   beforeEach(async () => {
     jest.clearAllMocks();
 
-    spy = jest.spyOn(DatabaseConnectBuilder, 'build').mockImplementation(async () => ({}) as undefined as Sequelize);
+    spy = jest.spyOn(DatabaseConnectBuilder, 'build').mockImplementation(async () => ({}) as unknown as Sequelize);
 
     logger = new MockElkLoggerService();
 

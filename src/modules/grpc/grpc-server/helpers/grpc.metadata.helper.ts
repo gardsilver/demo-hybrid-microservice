@@ -9,7 +9,7 @@ export abstract class GrpcMetadataHelper {
   }
 
   public static getAuthInfo(metadata: Metadata): IAuthInfo {
-    return metadata[METADATA_AUTH_INFO_KEY] as undefined as IAuthInfo;
+    return metadata[METADATA_AUTH_INFO_KEY] as unknown as IAuthInfo;
   }
 
   public static setAsyncContext<Ctx = IAsyncContext>(ctx: Ctx, metadata: Metadata) {
@@ -17,6 +17,6 @@ export abstract class GrpcMetadataHelper {
   }
 
   public static getAsyncContext<Ctx = IAsyncContext>(metadata: Metadata): Ctx {
-    return metadata[METADATA_ASYNC_CONTEXT_KEY] as undefined as Ctx;
+    return metadata[METADATA_ASYNC_CONTEXT_KEY] as unknown as Ctx;
   }
 }

@@ -136,7 +136,7 @@ describe(HealthController.name, () => {
               status: 'up',
             },
           }),
-        } as undefined as KafkaServerHealthIndicator,
+        } as unknown as KafkaServerHealthIndicator,
       ];
     };
 
@@ -148,7 +148,7 @@ describe(HealthController.name, () => {
               status: 'up',
             },
           }),
-        } as undefined as RabbitMqHealthIndicator,
+        } as unknown as RabbitMqHealthIndicator,
       ];
     };
   });

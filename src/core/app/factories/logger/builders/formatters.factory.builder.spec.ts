@@ -10,7 +10,7 @@ describe(FormattersFactoryBuilder.name, () => {
   beforeAll(async () => {
     elkLoggerConfig = {
       isIgnoreObject: () => false,
-    } as undefined as ElkLoggerConfig;
+    } as unknown as ElkLoggerConfig;
   });
 
   it('build', async () => {

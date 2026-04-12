@@ -16,7 +16,7 @@ class TestAsyncContext extends AbstractAsyncContext<ITestAsyncContext> {
 
 describe(AbstractAsyncContext.name, () => {
   let asyncContext: ITestAsyncContext;
-  let mockContext: ITestAsyncContext;
+  let mockContext: ITestAsyncContext | undefined;
 
   beforeEach(async () => {
     asyncContext = generalAsyncContextFactory.build(TraceSpanBuilder.build() as unknown as ITestAsyncContext, {
@@ -61,7 +61,8 @@ describe(AbstractAsyncContext.name, () => {
     const result = TestAsyncContext.instance.get('startTimestamp');
 
     expect(spyGetStore).toHaveBeenCalled();
-    expect(result).toEqual(mockContext.startTimestamp);
+    expect(mockContext).toBeDefined();
+    expect(result).toEqual(mockContext?.startTimestamp);
   });
 
   it('get - failed', async () => {

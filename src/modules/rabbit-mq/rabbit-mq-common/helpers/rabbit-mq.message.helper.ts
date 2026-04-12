@@ -22,7 +22,7 @@ export abstract class RabbitMqMessageHelper {
       return value.toString().trim();
     }
 
-    return value as undefined as RabbitMqHeadersValue;
+    return value as RabbitMqHeadersValue;
   }
 
   public static normalize<H = IKeyValue>(headers: H): IRabbitMqHeaders {
@@ -70,7 +70,7 @@ export abstract class RabbitMqMessageHelper {
       correlationId: properties.correlationId,
       messageId: properties.messageId,
       replyTo: properties.replyTo,
-    } as undefined as Ctx;
+    } as unknown as Ctx;
 
     return ctx;
   }
@@ -148,7 +148,7 @@ export abstract class RabbitMqMessageHelper {
 
     if (
       [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID].includes(
-        result.header as undefined as HttpGeneralAsyncContextHeaderNames,
+        result.header as unknown as HttpGeneralAsyncContextHeaderNames,
       )
     ) {
       const asStr = RabbitMqMessageHelper.headerValueAsString(result.value);

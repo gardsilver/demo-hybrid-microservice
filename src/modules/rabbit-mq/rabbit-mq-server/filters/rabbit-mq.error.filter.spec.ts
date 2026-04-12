@@ -85,8 +85,8 @@ describe(RabbitMqErrorFilter.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
     rmqContext = new RabbitMqContext<string>([consumeMessage, { ...consumeMessage, content }, undefined, undefined]);
 
@@ -94,8 +94,8 @@ describe(RabbitMqErrorFilter.name, () => {
       switchToRpc: () =>
         ({
           getContext: () => rmqContext,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ArgumentsHost;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ArgumentsHost;
 
     jest.spyOn(RabbitMqHelper, 'isRabbitMq').mockImplementation(() => true);
   });

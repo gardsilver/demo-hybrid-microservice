@@ -28,7 +28,8 @@ describe(UncaughtExceptionHelper.name, () => {
     return error;
   };
 
-  let error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let error: any;
 
   beforeEach(async () => {
     error = new Error('Test error');

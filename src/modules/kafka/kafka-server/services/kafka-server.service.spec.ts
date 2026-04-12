@@ -64,7 +64,7 @@ describe(KafkaServerService.name, () => {
     extras = {
       serverName,
     };
-    messageHandler = {} as undefined as MessageHandler;
+    messageHandler = {} as unknown as MessageHandler;
 
     server = new KafkaServerService({ serverName }, prometheusManager);
 
@@ -188,7 +188,7 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       await server['handleEachMessage'](payload);
 
@@ -230,7 +230,7 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       const kafkaContext = new KafkaContext([
         kafkaMessage,
@@ -243,7 +243,7 @@ describe(KafkaServerService.name, () => {
           serverName,
           mode: ConsumerMode.EACH_MESSAGE,
           topic,
-        } as undefined as IKafkaMessageOptions,
+        } as unknown as IKafkaMessageOptions,
       ]);
 
       await server['handleEachMessage'](payload);
@@ -316,7 +316,7 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       await server['handleEachMessage'](payload);
 
@@ -395,7 +395,7 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       await server['handleBatchMessages'](payload);
 
@@ -441,7 +441,7 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       const kafkaContext = new KafkaContext([
         [kafkaMessage],
@@ -455,7 +455,7 @@ describe(KafkaServerService.name, () => {
             serverName,
             mode: ConsumerMode.EACH_BATCH,
             topic,
-          } as undefined as IKafkaMessageOptions,
+          } as unknown as IKafkaMessageOptions,
         ],
       ]);
 
@@ -534,7 +534,7 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       await server['handleBatchMessages'](payload);
 

@@ -71,8 +71,8 @@ describe(GrpcErrorResponseFilter.name, () => {
         ({
           getData: () => requestData,
           getContext: () => requestMetadata,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ArgumentsHost;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ArgumentsHost;
   });
 
   it('init', async () => {

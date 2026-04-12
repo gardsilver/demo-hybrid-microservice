@@ -21,8 +21,8 @@ const defaultMessage = {
 
 @Injectable()
 export class ElkLoggerEventService implements OnApplicationShutdown {
-  private static loggerOnMethods: ReplaySubject<ITargetLoggerOnMethod & { event: IElkLoggerEvent }>;
-  private static subscription: Subscription;
+  private static loggerOnMethods: ReplaySubject<ITargetLoggerOnMethod & { event: IElkLoggerEvent }> | undefined;
+  private static subscription: Subscription | undefined;
 
   constructor(@Inject(ELK_LOGGER_SERVICE_BUILDER_DI) private readonly loggerBuilder: IElkLoggerServiceBuilder) {
     if (ElkLoggerEventService.loggerOnMethods === undefined) {

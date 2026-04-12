@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigServiceHelper } from 'src/modules/common';
 import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
+import { KafkaServers } from 'src/core/app/types/constants';
 
 @Injectable()
 export class AppKafkaConfig {
@@ -41,8 +42,8 @@ export class AppKafkaConfig {
     return this.clientId;
   }
 
-  getGroupId(): string | undefined {
-    return this.groupId;
+  getGroupId(): string {
+    return this.groupId ?? KafkaServers.DEFAULT_GROUP_ID;
   }
 
   getRetryStatusCodes(): Array<string | number> {

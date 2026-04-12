@@ -24,9 +24,9 @@ describe(RabbitMqServerStatusService.name, () => {
 
     server = {
       close: () => spyClose(),
-    } as undefined as RabbitMqServer;
+    } as unknown as RabbitMqServer;
 
-    indicator = {} as undefined as RabbitMqHealthIndicator;
+    indicator = {} as unknown as RabbitMqHealthIndicator;
 
     jest.clearAllMocks();
   });

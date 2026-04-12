@@ -106,8 +106,8 @@ describe(HttpAuthGuard.name, () => {
           getRequest: () => request,
           getResponse: jest.fn(),
           getNext: jest.fn(),
-        }) as undefined as HttpArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as HttpArgumentsHost,
+    } as unknown as ExecutionContext;
 
     jest.clearAllMocks();
   });

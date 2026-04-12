@@ -13,7 +13,7 @@ export class RabbitMqHealthIndicator {
     this.server.status
       .pipe(
         tap((status) => {
-          this.status = status as undefined as RmqStatus;
+          this.status = status as unknown as RmqStatus;
         }),
       )
       .subscribe();

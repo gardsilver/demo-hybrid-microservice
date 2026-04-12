@@ -46,18 +46,20 @@ describe(SortFieldsFormatter.name, () => {
 
     expect(logRecord).toEqual(copyLogRecord);
 
-    expect(Object.keys(encodeLogRecord)).toEqual(
-      Object.keys({
-        timestamp: logRecord.timestamp,
-        level: logRecord.level,
-        traceId: logRecord.traceId,
-        message: logRecord.message,
-        module: logRecord.module,
-        markers: logRecord.markers,
-        spanId: logRecord.spanId,
-        payload: logRecord.payload,
-        ...logRecord,
-      }),
-    );
+    const expectedOrder = [
+      'timestamp',
+      'level',
+      'traceId',
+      'message',
+      'module',
+      'markers',
+      'spanId',
+      'payload',
+      ...Object.keys(logRecord).filter(
+        (k) => !['timestamp', 'level', 'traceId', 'message', 'module', 'markers', 'spanId', 'payload'].includes(k),
+      ),
+    ];
+
+    expect(Object.keys(encodeLogRecord)).toEqual(expectedOrder);
   });
 });

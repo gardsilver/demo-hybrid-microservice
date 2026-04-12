@@ -14,7 +14,7 @@ describe(CircularFormatter.name, () => {
   let formatter: CircularFormatter;
 
   beforeAll(async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     formatter = new CircularFormatter(loggerConfig);
   });
@@ -70,7 +70,7 @@ describe(CircularFormatter.name, () => {
         request: {
           ...(logRecord.payload['request'] as IKeyValue),
           body: {
-            ...(logRecord.payload['request']['body'] as IKeyValue),
+            ...((logRecord.payload['request'] as IKeyValue)['body'] as IKeyValue),
             time: 'Circular[* 7]',
             programs: 'Circular[* 6]',
           },

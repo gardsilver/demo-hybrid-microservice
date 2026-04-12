@@ -81,7 +81,7 @@ describe(KafkaClientErrorHandler.name, () => {
     kafkaError = new KafkaJSError('Server error', {
       ...baseParams,
       cause,
-    } as undefined as KafkaJSErrorMetadata);
+    } as unknown as KafkaJSErrorMetadata);
     kafkaError.stack = 'Error: message\n    at <anonymous>:1:2\n';
 
     error = new KafkaClientInternalError('Test Error', 'status', kafkaError);

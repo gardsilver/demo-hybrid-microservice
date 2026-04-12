@@ -3,7 +3,7 @@ import { IKeyValue } from '../types/types';
 import { BaseHeadersHelper } from './base.headers.helper';
 
 type HeaderValue = string | number | Buffer;
-type RawHeaders = IKeyValue<HeaderValue | HeaderValue[]>;
+type RawHeaders = IKeyValue<HeaderValue | HeaderValue[] | undefined>;
 
 describe(BaseHeadersHelper.name, () => {
   let traceId: string;

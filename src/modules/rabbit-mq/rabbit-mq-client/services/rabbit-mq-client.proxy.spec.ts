@@ -356,8 +356,8 @@ describe(RabbitMqClientProxy.name, () => {
       expect(spyCreateChannel).toHaveBeenCalled();
       expect(clientProxy['channel']).toBeDefined();
 
-      const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-      const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+      const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+      const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
       const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
       const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -525,7 +525,7 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -600,7 +600,7 @@ describe(RabbitMqClientProxy.name, () => {
 
         const crashError = new Error('Send error');
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -689,7 +689,7 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -765,7 +765,7 @@ describe(RabbitMqClientProxy.name, () => {
         const crashError = new Error('Send error');
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -860,7 +860,7 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {
@@ -930,7 +930,7 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {

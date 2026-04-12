@@ -109,8 +109,8 @@ describe(HttpErrorResponseFilter.name, () => {
           getRequest: () => request,
           getResponse: () => response,
           getNext: jest.fn(),
-        }) as undefined as HttpArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as HttpArgumentsHost,
+    } as unknown as ExecutionContext;
 
     jest.clearAllMocks();
   });
@@ -141,7 +141,7 @@ describe(HttpErrorResponseFilter.name, () => {
     });
     expect(HttpRequestHelper.getAsyncContext<IGeneralAsyncContext>(request)).toEqual(asyncContext);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((response as undefined as any)?.getStatus()).toEqual(500);
+    expect((response as unknown as any)?.getStatus()).toEqual(500);
     expect(spySend).toHaveBeenCalledWith({ error: 'Test error', message: 'Internal Server Error', statusCode: 500 });
   });
 
@@ -166,7 +166,7 @@ describe(HttpErrorResponseFilter.name, () => {
     });
     expect(spyAdapt).toHaveBeenCalledTimes(0);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    expect((response as undefined as any)?.getStatus()).toEqual(400);
+    expect((response as unknown as any)?.getStatus()).toEqual(400);
     expect(spySend).toHaveBeenCalledWith({ error: 'Bad Request', message: 'Test error', statusCode: 400 });
   });
 });

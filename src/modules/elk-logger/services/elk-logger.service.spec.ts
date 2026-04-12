@@ -27,11 +27,11 @@ import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 describe(ElkLoggerService.name, () => {
-  let mockUuid;
-  let spyFormatter;
-  let spyRecordEncodeFormatter;
-  let spyEncodeFormatter;
-  let spyLogWriter;
+  let mockUuid: string;
+  let spyFormatter: jest.SpyInstance;
+  let spyRecordEncodeFormatter: jest.SpyInstance;
+  let spyEncodeFormatter: jest.SpyInstance;
+  let spyLogWriter: jest.SpyInstance;
 
   let loggerConfig: ElkLoggerConfig;
   let formatter: ILogRecordFormatter;
@@ -91,7 +91,7 @@ describe(ElkLoggerService.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
               sortFields,
               defaultFields,
             );

@@ -9,7 +9,7 @@ export abstract class HttpRequestHelper {
   }
 
   public static getAuthInfo(request: Request): IAuthInfo {
-    return request[METADATA_AUTH_INFO_KEY] as undefined as IAuthInfo;
+    return request[METADATA_AUTH_INFO_KEY] as unknown as IAuthInfo;
   }
 
   public static setAsyncContext<Ctx = IAsyncContext>(ctx: Ctx, request: Request) {
@@ -17,6 +17,6 @@ export abstract class HttpRequestHelper {
   }
 
   public static getAsyncContext<Ctx = IAsyncContext>(request: Request): Ctx {
-    return request[METADATA_ASYNC_CONTEXT_KEY] as undefined as Ctx;
+    return request[METADATA_ASYNC_CONTEXT_KEY] as unknown as Ctx;
   }
 }

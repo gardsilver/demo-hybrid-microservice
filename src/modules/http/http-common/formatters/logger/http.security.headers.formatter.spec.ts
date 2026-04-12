@@ -18,7 +18,7 @@ describe(HttpSecurityHeadersFormatter.name, () => {
       providers: [
         {
           provide: ElkLoggerConfig,
-          useValue: new ElkLoggerConfig(new MockConfigService() as undefined as ConfigService, [], []),
+          useValue: new ElkLoggerConfig(new MockConfigService() as unknown as ConfigService, [], []),
         },
         HttpSecurityHeadersFormatter,
       ],

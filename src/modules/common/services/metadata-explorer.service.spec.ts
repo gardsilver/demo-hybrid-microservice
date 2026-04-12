@@ -12,7 +12,7 @@ describe(MetadataExplorer.name, () => {
   let service: MetadataExplorer;
   let discoveryService: DiscoveryService;
   let metadataScanner: MetadataScanner;
-  let mockMetadata;
+  let mockMetadata: Record<string, unknown>;
 
   beforeEach(async () => {
     testService = new TestService();

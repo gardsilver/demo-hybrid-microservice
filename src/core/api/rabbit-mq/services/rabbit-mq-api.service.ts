@@ -52,6 +52,14 @@ export class RabbitMqApiService {
       return undefined;
     }
 
+    if (!request.content) {
+      this.logger.error('Not find request content', {
+        payload: { request },
+      });
+
+      return undefined;
+    }
+
     const model = await this.service.getUser(request.content.query);
 
     const response: MainResponse = {};

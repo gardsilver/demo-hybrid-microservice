@@ -25,8 +25,8 @@ enum MessageStatus {
 
 @WebSocketGateway()
 export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  private userMap: Map<string, Map<SocketId, IUserSocketData>>;
-  private clientMap: Map<SocketId, string>;
+  private userMap!: Map<string, Map<SocketId, IUserSocketData>>;
+  private clientMap!: Map<SocketId, string>;
 
   constructor(
     @Inject(HTTP_SERVER_HEADERS_ADAPTER_DI)
@@ -48,8 +48,8 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
      *   В нашем примере разрешено для любого пользователя и в заголовке "send-from" указывается от кого будут отправляться сообщения.
      */
 
-    const userEmail =
-      headers['send-from'] && headers['send-from'] !== '' ? (headers['send-from'] as undefined as string) : undefined;
+    const sendFrom = headers['send-from'];
+    const userEmail = typeof sendFrom === 'string' && sendFrom !== '' ? sendFrom : undefined;
 
     if (!userEmail) {
       client.emit('answerMessage', {
@@ -89,33 +89,37 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
 
   @SubscribeMessage('askMessage')
   handleMessage(client: Socket, payload: { email: string; text: string }) {
+    const senderEmail = this.clientMap.get(client.id);
+
     let tgt: Map<SocketId, IUserSocketData> | undefined;
 
     if (this.userMap.has(payload.email)) {
       tgt = this.userMap.get(payload.email);
     }
 
+    const senderSockets = senderEmail ? this.userMap.get(senderEmail) : undefined;
+
     if (tgt?.size) {
       tgt.forEach((socketData) => {
         socketData.socket.emit('answerMessage', {
-          from: this.clientMap.get(client.id),
+          from: senderEmail,
           to: payload.email,
           text: payload.text,
           status: MessageStatus.SUCCESS,
         });
       });
-      this.userMap.get(this.clientMap.get(client.id)).forEach((socketData) => {
+      senderSockets?.forEach((socketData) => {
         socketData.socket.emit('answerMessage', {
-          from: this.clientMap.get(client.id),
+          from: senderEmail,
           to: payload.email,
           text: payload.text,
           status: MessageStatus.SEND,
         });
       });
     } else {
-      this.userMap.get(this.clientMap.get(client.id)).forEach((socketData) => {
+      senderSockets?.forEach((socketData) => {
         socketData.socket.emit('answerMessage', {
-          from: this.clientMap.get(client.id),
+          from: senderEmail,
           to: payload.email,
           text: payload.text,
           status: MessageStatus.ERROR,

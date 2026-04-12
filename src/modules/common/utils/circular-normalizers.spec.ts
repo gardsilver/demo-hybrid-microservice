@@ -10,16 +10,17 @@ import {
 
 class List {
   public next: null | List;
-  public val;
+  public val: unknown;
 
-  constructor(val, next?: List) {
+  constructor(val: unknown, next?: List) {
     this.val = val;
     this.next = next ?? null;
   }
 }
 
 describe('Circular normalizers', () => {
-  let item, item1, item2, item3, error1, error2, current, formatCurrent;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let item: any, item1: List, item2: List, item3: List, error1: Error, error2: Error, current: any, formatCurrent: any;
 
   beforeEach(async () => {
     item1 = new List(10);

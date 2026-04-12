@@ -4,7 +4,7 @@ import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from '../types/general.async-context';
 
 export abstract class HttHeadersHelper {
-  public static normalize<H = IKeyValue>(headers: H): IHeaders {
+  public static normalize<H extends object = IKeyValue>(headers: H): IHeaders {
     return BaseHeadersHelper.normalize(headers);
   }
 
@@ -44,7 +44,7 @@ export abstract class HttHeadersHelper {
       initialSpanId: parentSpanId,
       requestId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
       correlationId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
-    } as undefined as Ctx;
+    } as unknown as Ctx;
 
     return ctx;
   }
@@ -62,7 +62,7 @@ export abstract class HttHeadersHelper {
 
     if (
       [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID].includes(
-        result.header as undefined as HttpGeneralAsyncContextHeaderNames,
+        result.header as unknown as HttpGeneralAsyncContextHeaderNames,
       )
     ) {
       return TraceSpanHelper.formatToGuid(result.value);

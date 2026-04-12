@@ -11,11 +11,12 @@ export class GeneralAsyncContextFormatter implements ILogRecordFormatter {
 
   public transform(from: ILogRecord): ILogRecord {
     const context: IAsyncContext = GeneralAsyncContext.instance.extend();
-    const logFields: ILogFields = {};
+    const logFields: Partial<Pick<ILogFields, 'traceId' | 'spanId' | 'initialSpanId' | 'parentSpanId'>> = {};
+    const keys = ['traceId', 'spanId', 'initialSpanId', 'parentSpanId'] as const;
 
-    for (const [k, v] of Object.entries(context)) {
-      if (['traceId', 'spanId', 'initialSpanId', 'parentSpanId'].includes(k) && v) {
-        logFields[k] = v;
+    for (const key of keys) {
+      if (context[key]) {
+        logFields[key] = context[key] as string;
       }
     }
 

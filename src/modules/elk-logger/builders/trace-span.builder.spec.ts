@@ -3,8 +3,8 @@ import { TraceSpanBuilder } from './trace-span.builder';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 
 describe(TraceSpanBuilder.name, () => {
-  let mockUuid;
-  let spyRandomUUID;
+  let mockUuid: string;
+  let spyRandomUUID: jest.SpyInstance;
 
   beforeEach(async () => {
     mockUuid = randomUUID();

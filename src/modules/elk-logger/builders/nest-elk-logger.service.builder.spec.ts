@@ -13,7 +13,7 @@ import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
 
 describe(NestElkLoggerServiceBuilder.name, () => {
-  let buildService: (option: INestElkLoggerServiceBuilderOption) => {
+  let buildService: (option: INestElkLoggerServiceBuilderOption & { configService: ConfigService }) => {
     elkLoggerConfig: ElkLoggerConfig;
     formattersFactory: FormattersFactory;
     recordEncodeFormattersFactory: RecordEncodeFormattersFactory;
@@ -26,7 +26,7 @@ describe(NestElkLoggerServiceBuilder.name, () => {
   describe('buildService', () => {
     it('default', async () => {
       const services = buildService({
-        configService: new MockConfigService() as undefined as ConfigService,
+        configService: new MockConfigService() as unknown as ConfigService,
       });
 
       expect(services.elkLoggerConfig instanceof ElkLoggerConfig).toBeTruthy();
@@ -36,7 +36,7 @@ describe(NestElkLoggerServiceBuilder.name, () => {
 
     it('custom', async () => {
       const services = buildService({
-        configService: new MockConfigService() as undefined as ConfigService,
+        configService: new MockConfigService() as unknown as ConfigService,
         formattersOptions: {
           ignoreObjects: [MockFormatter],
           sortFields: ['timestamp', 'level', 'module', 'message', 'traceId', 'payload'],
@@ -74,12 +74,16 @@ describe(NestElkLoggerServiceBuilder.name, () => {
 
       expect(formatters.length).toEqual(5);
       expect(formatters[0] instanceof CircularFormatter).toBeTruthy();
-      expect(formatters[0]['elkLoggerConfig']).toEqual(elkLoggerConfig);
+      expect((formatters[0] as unknown as Record<string, unknown>)['elkLoggerConfig']).toEqual(elkLoggerConfig);
 
       const encodeFormatters = services.formattersFactory.getEncodeFormatters();
       expect(encodeFormatters.length).toEqual(2);
       expect(encodeFormatters[1] instanceof PruneEncoder).toBeTruthy();
-      expect(encodeFormatters[1]['pruneConfig']['elkLoggerConfig']).toEqual(elkLoggerConfig);
+      expect(
+        ((encodeFormatters[1] as unknown as Record<string, unknown>)['pruneConfig'] as Record<string, unknown>)[
+          'elkLoggerConfig'
+        ],
+      ).toEqual(elkLoggerConfig);
     });
   });
 

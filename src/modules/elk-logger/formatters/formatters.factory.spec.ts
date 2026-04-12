@@ -67,7 +67,7 @@ describe(FormattersFactory.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
               sortFields,
               defaultFields,
             );

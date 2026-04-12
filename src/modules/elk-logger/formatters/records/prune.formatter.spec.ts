@@ -24,7 +24,7 @@ describe(PruneFormatter.name, () => {
       LOGGER_PRUNE_APPLY_FOR_FORMATS: 'FULL,SIMPLE',
       LOGGER_PRUNE_MAX_LENGTH_FIELDS: '--array--=2,--default--=6,fileBody=7',
       LOGGER_FORMAT_RECORD: 'SIMPLE',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     pruneConfig = new PruneConfig(configService, loggerConfig);

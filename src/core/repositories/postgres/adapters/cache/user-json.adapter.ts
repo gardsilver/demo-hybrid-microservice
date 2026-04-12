@@ -9,7 +9,7 @@ export class UserJsonCacheAdapter implements IRedisCacheAdapter<IUser> {
       return undefined;
     }
 
-    const parse = JSON.parse(data) as undefined as IUser;
+    const parse = JSON.parse(data) as IUser;
 
     return {
       ...parse,

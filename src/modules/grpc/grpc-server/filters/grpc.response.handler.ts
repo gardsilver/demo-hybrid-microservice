@@ -112,7 +112,7 @@ export class GrpcResponseHandler {
 
         if ('metadata' in responseStatus && responseStatus['metadata'] instanceof Metadata) {
           for (const [k, v] of Object.entries(responseStatus['metadata'].getMap())) {
-            metadataResponse.set(k, v as undefined as MetadataValue);
+            metadataResponse.set(k, v as unknown as MetadataValue);
           }
           delete response['metadata'];
           response['headers'] = GrpcHeadersHelper.normalize(metadataResponse.getMap());

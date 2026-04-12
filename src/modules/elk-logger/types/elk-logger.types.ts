@@ -39,7 +39,7 @@ export interface ILogRecord extends ILogFields {
   traceId: string;
   spanId: string;
   initialSpanId: string;
-  parentSpanId: null | string;
+  parentSpanId: string | undefined;
 }
 
 export interface IOptionLog extends Partial<

@@ -7,7 +7,7 @@ const spyCacheKeyAdapter = jest.fn().mockImplementation((query: string) => query
 const cacheAdapter: IRedisCacheAdapter = {
   encode: () => {},
   decode: () => {},
-} as undefined as IRedisCacheAdapter;
+} as unknown as IRedisCacheAdapter;
 
 describe(RedisCacheOnAsyncMethod.name, () => {
   let spyGet;
@@ -22,7 +22,7 @@ describe(RedisCacheOnAsyncMethod.name, () => {
     cacheService = {
       get: spyGet,
       set: spySet,
-    } as undefined as RedisCacheService;
+    } as unknown as RedisCacheService;
 
     RedisCacheInstanceService.getInstance = () => undefined;
 

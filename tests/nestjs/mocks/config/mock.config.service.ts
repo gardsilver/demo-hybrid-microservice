@@ -6,12 +6,12 @@ export class MockConfigService {
   }
 
   get<T = string>(key: string, defaultValue?: T): T {
-    return (this.config[key] ?? defaultValue) as undefined as T;
+    return (this.config[key] ?? defaultValue) as unknown as T;
   }
 
   getOrThrow<T = string>(key: string): T {
     if (key in this.config) {
-      return this.config[key] as undefined as T;
+      return this.config[key] as unknown as T;
     }
     throw new Error(`Неизвестный параметр ${key}`);
   }

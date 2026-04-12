@@ -98,8 +98,8 @@ describe(GrpcAuthGuard.name, () => {
         ({
           getData: () => requestData,
           getContext: () => requestMetadata,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ExecutionContext;
   });
 
   it('init', async () => {

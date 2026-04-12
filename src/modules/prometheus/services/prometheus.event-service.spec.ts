@@ -52,29 +52,29 @@ describe(PrometheusEventService.name, () => {
 
     counterService = {
       increment: spyCountInc,
-    } as undefined as ICounterService;
+    } as unknown as ICounterService;
 
     gaugeService = {
       increment: spyGaugeInc,
       decrement: spyGaugeDec,
-    } as undefined as IGaugeService;
+    } as unknown as IGaugeService;
 
     histogramService = {
       observe: spyHistogramObs,
       startTimer: spyHistogramStr,
-    } as undefined as IHistogramService;
+    } as unknown as IHistogramService;
 
     summaryService = {
       observe: spySummaryObs,
       startTimer: spySummaryStr,
-    } as undefined as ISummaryService;
+    } as unknown as ISummaryService;
 
     prometheusManager = {
       counter: () => counterService,
       gauge: () => gaugeService,
       histogram: () => histogramService,
       summary: () => summaryService,
-    } as undefined as PrometheusManager;
+    } as unknown as PrometheusManager;
 
     service = new PrometheusEventService(prometheusManager);
 

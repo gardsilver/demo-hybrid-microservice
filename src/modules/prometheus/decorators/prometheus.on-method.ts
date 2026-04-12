@@ -25,7 +25,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
 
               labels: defaultPrometheusMetricConfig.labels === false ? undefined : defaultPrometheusMetricConfig.labels,
             })
-          : (eventData.labels as undefined as PrometheusLabels)
+          : (eventData.labels as unknown as PrometheusLabels)
         : false;
 
       const useLabels: PrometheusLabels = PrometheusDecoratorHelper.buildLabels(

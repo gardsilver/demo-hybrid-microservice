@@ -61,7 +61,7 @@ describe(PrometheusCounterService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         inc: spy,
-      } as undefined as Counter;
+      } as unknown as Counter;
     });
 
     counterService.increment(METRIC_COUNTER);
@@ -107,7 +107,7 @@ describe(PrometheusCounterService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         get: spy,
-      } as undefined as Counter;
+      } as unknown as Counter;
     });
 
     await counterService.get(METRIC_COUNTER);

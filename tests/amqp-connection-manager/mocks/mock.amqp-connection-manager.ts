@@ -72,7 +72,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   reconnect(): void {}
 
   createChannel(options?: CreateChannelOpts): ChannelWrapper {
-    return this.channelWrapper.setOptions(options) as undefined as ChannelWrapper;
+    return this.channelWrapper.setOptions(options) as unknown as ChannelWrapper;
   }
 
   async close(): Promise<void> {}

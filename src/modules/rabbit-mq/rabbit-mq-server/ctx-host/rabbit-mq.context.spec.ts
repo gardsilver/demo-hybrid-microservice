@@ -61,17 +61,17 @@ describe(RabbitMqContext.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
     mockDeserializeMessage = {
       pattern: faker.string.alpha(20),
       data: {
         content,
-      } as undefined as IRabbitMqConsumeMessage<string>,
+      } as unknown as IRabbitMqConsumeMessage<string>,
     };
 
-    channel = new MockChannel() as undefined as Channel;
+    channel = new MockChannel() as unknown as Channel;
 
     options = {
       serverName: faker.string.alpha(20),

@@ -17,7 +17,7 @@ describe(RedisCacheManagerConfig.name, () => {
   });
 
   it('default', async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     redisCacheManagerConfig = new RedisCacheManagerConfig(configService);
 
     expect({
@@ -42,7 +42,7 @@ describe(RedisCacheManagerConfig.name, () => {
       REDIS_CACHE_MANAGER_COUNT_FOR_RESET_RECONNECT_STRATEGY: '10',
       REDIS_CACHE_MANAGER_HOST: 'localhost',
       REDIS_CACHE_MANAGER_PORT: '3002',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     redisCacheManagerConfig = new RedisCacheManagerConfig(configService);
 
     expect({

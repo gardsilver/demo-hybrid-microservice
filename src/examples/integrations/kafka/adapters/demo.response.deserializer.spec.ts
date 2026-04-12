@@ -54,7 +54,7 @@ describe(DemoResponseDeserializer.name, () => {
           },
         },
       ),
-    } as undefined as KafkaMessage;
+    } as unknown as KafkaMessage;
     options = {
       serverName: faker.string.alpha(5),
       mode: faker.number.int(2) > 1 ? ConsumerMode.EACH_MESSAGE : ConsumerMode.EACH_BATCH,
@@ -75,7 +75,7 @@ describe(DemoResponseDeserializer.name, () => {
       headers: KafkaHeadersHelper.normalize(request.headers ?? {}),
     });
 
-    request.value = undefined;
+    request.value = null;
     result = deserializer.deserialize(request, options);
 
     expect(result.pattern).toBe(options.topic);

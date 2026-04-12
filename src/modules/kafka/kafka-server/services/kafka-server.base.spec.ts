@@ -54,7 +54,7 @@ describe(KafkaServerBase, () => {
     protected async bindBatchEvents(): Promise<void> {}
 
     unwrap<T>(): T {
-      return {} as undefined as T;
+      return {} as unknown as T;
     }
   }
 
@@ -311,7 +311,7 @@ describe(KafkaServerBase, () => {
     it('handleEvent', async () => {
       const spyLog = jest.spyOn(server['logger'], 'error').mockImplementation(() => jest.fn());
 
-      const mockContext = {} as undefined as KafkaContext;
+      const mockContext = {} as unknown as KafkaContext;
 
       const packet: ReadPacket | ReadPacket[] = {
         pattern: 'eachMessage',
@@ -372,7 +372,7 @@ describe(KafkaServerBase, () => {
           ...extras,
           mode: ConsumerMode.EACH_MESSAGE,
         },
-      } as undefined as MessageHandler;
+      } as unknown as MessageHandler;
 
       const kafkaMessage = kafkaMessageFactory.build(undefined, {
         transient: {
@@ -433,9 +433,7 @@ describe(KafkaServerBase, () => {
       const spyCount = jest.spyOn(prometheusManager.counter(), 'increment');
 
       server['client'] = server['createClient']();
-      const consumer = (await server['createConsumer'](ConsumerMode.EACH_BATCH, [
-        'topic',
-      ])) as undefined as MockConsumer;
+      const consumer = (await server['createConsumer'](ConsumerMode.EACH_BATCH, ['topic'])) as unknown as MockConsumer;
       const subscription = server.status.pipe(tap(spy)).subscribe();
 
       consumer.emit('consumer.connect');

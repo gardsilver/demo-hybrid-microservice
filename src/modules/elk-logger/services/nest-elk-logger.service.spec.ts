@@ -31,11 +31,11 @@ import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter
 jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(NestElkLoggerService.name, () => {
-  let mockUuid;
-  let spyFormatter;
-  let spyRecordEncodeFormatter;
-  let spyEncodeFormatter;
-  let spyLogWriter;
+  let mockUuid: string;
+  let spyFormatter: jest.SpyInstance;
+  let spyRecordEncodeFormatter: jest.SpyInstance;
+  let spyEncodeFormatter: jest.SpyInstance;
+  let spyLogWriter: jest.SpyInstance;
 
   let loggerConfig: ElkLoggerConfig;
   let formatter: ILogRecordFormatter;
@@ -90,7 +90,7 @@ describe(NestElkLoggerService.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
               sortFields,
               defaultFields,
             );
@@ -662,15 +662,15 @@ describe(NestElkLoggerService.name, () => {
   });
 
   describe('other methods', () => {
-    let spyOnOpenSync;
-    let spyOnAppendFileSync;
+    let spyOnOpenSync: jest.Mock;
+    let spyOnAppendFileSync: jest.Mock;
 
     beforeEach(async () => {
       loggerConfig = new ElkLoggerConfig(
         new MockConfigService({
           LOGGER_FORMAT_RECORD: 'SHORT',
           LOGGER_STORE_FILE: 'log.log',
-        }) as undefined as ConfigService,
+        }) as unknown as ConfigService,
         [],
         [],
       );

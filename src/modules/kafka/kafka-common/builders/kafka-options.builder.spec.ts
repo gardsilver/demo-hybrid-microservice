@@ -64,7 +64,7 @@ describe(KafkaOptionsBuilder.name, () => {
       client: {
         ...{
           ...clientOptions,
-          brokers: clientOptions.brokers as undefined as string[],
+          brokers: clientOptions.brokers as unknown as string[],
         },
       },
       consumer: {
@@ -89,7 +89,7 @@ describe(KafkaOptionsBuilder.name, () => {
       counter: () => ({
         increment: () => {},
       }),
-    } as undefined as PrometheusManager;
+    } as unknown as PrometheusManager;
 
     builder = new KafkaOptionsBuilder(loggerBuilder, prometheusManager);
 

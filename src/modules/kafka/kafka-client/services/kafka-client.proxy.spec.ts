@@ -266,7 +266,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.send({} as undefined as IKafkaRequest, undefined));
+          await firstValueFrom(clientProxy.send({} as unknown as IKafkaRequest, undefined));
         } catch (err) {
           error = err;
         }
@@ -275,7 +275,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.send({ topic: faker.string.alpha(5) } as undefined as IKafkaRequest, undefined),
+            clientProxy.send({ topic: faker.string.alpha(5) } as unknown as IKafkaRequest, undefined),
           );
         } catch (err) {
           error = err;
@@ -285,7 +285,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.send({ topic: faker.string.alpha(5), data: [] } as undefined as IKafkaRequest, undefined),
+            clientProxy.send({ topic: faker.string.alpha(5), data: [] } as unknown as IKafkaRequest, undefined),
           );
         } catch (err) {
           error = err;
@@ -361,7 +361,7 @@ describe(KafkaClientProxy.name, () => {
         await firstValueFrom(
           clientProxy.send({
             ...request,
-            data: [request.data as undefined as IKafkaMessage<unknown>],
+            data: [request.data as unknown as IKafkaMessage<unknown>],
           }),
         );
 
@@ -474,7 +474,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.sendBatch([] as undefined as IKafkaRequest[], undefined));
+          await firstValueFrom(clientProxy.sendBatch([] as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }
@@ -482,7 +482,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.sendBatch([{}] as undefined as IKafkaRequest[], undefined));
+          await firstValueFrom(clientProxy.sendBatch([{}] as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }
@@ -491,7 +491,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.sendBatch([{ topic: faker.string.alpha(5) }] as undefined as IKafkaRequest[], undefined),
+            clientProxy.sendBatch([{ topic: faker.string.alpha(5) }] as unknown as IKafkaRequest[], undefined),
           );
         } catch (err) {
           error = err;
@@ -502,7 +502,7 @@ describe(KafkaClientProxy.name, () => {
         try {
           await firstValueFrom(
             clientProxy.sendBatch(
-              [{ topic: faker.string.alpha(5), data: [] }] as undefined as IKafkaRequest[],
+              [{ topic: faker.string.alpha(5), data: [] }] as unknown as IKafkaRequest[],
               undefined,
             ),
           );

@@ -91,18 +91,20 @@ describe(ElkLoggerModule.name, () => {
   });
 
   it('ElkLoggerService', async () => {
-    expect(loggerService['recordFormatters'].length).toBe(5);
-    expect(loggerService['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
+    const service = loggerService as unknown as Record<string, unknown[]>;
+    expect(service['recordFormatters'].length).toBe(5);
+    expect(service['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
 
-    expect(loggerService['encodeFormatters'].length).toBe(2);
-    expect(loggerService['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();
+    expect(service['encodeFormatters'].length).toBe(2);
+    expect(service['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();
   });
 
   it('NestElkLoggerService', async () => {
-    expect(nestLogger['recordFormatters'].length).toBe(5);
-    expect(nestLogger['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
+    const logger = nestLogger as unknown as Record<string, unknown[]>;
+    expect(logger['recordFormatters'].length).toBe(5);
+    expect(logger['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
 
-    expect(nestLogger['encodeFormatters'].length).toBe(2);
-    expect(nestLogger['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();
+    expect(logger['encodeFormatters'].length).toBe(2);
+    expect(logger['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();
   });
 });

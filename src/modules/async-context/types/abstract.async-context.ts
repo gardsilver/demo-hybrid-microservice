@@ -7,14 +7,14 @@ const asyncLocalStorage = new AsyncLocalStorage();
 export abstract class AbstractAsyncContext<T = IAsyncContext> {
   public static instance: AbstractAsyncContext<any>;
 
-  private static getStore(): unknown {
+  private static getStore<S = any>(): S {
     const store = asyncLocalStorage.getStore();
 
     if (!store) {
       throw new EmptyAsyncContextError();
     }
 
-    return store;
+    return store as S;
   }
 
   /**
@@ -33,11 +33,10 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
    *    - или использовать runWithContext()
    */
   public static define<T = IAsyncContext>(initCallback?: (...methodsArgs: any[]) => T): MethodDecorator {
-    return (target: any, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
+    return (_target: any, _propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value;
 
       descriptor.value = function (this: any, ...args: any[]) {
-        /** @TODO протестировать с передачей аргументов метода в initCallback */
         return asyncLocalStorage.run(initCallback ? initCallback(...args) : {}, async () => {
           try {
             return originalMethod.apply(this, args);
@@ -79,13 +78,13 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
 
   /** Получение значения переменной контекста по ключу */
   public get<K extends keyof T>(key: K): GetAsyncContextValueType<T, K> | undefined {
-    return AbstractAsyncContext.getStore()[key] as any;
+    return AbstractAsyncContext.getStore()[key];
   }
 
   /** Безопасное получение значения переменной контекста по ключу */
   public getSafe<K extends keyof T>(key: K): GetAsyncContextValueType<T, K> | undefined {
     try {
-      return AbstractAsyncContext.getStore()[key] as any;
+      return AbstractAsyncContext.getStore()[key];
     } catch {
       // Nothing
     }
@@ -107,6 +106,6 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
   public setMultiple<K extends keyof T>(values: { [key in K]: GetAsyncContextValueType<T, K> }): void {
     const store = AbstractAsyncContext.getStore();
 
-    Object.keys(values).forEach((key) => (store[key] = values[key]));
+    Object.keys(values).forEach((key) => (store[key] = values[key as K]));
   }
 }

@@ -15,7 +15,7 @@ describe(AppKafkaConfig.name, () => {
     }).toEqual({
       getKafkaBrokers: [],
       getKafkaClientId: undefined,
-      getKafkaGroupId: undefined,
+      getKafkaGroupId: 'default-group',
       getKafkaRetryStatusCodes: [],
     });
   });

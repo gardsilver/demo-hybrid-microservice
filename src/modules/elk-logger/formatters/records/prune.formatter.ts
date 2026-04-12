@@ -25,7 +25,7 @@ export class PruneFormatter implements ILogRecordFormatter {
 
   private static addMarker(marker: string, markers: string[]): string[] {
     if (!markers.includes(marker)) {
-      return [].concat(markers, [marker]);
+      return [...markers, marker];
     }
 
     return markers;
@@ -79,7 +79,7 @@ export class PruneFormatter implements ILogRecordFormatter {
 
     const tgt: IKeyValue = Object.assign({}, data);
     const fields = Object.keys(data);
-    let fieldNameList = [].concat(fields);
+    let fieldNameList = [...fields];
 
     if (fieldNameList.length > this.pruneConfig.getMaxCountFields()) {
       isLimitCountFields = true;
@@ -152,7 +152,7 @@ export class PruneFormatter implements ILogRecordFormatter {
         }
 
         let isLimitArrayCount = false;
-        let tgt: unknown[] = [].concat(value);
+        let tgt: unknown[] = [...(value as unknown[])];
 
         if (tgt.length > this.pruneConfig.getLengthArray(fieldName)) {
           isLimitArrayCount = true;
@@ -170,7 +170,7 @@ export class PruneFormatter implements ILogRecordFormatter {
 
         if (isLimitArrayCount) {
           return {
-            value: [].concat(tgt, [PruneMessages.LIMIT_LENGTH_ARRAY]),
+            value: [...tgt, PruneMessages.LIMIT_LENGTH_ARRAY],
             markers: PruneFormatter.addMarker(PruneMarkers.LIMIT_LENGTH_ARRAY, markers),
           };
         }

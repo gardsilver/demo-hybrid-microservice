@@ -7,7 +7,7 @@ describe(PrometheusConfig.name, () => {
   let prometheusConfig: PrometheusConfig;
 
   it('default', async () => {
-    config = new MockConfigService() as undefined as ConfigService;
+    config = new MockConfigService() as unknown as ConfigService;
     prometheusConfig = new PrometheusConfig(config);
 
     expect({
@@ -22,7 +22,7 @@ describe(PrometheusConfig.name, () => {
       APPLICATION_NAME: 'appName',
       MICROSERVICE_NAME: 'micName',
       MICROSERVICE_VERSION: 'micVer',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     prometheusConfig = new PrometheusConfig(config);
 
     expect({

@@ -20,7 +20,7 @@ describe(ObjectFormatter.name, () => {
     const logRecord: ILogRecord = {
       businessData: error,
       payload: current,
-    } as undefined as ILogRecord;
+    } as unknown as ILogRecord;
 
     expect(formatter.transform(logRecord)).toEqual({
       businessData: {

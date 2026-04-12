@@ -30,7 +30,7 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
         value = Array.isArray(headers[useHeaderName])
           ? headers[useHeaderName].join('-')
-          : (headers[useHeaderName] as undefined as string);
+          : (headers[useHeaderName] as unknown as string);
 
         if (value !== '' && asZipkin) {
           value = TraceSpanHelper.formatToGuid(value);

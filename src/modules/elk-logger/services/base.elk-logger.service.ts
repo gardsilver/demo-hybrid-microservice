@@ -17,9 +17,9 @@ import { ElkLoggerConfig } from './elk-logger.config';
 import { LogFieldsHelper } from '../helpers/log-fields.helper';
 
 export abstract class BaseElkLoggerService {
-  private fileFormatter: FileFormatter;
+  private fileFormatter!: FileFormatter;
   protected defaultLogFields: ILogFields = {};
-  protected lastLogRecord: ILogRecord;
+  protected lastLogRecord!: ILogRecord;
   private readonly encodeFormatters: IEncodeFormatter[];
   private readonly recordFormatters: ILogRecordFormatter[];
 
@@ -28,8 +28,8 @@ export abstract class BaseElkLoggerService {
     private readonly recordEncodeFormattersFactory: RecordEncodeFormattersFactory,
     formattersFactory: FormattersFactory,
   ) {
-    this.recordFormatters = [].concat(formattersFactory.getRecordFormatters());
-    this.encodeFormatters = [].concat(formattersFactory.getEncodeFormatters());
+    this.recordFormatters = [...formattersFactory.getRecordFormatters()];
+    this.encodeFormatters = [...formattersFactory.getEncodeFormatters()];
 
     if (elkLoggerConfig.getFormatLogRecord() === LogFormat.SHORT) {
       this.fileFormatter = new FileFormatter();
@@ -48,7 +48,7 @@ export abstract class BaseElkLoggerService {
     return new DateTimestamp().format(this.elkLoggerConfig.getTimestampFormat());
   }
 
-  protected format(record: ILogRecord): string {
+  protected format(record: ILogRecord): string | undefined {
     const formatter = this.recordEncodeFormattersFactory.getFormatter(this.elkLoggerConfig.getFormatLogRecord());
 
     if (!formatter) {
@@ -58,7 +58,7 @@ export abstract class BaseElkLoggerService {
     return formatter.transform(record);
   }
 
-  protected print(logFields: ILogFields): string {
+  protected print(logFields: ILogFields): string | undefined {
     let record: ILogRecord = LogFieldsHelper.merge(
       {
         ...this.defaultLogFields,
@@ -94,12 +94,9 @@ export abstract class BaseElkLoggerService {
     if (!(stringLog === undefined || stringLog === '')) {
       process['stdout'].write(stringLog + '\n');
 
-      if (this.fileFormatter && !!this.elkLoggerConfig.getFileDescriptor()) {
-        appendFileSync(
-          this.elkLoggerConfig.getFileDescriptor(),
-          this.fileFormatter.transform(this.lastLogRecord),
-          'utf8',
-        );
+      const fileDescriptor = this.elkLoggerConfig.getFileDescriptor();
+      if (this.fileFormatter && fileDescriptor !== undefined) {
+        appendFileSync(fileDescriptor, this.fileFormatter.transform(this.lastLogRecord), 'utf8');
       }
     }
 
@@ -130,7 +127,7 @@ export abstract class BaseElkLoggerService {
     return true;
   }
 
-  private getRootModule(module?: string): string {
+  private getRootModule(module?: string): string | undefined {
     if (!module) {
       return undefined;
     }

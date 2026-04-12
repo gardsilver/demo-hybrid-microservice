@@ -23,7 +23,7 @@ export class MockResponse {
   public setHeader(name: string, value: string | string[]): Response {
     this._headers[name] = value;
 
-    return this as undefined as Response;
+    return this as unknown as Response;
   }
 
   public header(name: string): string | string[] {
@@ -33,7 +33,7 @@ export class MockResponse {
   public status(status: HttpStatus): Response {
     this.statusCode = status;
 
-    return this as undefined as Response;
+    return this as unknown as Response;
   }
 
   public getStatus(): HttpStatus {

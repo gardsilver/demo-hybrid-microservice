@@ -38,7 +38,7 @@ describe(ConsumerDeserializer.name, () => {
         mode: ConsumerMode.EACH_BATCH,
         serverName: faker.string.alpha(10),
         topic,
-      } as undefined as IKafkaMessageOptions),
+      } as unknown as IKafkaMessageOptions),
     ).toEqual({
       pattern: topic,
       data: {
@@ -55,7 +55,7 @@ describe(ConsumerDeserializer.name, () => {
         mode: ConsumerMode.EACH_BATCH,
         serverName: faker.string.alpha(10),
         topic,
-      } as undefined as IKafkaMessageOptions),
+      } as unknown as IKafkaMessageOptions),
     ).toEqual({
       pattern: topic,
       data: {
@@ -74,7 +74,7 @@ describe(ConsumerDeserializer.name, () => {
         mode: ConsumerMode.EACH_BATCH,
         serverName: faker.string.alpha(10),
         topic,
-      } as undefined as IKafkaMessageOptions),
+      } as unknown as IKafkaMessageOptions),
     ).toEqual({
       pattern: topic,
     });

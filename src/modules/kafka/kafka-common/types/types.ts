@@ -12,10 +12,11 @@ export interface IKafkaHeadersBuilder {
   ): IHeaders;
 }
 
-export type KafkaClientConfig = KafkaOptions['options']['client'];
-export type KafkaRetryConfig = KafkaOptions['options']['client']['retry'];
-export type KafkaConsumerConfig = KafkaOptions['options']['consumer'];
-export type KafkaProducerConfig = KafkaOptions['options']['producer'];
+type KafkaOptionsResolved = NonNullable<KafkaOptions['options']>;
+export type KafkaClientConfig = NonNullable<KafkaOptionsResolved['client']>;
+export type KafkaRetryConfig = NonNullable<KafkaClientConfig['retry']>;
+export type KafkaConsumerConfig = NonNullable<KafkaOptionsResolved['consumer']>;
+export type KafkaProducerConfig = NonNullable<KafkaOptionsResolved['producer']>;
 
 export interface IKafkaClientOptions extends Omit<KafkaClientConfig, 'logLevel' | 'logCreator' | 'retry' | 'brokers'> {
   brokers: string[];
@@ -39,7 +40,7 @@ export interface IKafkaHealthIndicatorOptions {
 }
 
 export interface IKafkaClientProxyBuilderOptions extends Omit<
-  KafkaOptions['options'],
+  KafkaOptionsResolved,
   'client' | 'consumer' | 'producer' | 'parser'
 > {
   serverName: string;

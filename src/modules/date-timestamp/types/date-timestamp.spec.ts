@@ -397,7 +397,7 @@ describe(DateTimestamp.name, () => {
     expect(caught).toBeTruthy();
 
     caught = false;
-    let dt: DateTimestamp;
+    let dt: DateTimestamp | undefined;
 
     try {
       dt = new DateTimestamp(null, undefined, false);
@@ -406,7 +406,8 @@ describe(DateTimestamp.name, () => {
     }
 
     expect(caught).toBeFalsy();
-    expect(dt.isValid()).toBeFalsy();
+    expect(dt).toBeDefined();
+    expect(dt?.isValid()).toBeFalsy();
 
     expect(() => new DateTimestamp('01.01.2024+07')).toThrow(
       new Error(`${DateTimestampErrorMessages.dateTimeUndefined} (01.01.2024+07)`),

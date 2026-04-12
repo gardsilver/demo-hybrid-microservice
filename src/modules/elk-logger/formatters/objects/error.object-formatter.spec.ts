@@ -100,7 +100,7 @@ describe(ErrorObjectFormatter.name, () => {
 
       const error = Error('Custom Error', { cause: parentError });
       error.stack = 'Error: message\n    at <anonymous>:1:2\n';
-      error.name = undefined;
+      (error as unknown as Record<string, unknown>).name = undefined;
 
       expect(formatter.transform(error)).toEqual({
         name: 'Error',

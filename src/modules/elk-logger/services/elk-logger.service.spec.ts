@@ -404,6 +404,12 @@ describe(ElkLoggerService.name, () => {
   });
 
   describe('other methods', () => {
+    it('addDefaultLogFields calls merge when defaults already set', async () => {
+      logger.addDefaultLogFields({ module: 'First' } as ILogFields);
+      logger.addDefaultLogFields({ index: 'Second' } as ILogFields);
+      expect(logger['defaultLogFields']).toBeDefined();
+    });
+
     it('addDefaultLogFields', async () => {
       const traceId = faker.string.uuid();
       const spanId = faker.string.uuid();

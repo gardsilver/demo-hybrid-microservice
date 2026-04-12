@@ -459,5 +459,59 @@ describe(PrometheusEventService.name, () => {
         ),
       ).toThrow('Invalid configuration Prometheus Handle Summary Observe!!!');
     });
+
+    it('handleCounter throws when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleCounter']({
+          increment: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Counter Increment: metricConfig is required');
+    });
+
+    it('handleGauge increment/decrement throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleGauge']({
+          increment: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Increment: metricConfig is required');
+
+      expect(() =>
+        service['handleGauge']({
+          decrement: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Decrement: metricConfig is required');
+    });
+
+    it('handleHistogram startTimer/observe throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleHistogram'](
+          { startTimer: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram StartTimer: metricConfig is required');
+
+      expect(() =>
+        service['handleHistogram'](
+          { observe: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram Observe: metricConfig/params are required');
+    });
+
+    it('handleSummary startTimer/observe throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleSummary'](
+          { startTimer: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary StartTimer: metricConfig is required');
+
+      expect(() =>
+        service['handleSummary'](
+          { observe: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary Observe: metricConfig/params are required');
+    });
   });
 });

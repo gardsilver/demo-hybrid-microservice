@@ -440,6 +440,22 @@ describe(RabbitMqServer.name, () => {
         );
       });
 
+      it('skips null msg in consume callback', async () => {
+        await server.listen(callback);
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
+        await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
+        await mockChannelWrapper.testSetup();
+
+        const spyDeserialize = jest.spyOn(server['deserializer'], 'deserialize');
+
+        mockChannel.testOnMessage?.(null);
+
+        expect(spyDeserialize).not.toHaveBeenCalled();
+        expect(spyHandler).not.toHaveBeenCalled();
+      });
+
       it('handleMessage as success (deserializer crash)', async () => {
         await server.listen(callback);
         const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;

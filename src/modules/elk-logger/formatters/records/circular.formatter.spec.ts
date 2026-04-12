@@ -83,4 +83,18 @@ describe(CircularFormatter.name, () => {
       },
     });
   });
+
+  it('transform removes undefined fields and keeps falsy values', async () => {
+    const logRecord = logRecordFactory.build({
+      payload: {
+        undefField: undefined,
+        zeroField: 0,
+        emptyStr: '',
+      },
+    });
+    const result = formatter.transform(logRecord);
+    expect(result.payload.undefField).toBeUndefined();
+    expect(result.payload.zeroField).toBe(0);
+    expect(result.payload.emptyStr).toBe('');
+  });
 });

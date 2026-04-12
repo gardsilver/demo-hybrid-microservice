@@ -106,4 +106,14 @@ describe(GrpcMetadataBuilder.name, () => {
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });
   });
+
+  it('asArray option splits values by dash', async () => {
+    if (asyncContext.traceId === undefined || asyncContext.spanId === undefined) {
+      throw new Error('asyncContext is not fully populated');
+    }
+
+    const result = metadataResponseBuilder.build({ asyncContext }, { asArray: true }).getMap();
+
+    expect(Array.isArray(result[HttpGeneralAsyncContextHeaderNames.TRACE_ID + '-bin'])).toBe(false);
+  });
 });

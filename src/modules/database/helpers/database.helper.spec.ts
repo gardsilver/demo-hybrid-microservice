@@ -29,6 +29,7 @@ describe(DatabaseHelper.name, () => {
 
     expect(DatabaseHelper.modelToLogFormat(mockModel)).toEqual({ message: 'Hello word' });
     expect(DatabaseHelper.modelToLogFormat(null)).toEqual(null);
+    expect(DatabaseHelper.modelToLogFormat(undefined)).toEqual(undefined);
     expect(DatabaseHelper.modelToLogFormat({ message: 'Hello word' })).toEqual({ message: 'Hello word' });
   });
 

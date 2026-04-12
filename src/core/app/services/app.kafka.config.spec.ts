@@ -4,7 +4,7 @@ import { AppKafkaConfig } from './app.kafka.config';
 
 describe(AppKafkaConfig.name, () => {
   it('default', async () => {
-    const config = new MockConfigService() as ConfigService;
+    const config = new MockConfigService() as unknown as ConfigService;
     const kafkaConfig = new AppKafkaConfig(config);
 
     expect({
@@ -26,7 +26,7 @@ describe(AppKafkaConfig.name, () => {
       KAFKA_RETRY_STATUS_CODES: 'timeout,23',
       KAFKA_CLIENT_ID: 'kafka-client',
       KAFKA_GROUP_ID: 'kafka-group',
-    }) as ConfigService;
+    }) as unknown as ConfigService;
     const kafkaConfig = new AppKafkaConfig(config);
 
     expect({

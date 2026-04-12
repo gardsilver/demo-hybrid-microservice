@@ -463,6 +463,31 @@ describe(NestElkLoggerService.name, () => {
         });
       });
 
+      it('error with object containing string and Error values', async () => {
+        const nestedError = new Error('nested');
+        const obj = {
+          foo: 'stringVal',
+          baz: nestedError,
+          extra: 42,
+        };
+
+        logger.error(obj);
+
+        const record = logger.getLastLogRecord();
+        expect(record?.message).toBe('stringVal');
+        expect((record?.payload as Record<string, unknown>).errors).toEqual([nestedError]);
+        expect((record?.payload as Record<string, unknown>).extra).toBe(42);
+      });
+
+      it('error with object whose first Error message becomes message', async () => {
+        const e = new Error('from error');
+        logger.error({ e });
+
+        const record = logger.getLastLogRecord();
+        expect(record?.message).toBe('from error');
+        expect((record?.payload as Record<string, unknown>).errors).toEqual([e]);
+      });
+
       it('error with message, stack and context', async () => {
         logger.error('Test application failed', 'anyStackTrace', 'TestApplication');
 

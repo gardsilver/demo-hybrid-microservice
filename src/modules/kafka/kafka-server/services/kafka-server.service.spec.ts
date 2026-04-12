@@ -570,4 +570,32 @@ describe(KafkaServerService.name, () => {
       });
     });
   });
+
+  describe('null consumer errors', () => {
+    it('bindEachEvents throws when consumer is null and handlers exist', async () => {
+      server['eachMessageHandlers'].push('topic-x');
+      server['consumer'] = null;
+      await expect(server['bindEachEvents']()).rejects.toThrow('Kafka consumer is not initialized');
+    });
+
+    it('bindBatchEvents throws when batchConsumer is null and handlers exist', async () => {
+      server['batchMessageHandlers'].push('topic-y');
+      server['batchConsumer'] = null;
+      await expect(server['bindBatchEvents']()).rejects.toThrow('Kafka batch consumer is not initialized');
+    });
+
+    it('bindEachEvents warns when no handlers', async () => {
+      server['eachMessageHandlers'].length = 0;
+      const spy = jest.spyOn(server['logger'], 'warn');
+      await expect(server['bindEachEvents']()).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('bindBatchEvents warns when no handlers', async () => {
+      server['batchMessageHandlers'].length = 0;
+      const spy = jest.spyOn(server['logger'], 'warn');
+      await expect(server['bindBatchEvents']()).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+    });
+  });
 });

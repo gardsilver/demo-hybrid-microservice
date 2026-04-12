@@ -157,4 +157,20 @@ describe(UncaughtExceptionHelper.name, () => {
       expect(labels).toEqual({});
     });
   });
+
+  describe('extractType & extractSourceInfo edge cases', () => {
+    it('extractType returns undefined for non-matching input', () => {
+      expect(UncaughtExceptionHelper.extractType('no colon here')).toBeUndefined();
+      expect(UncaughtExceptionHelper.extractType('')).toBeUndefined();
+    });
+
+    it('extractSourceInfo returns undefined for non-matching input', () => {
+      expect(UncaughtExceptionHelper.extractSourceInfo('garbage')).toBeUndefined();
+    });
+
+    it('extractSourceInfo parses anonymous frame (search[3] undefined branch)', () => {
+      const info = UncaughtExceptionHelper.extractSourceInfo('at Foo.bar (/app/foo.ts:10:5)');
+      expect(info).toEqual({ module: 'Foo.bar', file: '/app/foo.ts' });
+    });
+  });
 });

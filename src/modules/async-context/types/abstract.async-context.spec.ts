@@ -102,6 +102,30 @@ describe(AbstractAsyncContext.name, () => {
     expect(result).toEqual(mockContext);
   });
 
+  it('extend returns empty object on getStore throw', async () => {
+    const spy = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockImplementation(() => {
+      throw new Error('no store');
+    });
+    try {
+      const result = TestAsyncContext.instance.extend();
+      expect(result).toEqual({});
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('getSafe swallows getStore throw', async () => {
+    const spy = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockImplementation(() => {
+      throw new Error('no store');
+    });
+    try {
+      const result = TestAsyncContext.instance.getSafe('startTimestamp');
+      expect(result).toBeUndefined();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('set', async () => {
     const copyContext = circularRemove(mockContext) as ITestAsyncContext;
     const spyGetStore = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockReturnValue(mockContext);

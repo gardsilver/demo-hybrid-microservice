@@ -175,4 +175,16 @@ describe(HttpHeadersBuilder.name, () => {
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });
   });
+
+  it('strips authorization header from input', async () => {
+    const result = builder.build({
+      asyncContext,
+      headers: {
+        authorization: 'Bearer secret',
+        'x-keep': 'value',
+      },
+    });
+    expect(result.authorization).toBeUndefined();
+    expect(result['x-keep']).toBe('value');
+  });
 });

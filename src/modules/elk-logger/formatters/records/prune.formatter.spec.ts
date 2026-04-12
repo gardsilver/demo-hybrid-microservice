@@ -116,4 +116,39 @@ describe(PruneFormatter.name, () => {
       },
     });
   });
+
+  it('transform skips pruning when isApplyPrune is false', async () => {
+    const disabledConfigService = new MockConfigService({
+      LOGGER_PRUNE_ENABLED: 'no',
+    }) as unknown as ConfigService;
+    const disabledLoggerConfig = new ElkLoggerConfig(disabledConfigService, [], []);
+    const disabledPruneConfig = new PruneConfig(disabledConfigService, disabledLoggerConfig);
+    const disabledFormatter = new PruneFormatter(disabledPruneConfig);
+
+    const logRecord = logRecordFactory.build({
+      markers: [LoggerMarkers.REQUEST],
+      payload: { a: 1 },
+    });
+
+    const result = disabledFormatter.transform(logRecord);
+    expect(result.payload).toEqual({ a: 1 });
+  });
+
+  it('transform prunes field with too many fields (LIMIT_COUNT_FIELDS)', async () => {
+    const logRecord = logRecordFactory.build({
+      markers: [LoggerMarkers.REQUEST],
+      payload: {
+        f1: 1,
+        f2: 2,
+        f3: 3,
+        f4: 4,
+        f5: 5,
+        f6: 6,
+        f7: 7,
+      },
+    });
+
+    const result = formatter.transform(logRecord);
+    expect(result.markers).toContain(PruneMarkers.LIMIT_COUNT_FIELDS);
+  });
 });

@@ -195,4 +195,16 @@ describe(KafkaHeadersBuilder.name, () => {
       [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: asyncContext.replyPartition.toString(),
     });
   });
+
+  it('strips authorization header from input', async () => {
+    const result = builder.build({
+      asyncContext,
+      headers: {
+        authorization: 'Bearer secret',
+        'x-other': 'keep-me',
+      },
+    });
+    expect(result.authorization).toBeUndefined();
+    expect(result['x-other']).toBe('keep-me');
+  });
 });

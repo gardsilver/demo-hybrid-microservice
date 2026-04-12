@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type MockListener = (...args: any[]) => void;
+
 export class MockProducer {
-  constructor(private config?) {}
+  constructor(public readonly config?: Record<string, unknown>) {}
   connect() {}
   send() {}
   sendBatch() {}
@@ -25,21 +28,17 @@ export class MockConsumer {
     REQUEST_TIMEOUT: 'consumer.network.request_timeout',
     REQUEST_QUEUE_SIZE: 'consumer.network.request_queue_size',
   };
-  private _events = new Map();
+  private _events = new Map<string, MockListener[]>();
 
-  constructor(private config?) {}
+  constructor(public readonly config?: Record<string, unknown>) {}
   connect() {}
   subscribe() {}
   run() {
     this.emit(this.events.GROUP_JOIN);
   }
   disconnect() {}
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  on(event, callback: (...args: any[]) => void) {
-    let calls = [];
-    if (this._events.has(event)) {
-      calls = this._events.get(event);
-    }
+  on(event: string, callback: MockListener) {
+    const calls: MockListener[] = this._events.get(event) ?? [];
     calls.push(callback);
 
     this._events.set(event, calls);
@@ -52,9 +51,8 @@ export class MockConsumer {
       );
     };
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  emit(event, ...args: any[]) {
-    const calls = this._events.has(event) ? this._events.get(event) : [];
+  emit(event: string, ...args: any[]) {
+    const calls = this._events.get(event) ?? [];
 
     calls.forEach((element) => {
       element(...args);
@@ -63,11 +61,11 @@ export class MockConsumer {
 }
 
 export class MockKafka {
-  constructor(private config?) {}
-  producer(config?) {
+  constructor(public readonly config?: Record<string, unknown>) {}
+  producer(config?: Record<string, unknown>) {
     return new MockProducer(config);
   }
-  consumer(config?) {
+  consumer(config?: Record<string, unknown>) {
     return new MockConsumer(config);
   }
 }

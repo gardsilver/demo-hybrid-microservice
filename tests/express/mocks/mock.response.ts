@@ -8,7 +8,7 @@ export interface IResponse {
 }
 
 export class MockResponse {
-  public statusCode: HttpStatus;
+  public statusCode: HttpStatus | undefined;
   private _headers: IHeaders;
 
   constructor(options?: IResponse) {
@@ -26,7 +26,7 @@ export class MockResponse {
     return this as unknown as Response;
   }
 
-  public header(name: string): string | string[] {
+  public header(name: string): string | string[] | undefined {
     return name in this._headers ? this._headers[name] : undefined;
   }
 
@@ -36,7 +36,7 @@ export class MockResponse {
     return this as unknown as Response;
   }
 
-  public getStatus(): HttpStatus {
+  public getStatus(): HttpStatus | undefined {
     return this.statusCode;
   }
 

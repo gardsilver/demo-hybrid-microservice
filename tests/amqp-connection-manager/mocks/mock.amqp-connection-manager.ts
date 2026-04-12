@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { EventEmitter } from 'events';
 import * as amqp from 'amqplib';
 import { AmqpConnectionManager, ChannelWrapper, CreateChannelOpts } from 'amqp-connection-manager';
@@ -10,11 +9,11 @@ interface Listener {
 }
 
 export class MockAmqpConnectionManager extends EventEmitter implements AmqpConnectionManager {
-  heartbeatIntervalInSeconds: number;
-  reconnectTimeInSeconds: number;
+  heartbeatIntervalInSeconds = 0;
+  reconnectTimeInSeconds = 0;
   readonly connection: amqp.ChannelModel | undefined;
   /** Returns the number of registered channels. */
-  readonly channelCount: number;
+  readonly channelCount: number = 0;
 
   private onceEvents: Map<string, Listener[]>;
   private events: Map<string, Listener[]>;
@@ -28,10 +27,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   }
 
   addListener(event: string, listener: Listener): this {
-    let listeners: Listener[] = [];
-    if (this.events.has(event)) {
-      listeners = this.events.get(event);
-    }
+    const listeners: Listener[] = this.events.get(event) ?? [];
     listeners.push(listener);
 
     this.events.set(event, listeners);
@@ -39,7 +35,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
     return this;
   }
 
-  removeListener(event: string, listener: (...args: any[]) => void): this {
+  removeListener(event: string, _listener: (...args: any[]) => void): this {
     if (this.events.has(event)) {
       this.events.delete(event);
     }
@@ -48,7 +44,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   }
 
   listeners(eventName: string): Listener[] {
-    return this.events.has(eventName) ? this.events.get(eventName) : [];
+    return this.events.get(eventName) ?? [];
   }
 
   on(event: string, listener: Listener): this {
@@ -56,10 +52,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   }
 
   once(event: string, listener: Listener): this {
-    let listeners: Listener[] = [];
-    if (this.onceEvents.has(event)) {
-      listeners = this.onceEvents.get(event);
-    }
+    const listeners: Listener[] = this.onceEvents.get(event) ?? [];
     listeners.push(listener);
 
     this.onceEvents.set(event, listeners);
@@ -67,7 +60,7 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
     return this;
   }
 
-  async connect(options?: { timeout?: number }): Promise<void> {}
+  async connect(_options?: { timeout?: number }): Promise<void> {}
 
   reconnect(): void {}
 
@@ -82,9 +75,9 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   }
 
   async testEvents(event: string, ...args: any[]) {
-    const listeners = this.events.has(event) ? this.events.get(event) : [];
+    const listeners = this.events.get(event) ?? [];
 
-    const task = [];
+    const task: unknown[] = [];
 
     listeners.forEach((listener) => {
       task.push(listener(...args));
@@ -94,9 +87,9 @@ export class MockAmqpConnectionManager extends EventEmitter implements AmqpConne
   }
 
   async testOnceEvents(event: string, ...args: any[]) {
-    const listeners = this.onceEvents.has(event) ? this.onceEvents.get(event) : [];
+    const listeners = this.onceEvents.get(event) ?? [];
 
-    const task = [];
+    const task: unknown[] = [];
 
     listeners.forEach((listener) => {
       task.push(listener(...args));

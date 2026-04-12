@@ -11,7 +11,7 @@ export class MockProducerSerializer implements IProducerSerializer {
       content: value.content?.toString(),
       publishOptions: {
         ...value.publishOptions,
-        headers: RabbitMqMessageHelper.normalize(value.publishOptions.headers),
+        headers: RabbitMqMessageHelper.normalize(value.publishOptions?.headers ?? {}),
       },
     };
   }

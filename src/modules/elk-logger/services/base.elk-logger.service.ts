@@ -19,7 +19,7 @@ import { LogFieldsHelper } from '../helpers/log-fields.helper';
 export abstract class BaseElkLoggerService {
   private fileFormatter!: FileFormatter;
   protected defaultLogFields: ILogFields = {};
-  protected lastLogRecord!: ILogRecord;
+  protected lastLogRecord: ILogRecord | undefined;
   private readonly encodeFormatters: IEncodeFormatter[];
   private readonly recordFormatters: ILogRecordFormatter[];
 
@@ -40,7 +40,7 @@ export abstract class BaseElkLoggerService {
     }
   }
 
-  getLastLogRecord(): ILogRecord {
+  getLastLogRecord(): ILogRecord | undefined {
     return this.lastLogRecord;
   }
 

@@ -70,7 +70,7 @@ export interface IEncodeFormatter extends IFormatter<string, string> {
 }
 
 export interface INestElkLoggerService extends LoggerService {
-  getLastLogRecord(): ILogRecord;
+  getLastLogRecord(): ILogRecord | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setLogLevels?(levels: NestLogLevel[]): any;
 }

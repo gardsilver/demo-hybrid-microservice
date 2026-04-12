@@ -10,7 +10,7 @@ export class MockConsumerDeserializer implements IConsumerDeserializer<string> {
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value.toString(),
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }

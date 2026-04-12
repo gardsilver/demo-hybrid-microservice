@@ -1,8 +1,10 @@
 import { IKeyValue } from 'src/modules/common';
 
 export class MockConfigService {
-  constructor(private readonly config?: IKeyValue<string>) {
-    this.config = this.config ?? {};
+  private readonly config: IKeyValue<string>;
+
+  constructor(config?: IKeyValue<string>) {
+    this.config = config ?? {};
   }
 
   get<T = string>(key: string, defaultValue?: T): T {

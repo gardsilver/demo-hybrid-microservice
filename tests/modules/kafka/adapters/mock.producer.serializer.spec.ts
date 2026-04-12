@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { IProducerPacket } from 'src/modules/kafka/kafka-client';
+import { IProducerPacket, IProducerSerializerOptions } from 'src/modules/kafka/kafka-client';
 import { MockProducerSerializer } from './mock.producer.serializer';
 
 describe(MockProducerSerializer.name, () => {
@@ -21,14 +21,14 @@ describe(MockProducerSerializer.name, () => {
   });
 
   it('default', async () => {
-    expect(adapter.serialize(producerPacket, undefined)).toEqual({
+    expect(adapter.serialize(producerPacket, undefined as unknown as IProducerSerializerOptions)).toEqual({
       ...producerPacket.data,
     });
 
     producerPacket.data.key = null;
     producerPacket.data.value = null;
 
-    expect(adapter.serialize(producerPacket, undefined)).toEqual({
+    expect(adapter.serialize(producerPacket, undefined as unknown as IProducerSerializerOptions)).toEqual({
       key: null,
       headers: producerPacket.data.headers,
     });

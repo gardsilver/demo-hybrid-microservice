@@ -420,6 +420,10 @@ describe(KafkaClientProxy.name, () => {
 
         await firstValueFrom(clientProxy.send(request, options));
 
+        if (options.headerBuilder === undefined || options.serializer === undefined) {
+          throw new Error('options.headerBuilder or options.serializer is not set');
+        }
+
         expect(spyHeadersBuild).toHaveBeenCalledTimes(0);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(options.headerBuilder.build).toHaveBeenCalledWith(

@@ -106,7 +106,8 @@
       "ts"
     ],
     "setupFiles": [
-      "reflect-metadata"
+      "reflect-metadata",
+      "<rootDir>/tests/jest.setup.ts"
     ],
     "coveragePathIgnorePatterns": [
       ".*\\.e2e-spec\\.ts$",

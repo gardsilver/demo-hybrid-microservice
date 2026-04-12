@@ -18,7 +18,7 @@ describe(PrometheusMetricBuilder.name, () => {
   let builder: PrometheusMetricBuilder;
 
   beforeAll(async () => {
-    spyCollectDefaultMetrics = jest.spyOn(PromClient, 'collectDefaultMetrics');
+    spyCollectDefaultMetrics = jest.spyOn(PromClient, 'collectDefaultMetrics').mockImplementation(() => undefined);
     spySetDefaultLabels = jest.spyOn(PromClient.Registry.prototype, 'setDefaultLabels');
 
     const module = await Test.createTestingModule({

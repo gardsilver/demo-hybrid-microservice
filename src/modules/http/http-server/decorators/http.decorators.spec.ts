@@ -40,7 +40,7 @@ describe('Decorators', () => {
                 [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: header,
                 [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: header,
                 [COOKIE_HEADER_NAME]: header,
-              },
+              } as unknown as Record<string, string | string[]>,
             }) as unknown as Record<string | symbol, unknown>;
             request[METADATA_ASYNC_CONTEXT_KEY] = {
               traceId: header,

@@ -1,6 +1,6 @@
 const redisClient = {
   on: jest.fn(),
-} as undefined as RedisClientType;
+} as unknown as RedisClientType;
 
 const mockKeyv = {
   store: {

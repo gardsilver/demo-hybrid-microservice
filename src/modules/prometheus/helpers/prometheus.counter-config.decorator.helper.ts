@@ -12,7 +12,7 @@ export abstract class PrometheusCounterConfigDecoratorHelper {
       return false;
     }
 
-    let configIncrement: Partial<IPrometheusParams<ICounterMetricConfig, ICounterParams>>;
+    let configIncrement: Partial<IPrometheusParams<ICounterMetricConfig, ICounterParams>> | undefined;
 
     if (typeof config.increment === 'boolean') {
       configIncrement = config.increment ? {} : undefined;
@@ -38,8 +38,8 @@ export abstract class PrometheusCounterConfigDecoratorHelper {
   private static buildParams(
     params: ICounterParams | undefined,
     defaultLabels: PrometheusLabels | false,
-  ): ICounterParams {
-    let result: ICounterParams;
+  ): ICounterParams | undefined {
+    let result: ICounterParams | undefined;
 
     const labels = PrometheusDecoratorHelper.buildLabels(params?.labels, defaultLabels);
 

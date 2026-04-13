@@ -8,7 +8,7 @@ export class MockErrorFormatter extends BaseErrorObjectFormatter {
 
   setUnknownFormatter(): void {}
 
-  isInstanceOf(obj: unknown): obj is object {
+  isInstanceOf(_obj: unknown): _obj is object {
     return true;
   }
 

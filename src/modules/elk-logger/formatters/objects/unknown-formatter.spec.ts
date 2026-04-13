@@ -13,7 +13,7 @@ describe(UnknownFormatter.name, () => {
   let formatter: UnknownFormatter;
 
   beforeEach(async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     mockObjectFormatter = new MockObjectFormatter();
     formatter = new UnknownFormatter(loggerConfig, [mockObjectFormatter]);

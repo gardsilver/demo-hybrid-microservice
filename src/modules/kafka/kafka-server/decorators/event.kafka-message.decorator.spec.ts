@@ -27,6 +27,12 @@ class Test {
 
   @EventKafkaMessage(['topic'], { ...params, mode: undefined })
   public static eachMessage() {}
+
+  @EventKafkaMessage(['topic-fn'], () => params)
+  public static fromFunction() {}
+
+  @EventKafkaMessage(['topic-no-opts'])
+  public static noOptions() {}
 }
 
 describe(EventKafkaMessage.name, () => {
@@ -41,6 +47,12 @@ describe(EventKafkaMessage.name, () => {
 
     expect(Reflect.getMetadata(PATTERN_EXTRAS_METADATA, Test.eachMessage)).toEqual({
       ...params,
+      mode: ConsumerMode.EACH_MESSAGE,
+    });
+
+    expect(Reflect.getMetadata(PATTERN_EXTRAS_METADATA, Test.fromFunction)).toEqual(params);
+
+    expect(Reflect.getMetadata(PATTERN_EXTRAS_METADATA, Test.noOptions)).toEqual({
       mode: ConsumerMode.EACH_MESSAGE,
     });
   });

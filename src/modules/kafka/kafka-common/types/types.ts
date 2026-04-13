@@ -1,7 +1,7 @@
 import { KafkaOptions } from '@nestjs/microservices';
 import { IHeaders, IHeadersToContextAdapter } from 'src/modules/common';
 import { IKafkaAsyncContext } from './kafka.async-context.type';
-import { IKafkaLogFilterParams } from '../builders/kafka.ekf-logger.builder';
+import { IKafkaLogFilterParams } from '../builders/kafka.elk-logger.builder';
 
 export interface IKafkaHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IKafkaAsyncContext> {}
 
@@ -12,10 +12,11 @@ export interface IKafkaHeadersBuilder {
   ): IHeaders;
 }
 
-export type KafkaClientConfig = KafkaOptions['options']['client'];
-export type KafkaRetryConfig = KafkaOptions['options']['client']['retry'];
-export type KafkaConsumerConfig = KafkaOptions['options']['consumer'];
-export type KafkaProducerConfig = KafkaOptions['options']['producer'];
+type KafkaOptionsResolved = NonNullable<KafkaOptions['options']>;
+export type KafkaClientConfig = NonNullable<KafkaOptionsResolved['client']>;
+export type KafkaRetryConfig = NonNullable<KafkaClientConfig['retry']>;
+export type KafkaConsumerConfig = NonNullable<KafkaOptionsResolved['consumer']>;
+export type KafkaProducerConfig = NonNullable<KafkaOptionsResolved['producer']>;
 
 export interface IKafkaClientOptions extends Omit<KafkaClientConfig, 'logLevel' | 'logCreator' | 'retry' | 'brokers'> {
   brokers: string[];
@@ -38,8 +39,10 @@ export interface IKafkaHealthIndicatorOptions {
   retry?: Omit<KafkaRetryConfig, 'restartOnFailure'>;
 }
 
-export interface IKafkaClientProxyBuilderOptions
-  extends Omit<KafkaOptions['options'], 'client' | 'consumer' | 'producer' | 'parser'> {
+export interface IKafkaClientProxyBuilderOptions extends Omit<
+  KafkaOptionsResolved,
+  'client' | 'consumer' | 'producer' | 'parser'
+> {
   serverName: string;
   client: IKafkaClientOptions;
   consumer?: IKafkaConsumerOptions;
@@ -47,7 +50,7 @@ export interface IKafkaClientProxyBuilderOptions
 }
 
 export interface IKafkaMessage<T> {
-  key?: string;
+  key?: string | null;
   value: T;
   headers?: IHeaders;
 }

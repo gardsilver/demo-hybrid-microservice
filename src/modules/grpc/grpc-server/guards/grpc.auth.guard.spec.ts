@@ -41,7 +41,7 @@ describe(GrpcAuthGuard.name, () => {
   let authService: IAuthService;
   let headersAdapter: IGrpcHeadersToAsyncContextAdapter;
   let guard: GrpcAuthGuard;
-  let token;
+  let token: string | undefined;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -98,8 +98,8 @@ describe(GrpcAuthGuard.name, () => {
         ({
           getData: () => requestData,
           getContext: () => requestMetadata,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ExecutionContext;
   });
 
   it('init', async () => {

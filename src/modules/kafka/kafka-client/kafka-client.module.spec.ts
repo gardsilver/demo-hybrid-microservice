@@ -8,7 +8,6 @@ import {
   INestElkLoggerService,
 } from 'src/modules/elk-logger';
 import { PrometheusModule } from 'src/modules/prometheus';
-import { MockKafka } from 'tests/kafkajs';
 import { MockConfigService } from 'tests/nestjs';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockProducerSerializer, MockKafkaHeadersRequestBuilder } from 'tests/modules/kafka';
@@ -25,11 +24,7 @@ import {
 import { KafkaHeadersRequestBuilder } from './builders/kafka.headers-request.builder';
 import { ProducerSerializer } from './adapters/producer.serializer';
 
-jest.mock('kafkajs', () => {
-  const actualKafkaJs = jest.requireActual('kafkajs');
-
-  return Object.assign(actualKafkaJs, { Kafka: jest.fn((prams?) => new MockKafka(prams)) });
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK_WITH_ORIGINALS);
 
 describe(KafkaClientModule.name, () => {
   let serverName: string;

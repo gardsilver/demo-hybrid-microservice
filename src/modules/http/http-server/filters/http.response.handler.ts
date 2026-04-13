@@ -69,7 +69,7 @@ export class HttpResponseHandler {
    * @TODO Здесь можно добавлять преобразование различных ошибок к HttpException
    *  Например реализовать маппинг возникших ошибок на rpcClient (rpcCode к HttpStatus)
    */
-  public handleError(context: ArgumentsHost, exception, fieldsLogs?: ILogFields): HttpException {
+  public handleError(context: ArgumentsHost, exception: unknown, fieldsLogs?: ILogFields): HttpException {
     let resolvedError;
     let responseData, httpStatus;
 
@@ -95,7 +95,9 @@ export class HttpResponseHandler {
       responseData = exception.getResponse();
     } else {
       responseData = 'Internal Server Error';
-      resolvedError = new InternalServerErrorException(responseData, { description: exception.message });
+      resolvedError = new InternalServerErrorException(responseData, {
+        description: exception instanceof Error ? exception.message : String(exception),
+      });
       httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
       parentError = exception;
@@ -105,7 +107,7 @@ export class HttpResponseHandler {
 
     this.loggingResponse(
       httpStatus,
-      LogFieldsHelper.merge(fieldsLogs, {
+      LogFieldsHelper.merge(fieldsLogs ?? {}, {
         ...ts,
         payload: {
           request: requestAsLog,

@@ -1,3 +1,4 @@
+import { Channel } from 'amqp-connection-manager';
 import { CommonMessageFields, ConsumeMessage, MessagePropertyHeaders } from 'amqplib';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
@@ -9,10 +10,12 @@ import { messageFieldsFactory, messagePropertiesFactory, messagePropertyHeadersF
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { RabbitMqErrorFilter } from './rabbit-mq.error.filter';
 import { RabbitMqHelper } from '../helpers/rabbit-mq.helper';
+import { IRabbitMqConsumeMessage } from 'src/modules/rabbit-mq/rabbit-mq-common';
+import { IRabbitMqEventOptions } from '../types/types';
 import { RabbitMqContext } from '../ctx-host/rabbit-mq.context';
 
 describe(RabbitMqErrorFilter.name, () => {
-  let error;
+  let error: Error;
   let logger: IElkLoggerService;
   let headers: MessagePropertyHeaders;
   let content: string;
@@ -85,17 +88,22 @@ describe(RabbitMqErrorFilter.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
-    rmqContext = new RabbitMqContext<string>([consumeMessage, { ...consumeMessage, content }, undefined, undefined]);
+    rmqContext = new RabbitMqContext<string>([
+      consumeMessage,
+      { ...consumeMessage, content } as unknown as IRabbitMqConsumeMessage<string>,
+      undefined as unknown as Channel,
+      undefined as unknown as IRabbitMqEventOptions & { pattern: string },
+    ]);
 
     host = {
       switchToRpc: () =>
         ({
           getContext: () => rmqContext,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ArgumentsHost;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ArgumentsHost;
 
     jest.spyOn(RabbitMqHelper, 'isRabbitMq').mockImplementation(() => true);
   });

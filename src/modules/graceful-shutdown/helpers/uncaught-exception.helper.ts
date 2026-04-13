@@ -12,7 +12,7 @@ export abstract class UncaughtExceptionHelper {
 
     if (reason instanceof Error) {
       return {
-        reason: 'message' in reason ? (reason['message'] as undefined as string) : undefined,
+        reason: 'message' in reason ? (reason['message'] as unknown as string) : undefined,
         ...UncaughtExceptionHelper.getUncaughtExceptionLabels(reason),
       };
     }
@@ -20,7 +20,7 @@ export abstract class UncaughtExceptionHelper {
     return {};
   }
 
-  public static getUncaughtExceptionLabels(error): PrometheusLabels {
+  public static getUncaughtExceptionLabels(error: unknown): PrometheusLabels {
     const labels = <PrometheusLabels>{};
 
     const type = typeof error;
@@ -32,18 +32,25 @@ export abstract class UncaughtExceptionHelper {
     }
 
     if (type === 'function') {
-      labels.type = error.name;
+      labels.type = (error as { name?: string }).name;
 
       return labels;
     }
 
+    const obj = error as Record<string, unknown>;
+
     if (type === 'object') {
-      labels.type = error?.prototype?.constructor?.name ?? error?.constructor?.name ?? error?.name ?? 'object';
+      labels.type = String(
+        (obj?.prototype as Record<string, unknown>)?.constructor?.['name'] ??
+          obj?.constructor?.name ??
+          obj?.name ??
+          'object',
+      );
     }
 
     const stack: string[] =
-      'stack' in error && typeof error['stack'] === 'string'
-        ? (ExceptionHelper.stackFormat(error['stack']) as undefined as string[])
+      error !== null && typeof error === 'object' && 'stack' in error && typeof error['stack'] === 'string'
+        ? (ExceptionHelper.stackFormat(error['stack']) as string[])
         : [];
 
     if (!stack?.length) {
@@ -52,7 +59,7 @@ export abstract class UncaughtExceptionHelper {
 
     const typeInfo = stack.shift();
 
-    labels.type = UncaughtExceptionHelper.extractType(typeInfo);
+    labels.type = UncaughtExceptionHelper.extractType(typeInfo ?? '');
 
     const sourceInfo = stack.shift();
 
@@ -66,13 +73,13 @@ export abstract class UncaughtExceptionHelper {
     };
   }
 
-  public static extractType(typeInfo: string): string {
+  public static extractType(typeInfo: string): string | undefined {
     const search = typeInfo.match(TYPE_REG_EXP);
 
     return search !== null && search.length > 0 ? search[1] : undefined;
   }
 
-  public static extractSourceInfo(sourceInfo: string): PrometheusLabels {
+  public static extractSourceInfo(sourceInfo: string): PrometheusLabels | undefined {
     const search = sourceInfo.match(SOURCE_REG_EXP);
 
     if (!search?.length) {

@@ -61,7 +61,7 @@ describe(PrometheusHistogramService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         observe: spy,
-      } as undefined as Histogram;
+      } as unknown as Histogram;
     });
 
     histogramService.observe(METRIC_HISTOGRAM, {
@@ -107,7 +107,7 @@ describe(PrometheusHistogramService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         startTimer: spy,
-      } as undefined as Histogram;
+      } as unknown as Histogram;
     });
 
     histogramService.startTimer(METRIC_HISTOGRAM);

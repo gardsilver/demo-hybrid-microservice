@@ -34,7 +34,7 @@ export const isGrpcServiceError = (error: unknown): error is ServiceError => {
 export interface IGrpcClientError {
   message: string;
   loggerMarker: string;
-  statusCode: string | number;
+  statusCode: string | number | undefined;
   details?: string;
   headers?: IHeaders;
   cause?: unknown;
@@ -45,8 +45,8 @@ export abstract class GrpcClientError extends Error implements IGrpcClientError 
   public readonly headers?: IHeaders;
 
   protected constructor(
-    message: string,
-    public readonly statusCode: string | number,
+    message: string | undefined,
+    public readonly statusCode: string | number | undefined,
     public readonly loggerMarker: string,
     cause?: unknown,
   ) {

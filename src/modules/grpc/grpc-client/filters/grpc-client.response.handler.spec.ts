@@ -28,7 +28,7 @@ describe(GrpcClientResponseHandler.name, () => {
   let asyncContext: IGeneralAsyncContext;
   let headers: IHeaders;
   let fieldsLogs: ILogFields;
-  let grpcError;
+  let grpcError: Error & { metadata?: unknown; code?: number };
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let responseHandler: GrpcClientResponseHandler;
@@ -56,10 +56,7 @@ describe(GrpcClientResponseHandler.name, () => {
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
@@ -99,7 +96,7 @@ describe(GrpcClientResponseHandler.name, () => {
   });
 
   describe('handleError', () => {
-    let spyLoggingResponse;
+    let spyLoggingResponse: jest.SpyInstance;
 
     beforeEach(async () => {
       spyLoggingResponse = jest.spyOn(responseHandler, 'loggingResponse');
@@ -138,12 +135,16 @@ describe(GrpcClientResponseHandler.name, () => {
     });
 
     it('as Timeout', async () => {
-      let exception;
+      let exception: Error | undefined;
       let result;
 
       exception = new TimeoutError(10_000);
 
       result = responseHandler.handleError(exception, { fieldsLogs });
+
+      if (exception === undefined) {
+        throw new Error('exception is undefined');
+      }
 
       expect(result instanceof GrpcClientError).toBeTruthy();
       expect(result).toEqual(new GrpcClientTimeoutError(exception.message, 'timeout', exception));
@@ -156,11 +157,15 @@ describe(GrpcClientResponseHandler.name, () => {
         const source$ = interval(500).pipe(timeout(1));
         await firstValueFrom(source$);
       } catch (e) {
-        exception = e;
+        exception = e as Error;
       }
 
       expect(exception).toBeDefined();
       expect(exception instanceof TimeoutErrorRxjs).toBeTruthy();
+
+      if (exception === undefined) {
+        throw new Error('exception is undefined');
+      }
 
       result = responseHandler.handleError(exception, { fieldsLogs });
 
@@ -216,8 +221,8 @@ describe(GrpcClientResponseHandler.name, () => {
   });
 
   describe('loggingResponse', () => {
-    let spyLogBuilder;
-    let spyLog;
+    let spyLogBuilder: jest.SpyInstance;
+    let spyLog: jest.SpyInstance;
 
     beforeEach(async () => {
       spyLogBuilder = jest.spyOn(loggerBuilder, 'build');

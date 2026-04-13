@@ -41,7 +41,7 @@ export abstract class NestElkLoggerServiceBuilder {
     return new NestElkLoggerService(elkLoggerConfig, recordEncodeFormattersFactory, formattersFactory);
   }
 
-  private static buildService(options: INestElkLoggerServiceBuilderOption): {
+  private static buildService(options: INestElkLoggerServiceBuilderOption & { configService: ConfigService }): {
     elkLoggerConfig: ElkLoggerConfig;
     recordEncodeFormattersFactory: RecordEncodeFormattersFactory;
     formattersFactory: FormattersFactory;
@@ -56,7 +56,7 @@ export abstract class NestElkLoggerServiceBuilder {
 
     const elkLoggerConfig = new ElkLoggerConfig(
       options.configService,
-      [].concat(ignoreObjects, objectFormatters),
+      ([] as CheckObjectsType[]).concat(ignoreObjects, objectFormatters),
       options?.formattersOptions?.sortFields?.length ? options?.formattersOptions?.sortFields : [],
       options?.defaultFields,
     );

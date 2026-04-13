@@ -8,19 +8,19 @@ import { PrometheusEventArgs, PrometheusEventService } from './prometheus.event-
 import { PrometheusManager } from './prometheus.manager';
 
 describe(PrometheusEventService.name, () => {
-  let spyCountInc;
-  let spyGaugeInc;
-  let spyGaugeDec;
+  let spyCountInc: jest.Mock;
+  let spyGaugeInc: jest.Mock;
+  let spyGaugeDec: jest.Mock;
 
-  let spyHistogramObs;
-  let spyHistogramStr;
-  let spyHistogramEnd;
+  let spyHistogramObs: jest.Mock;
+  let spyHistogramStr: jest.Mock;
+  let spyHistogramEnd: jest.Mock;
 
-  let spySummaryObs;
-  let spySummaryStr;
-  let spySummaryEnd;
+  let spySummaryObs: jest.Mock;
+  let spySummaryStr: jest.Mock;
+  let spySummaryEnd: jest.Mock;
 
-  let spyCustom;
+  let spyCustom: jest.Mock;
 
   let counterService: ICounterService;
   let gaugeService: IGaugeService;
@@ -52,29 +52,29 @@ describe(PrometheusEventService.name, () => {
 
     counterService = {
       increment: spyCountInc,
-    } as undefined as ICounterService;
+    } as unknown as ICounterService;
 
     gaugeService = {
       increment: spyGaugeInc,
       decrement: spyGaugeDec,
-    } as undefined as IGaugeService;
+    } as unknown as IGaugeService;
 
     histogramService = {
       observe: spyHistogramObs,
       startTimer: spyHistogramStr,
-    } as undefined as IHistogramService;
+    } as unknown as IHistogramService;
 
     summaryService = {
       observe: spySummaryObs,
       startTimer: spySummaryStr,
-    } as undefined as ISummaryService;
+    } as unknown as ISummaryService;
 
     prometheusManager = {
       counter: () => counterService,
       gauge: () => gaugeService,
       histogram: () => histogramService,
       summary: () => summaryService,
-    } as undefined as PrometheusManager;
+    } as unknown as PrometheusManager;
 
     service = new PrometheusEventService(prometheusManager);
 
@@ -458,6 +458,60 @@ describe(PrometheusEventService.name, () => {
           { ticketId, eventArgs },
         ),
       ).toThrow('Invalid configuration Prometheus Handle Summary Observe!!!');
+    });
+
+    it('handleCounter throws when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleCounter']({
+          increment: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Counter Increment: metricConfig is required');
+    });
+
+    it('handleGauge increment/decrement throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleGauge']({
+          increment: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Increment: metricConfig is required');
+
+      expect(() =>
+        service['handleGauge']({
+          decrement: { metricConfig: undefined as unknown as never } as unknown as never,
+        }),
+      ).toThrow('Invalid configuration Prometheus Handle Gauge Decrement: metricConfig is required');
+    });
+
+    it('handleHistogram startTimer/observe throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleHistogram'](
+          { startTimer: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram StartTimer: metricConfig is required');
+
+      expect(() =>
+        service['handleHistogram'](
+          { observe: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Histogram Observe: metricConfig/params are required');
+    });
+
+    it('handleSummary startTimer/observe throw when metricConfig is undefined', async () => {
+      expect(() =>
+        service['handleSummary'](
+          { startTimer: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary StartTimer: metricConfig is required');
+
+      expect(() =>
+        service['handleSummary'](
+          { observe: { metricConfig: undefined as unknown as never } as unknown as never },
+          { ticketId, eventArgs },
+        ),
+      ).toThrow('Invalid configuration Prometheus Handle Summary Observe: metricConfig/params are required');
     });
   });
 });

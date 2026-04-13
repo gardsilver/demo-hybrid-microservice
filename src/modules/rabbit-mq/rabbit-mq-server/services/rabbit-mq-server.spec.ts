@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Observable, tap } from 'rxjs';
 import { CommonMessageFields, ConsumeMessage, MessagePropertyHeaders } from 'amqplib';
-import { Channel } from 'amqp-connection-manager';
+import { AmqpConnectionManager, Channel } from 'amqp-connection-manager';
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -31,10 +31,10 @@ import {
   RABBIT_MQ_SERVER_CONNECTION_FAILED,
 } from '../types/metrics';
 import { RabbitMqContext } from '../ctx-host/rabbit-mq.context';
-import { IConsumerPacket } from '../types/types';
+import { IConsumerPacket, IEventRabbitMqMessageOptions } from '../types/types';
 
 describe(RabbitMqServer.name, () => {
-  let mockConnect;
+  let mockConnect: () => AmqpConnectionManager;
   let logger: IElkLoggerService;
   let nestLogger: INestElkLoggerService;
   let prometheusManager: PrometheusManager;
@@ -114,8 +114,8 @@ describe(RabbitMqServer.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
     jest.clearAllMocks();
   });
@@ -154,9 +154,9 @@ describe(RabbitMqServer.name, () => {
   });
 
   describe('base methods', () => {
-    let extras;
+    let extras: IEventRabbitMqMessageOptions;
     let messageHandler: MessageHandler;
-    let spyHandler;
+    let spyHandler: jest.Mock;
 
     beforeEach(async () => {
       server = new RabbitMqServer(
@@ -206,7 +206,7 @@ describe(RabbitMqServer.name, () => {
 
       await server.listen(callback);
 
-      const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+      const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
       const spyCreateChannel = jest.spyOn(mockClient, 'createChannel');
 
       await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
@@ -240,10 +240,10 @@ describe(RabbitMqServer.name, () => {
   });
 
   describe('methods when server start', () => {
-    let extras;
+    let extras: IEventRabbitMqMessageOptions;
     let messageHandler: MessageHandler;
-    let spyHandler;
-    let callback;
+    let spyHandler: jest.Mock;
+    let callback: jest.Mock;
 
     describe('default server start as success', () => {
       beforeEach(async () => {
@@ -271,7 +271,7 @@ describe(RabbitMqServer.name, () => {
         await server.listen(callback);
         expect(server.unwrap() instanceof MockAmqpConnectionManager).toBeTruthy();
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         const spyAddListener = jest.spyOn(mockClient, 'addListener');
         const eventCallback = jest.fn();
@@ -287,7 +287,7 @@ describe(RabbitMqServer.name, () => {
 
         expect(server['client'] instanceof MockAmqpConnectionManager).toBeTruthy();
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         expect(mockClient['onceEvents'].size).toBe(2);
         expect(mockClient['events'].size).toBe(2);
@@ -296,7 +296,7 @@ describe(RabbitMqServer.name, () => {
       it('runConsumers', async () => {
         await server.listen(callback);
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         const spyCreateChannel = jest.spyOn(mockClient, 'createChannel');
 
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
@@ -315,11 +315,11 @@ describe(RabbitMqServer.name, () => {
 
       it('setupChannel and close', async () => {
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
         const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
         const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -356,11 +356,11 @@ describe(RabbitMqServer.name, () => {
         server['options'].noAssert = true;
 
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
         const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
         const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -384,10 +384,10 @@ describe(RabbitMqServer.name, () => {
 
       it('handleMessage as success', async () => {
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const spyCounterIncrement = jest.spyOn(prometheusManager.counter(), 'increment');
@@ -395,7 +395,7 @@ describe(RabbitMqServer.name, () => {
           pattern: 'pattern',
           data: {
             content: 'content',
-          } as undefined as IRabbitMqConsumeMessage,
+          } as unknown as IRabbitMqConsumeMessage,
         };
         const deserializeOptions = {
           pattern: 'pattern',
@@ -433,19 +433,35 @@ describe(RabbitMqServer.name, () => {
           mockDeserializeMessage.data,
           new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
-            mockChannel as undefined as Channel,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
+            mockChannel as unknown as Channel,
             deserializeOptions,
           ]),
         );
       });
 
+      it('skips null msg in consume callback', async () => {
+        await server.listen(callback);
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
+        await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
+        await mockChannelWrapper.testSetup();
+
+        const spyDeserialize = jest.spyOn(server['deserializer'], 'deserialize');
+
+        mockChannel.testOnMessage?.(null);
+
+        expect(spyDeserialize).not.toHaveBeenCalled();
+        expect(spyHandler).not.toHaveBeenCalled();
+      });
+
       it('handleMessage as success (deserializer crash)', async () => {
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const spyCounterIncrement = jest.spyOn(prometheusManager.counter(), 'increment');
@@ -489,10 +505,10 @@ describe(RabbitMqServer.name, () => {
         });
 
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const spyCounterIncrement = jest.spyOn(prometheusManager.counter(), 'increment');
@@ -532,10 +548,10 @@ describe(RabbitMqServer.name, () => {
         });
 
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const spyCounterIncrement = jest.spyOn(prometheusManager.counter(), 'increment');
@@ -543,7 +559,7 @@ describe(RabbitMqServer.name, () => {
           pattern: 'pattern',
           data: {
             content: 'content',
-          } as undefined as IRabbitMqConsumeMessage,
+          } as unknown as IRabbitMqConsumeMessage,
         };
         const deserializeOptions = {
           pattern: 'pattern',
@@ -582,8 +598,8 @@ describe(RabbitMqServer.name, () => {
           mockDeserializeMessage.data,
           new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
-            mockChannel as undefined as Channel,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
+            mockChannel as unknown as Channel,
             deserializeOptions,
           ]),
         );
@@ -598,10 +614,10 @@ describe(RabbitMqServer.name, () => {
         });
 
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const spyCounterIncrement = jest.spyOn(prometheusManager.counter(), 'increment');
@@ -634,7 +650,7 @@ describe(RabbitMqServer.name, () => {
     });
 
     describe('custom server start as success', () => {
-      let deserializer;
+      let deserializer: MockConsumerDeserializer;
       beforeEach(async () => {
         deserializer = new MockConsumerDeserializer();
         server = new RabbitMqServer(
@@ -660,10 +676,10 @@ describe(RabbitMqServer.name, () => {
 
       it('handleMessage', async () => {
         await server.listen(callback);
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-        const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+        const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
         await mockChannelWrapper.testSetup();
 
         const deserializeOptions = {
@@ -713,7 +729,7 @@ describe(RabbitMqServer.name, () => {
         });
 
         it('handleEvent for undefined', async () => {
-          const channel: Channel = new MockChannel() as undefined as Channel;
+          const channel: Channel = new MockChannel() as unknown as Channel;
 
           const spyAck = jest.spyOn(channel, 'ack');
           const spyNack = jest.spyOn(channel, 'nack');
@@ -722,7 +738,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
-            } as undefined as IRabbitMqConsumeMessage,
+            } as unknown as IRabbitMqConsumeMessage,
           };
           const deserializeOptions = {
             pattern: 'pattern',
@@ -738,7 +754,7 @@ describe(RabbitMqServer.name, () => {
           };
           const rmqContext = new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             channel,
             deserializeOptions,
           ]);
@@ -752,12 +768,10 @@ describe(RabbitMqServer.name, () => {
 
         it('handleMessage as skip', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -780,12 +794,10 @@ describe(RabbitMqServer.name, () => {
 
         it('handleMessage as success', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -815,12 +827,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const spyAck = jest.spyOn(mockChannel, 'ack');
@@ -844,12 +854,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -882,12 +890,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const spyAck = jest.spyOn(mockChannel, 'ack');
@@ -927,7 +933,7 @@ describe(RabbitMqServer.name, () => {
         });
 
         it('handleEvent for undefined', async () => {
-          const channel: Channel = new MockChannel() as undefined as Channel;
+          const channel: Channel = new MockChannel() as unknown as Channel;
 
           const spyAck = jest.spyOn(channel, 'ack');
           const spyNack = jest.spyOn(channel, 'nack');
@@ -936,7 +942,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
-            } as undefined as IRabbitMqConsumeMessage,
+            } as unknown as IRabbitMqConsumeMessage,
           };
           const deserializeOptions = {
             pattern: 'pattern',
@@ -952,7 +958,7 @@ describe(RabbitMqServer.name, () => {
           };
           const rmqContext = new RabbitMqContext([
             consumeMessage,
-            mockDeserializeMessage.data,
+            mockDeserializeMessage.data as unknown as IRabbitMqConsumeMessage,
             channel,
             deserializeOptions,
           ]);
@@ -966,12 +972,10 @@ describe(RabbitMqServer.name, () => {
 
         it('handleMessage as skip', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -994,12 +998,10 @@ describe(RabbitMqServer.name, () => {
 
         it('handleMessage as success', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -1029,12 +1031,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const spyAck = jest.spyOn(mockChannel, 'ack');
@@ -1058,12 +1058,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const mockDeserializeMessage = {
@@ -1096,12 +1094,10 @@ describe(RabbitMqServer.name, () => {
           });
 
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
           await mockChannelWrapper.testSetup();
 
           const spyAck = jest.spyOn(mockChannel, 'ack');
@@ -1147,13 +1143,11 @@ describe(RabbitMqServer.name, () => {
 
         it('setupChannel', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
 
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
           const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
           const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -1203,13 +1197,11 @@ describe(RabbitMqServer.name, () => {
 
         it('setupChannel', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
 
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
           const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
           const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -1258,13 +1250,11 @@ describe(RabbitMqServer.name, () => {
 
         it('setupChannel', async () => {
           await server.listen(callback);
-          const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+          const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
           await mockClient.testOnceEvents(RmqEventsMap.CONNECT);
 
-          const mockChannelWrapper: MockChannelWrapper = mockClient[
-            'channelWrapper'
-          ] as undefined as MockChannelWrapper;
-          const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+          const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as unknown as MockChannelWrapper;
+          const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
           const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
           const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -1288,7 +1278,7 @@ describe(RabbitMqServer.name, () => {
     });
 
     describe('default server start as failed', () => {
-      let crashError;
+      let crashError: Error;
 
       beforeEach(async () => {
         server = new RabbitMqServer(
@@ -1316,7 +1306,7 @@ describe(RabbitMqServer.name, () => {
       it('runConsumers', async () => {
         await server.listen(callback);
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
         jest.spyOn(mockClient, 'createChannel').mockImplementation(() => {
           throw crashError;
         });
@@ -1334,7 +1324,7 @@ describe(RabbitMqServer.name, () => {
 
         server['connectionAttempts'] = 1;
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         await mockClient.testEvents(RmqEventsMap.CONNECT);
         await mockClient.testEvents(RmqEventsMap.DISCONNECT);
@@ -1383,7 +1373,7 @@ describe(RabbitMqServer.name, () => {
         const subscription = server.status.pipe(tap(spy)).subscribe();
         await server.listen(callback);
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         await mockClient.testOnceEvents('connectFailed');
 
@@ -1412,7 +1402,7 @@ describe(RabbitMqServer.name, () => {
         const subscription = server.status.pipe(tap(spy)).subscribe();
         await server.listen(callback);
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         await mockClient.testOnceEvents('connectFailed', { err: crashError });
 
@@ -1456,7 +1446,7 @@ describe(RabbitMqServer.name, () => {
         const subscription = server.status.pipe(tap(spy)).subscribe();
         await server.listen(callback);
 
-        const mockClient: MockAmqpConnectionManager = server['client'] as undefined as MockAmqpConnectionManager;
+        const mockClient: MockAmqpConnectionManager = server['client'] as unknown as MockAmqpConnectionManager;
 
         await mockClient.testOnceEvents('connectFailed', { err: crashError });
 

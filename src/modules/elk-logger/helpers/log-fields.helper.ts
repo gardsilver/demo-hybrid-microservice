@@ -32,7 +32,7 @@ export abstract class LogFieldsHelper {
     const tgt = Object.assign({}, logFields);
 
     if (logFields.markers?.length) {
-      const markers = [];
+      const markers: string[] = [];
       for (const marker of logFields.markers) {
         if (!markers.includes(marker) && marker) {
           markers.push(marker);

@@ -2,14 +2,16 @@
 
 ## Описание
 
-Модуль логирования в формате **ElasticSearch**.
-Предусмотрены сервисы  `INestElkLoggerService` (**@see** `LoggerService @nestjs/common`) для замены логирования системных логов `NestApplication` и более удобный сервис логирования бизнес-процессов `IElkLoggerService`
+Модуль логирования в формате **ElasticSearch**. Предоставляет два основных сервиса:
 
-Реализованы базовые форматеры данных логирования к **json-формату** с возможностью контроля конечного объема данных логов, а также различное представление данных в зависимости от настроек окружения.
+- `INestElkLoggerService` — замена штатного `LoggerService` из `@nestjs/common` для системных логов `NestApplication`;
+- `IElkLoggerService` — удобный сервис логирования бизнес-процессов с поддержкой сквозного контекста (`traceId`/`spanId`).
+
+Реализован конвейер форматеров, позволяющий контролировать объём и представление конечной записи лога, а также гибко расширять обработку пользовательскими типами.
 
 ## Структура лога
 
-```typescript
+```ts
 export enum LogLevel {
   TRACE = 'TRACE',
   DEBUG = 'DEBUG',
@@ -18,7 +20,8 @@ export enum LogLevel {
   ERROR = 'ERROR',
   FATAL = 'FATAL',
 }
-export interface ILogRecord  {
+
+export interface ILogRecord {
   level: LogLevel;
   message: string;
   module: string;
@@ -27,252 +30,268 @@ export interface ILogRecord  {
   traceId: string;
   spanId: string;
   initialSpanId: string;
-  parentSpanId: null | string;
+  parentSpanId: string | undefined;
   businessData?: IKeyValue;
   payload?: IKeyValue;
 }
 ```
 
-`IKeyValue<T = unknown>` - общий тип объектов. К нему будут приведены все неизвестные экземпляры классов, объектов и др структур. (**@see** `src/modules/common`)
+`IKeyValue<T = unknown>` — общий тип объектов, к которому приводятся все неизвестные экземпляры классов и структур (**@see** `src/modules/common`).
 
-## Подключение модуля логирования
+## Публичное API
 
-В основном модуле необходимо подключить `ElkLoggerModule`, вызвав метод `forRoot`
+| Export | Тип | Назначение |
+|---|---|---|
+| `ElkLoggerModule.forRoot(options?)` | `DynamicModule` | Регистрация модуля глобально (`global: true`). |
+| `ELK_LOGGER_SERVICE_DI` | `Symbol` | Основной `IElkLoggerService`. |
+| `ELK_NEST_LOGGER_SERVICE_DI` | `Symbol` | `INestElkLoggerService` — адаптер для `app.useLogger()`. |
+| `ELK_LOGGER_SERVICE_BUILDER_DI` | `Symbol` | `IElkLoggerServiceBuilder` — фабрика логеров с дополнительными `defaultFields`. |
+| `ElkLoggerConfig` | `class` | Конфигурация из env. |
+| `PruneConfig` | `class` | Конфигурация сжатия логов. |
+| `@ElkLoggerOnService` / `@ElkLoggerOnMethod` | декораторы | Автоматическое логирование вызова методов. |
+| `NestElkLoggerServiceBuilder` | `class` | Создание `INestElkLoggerService` до `NestFactory.create`. |
+| `TraceSpanHelper`, `TraceSpanBuilder` | утилиты | Работа с `traceId` / `spanId` (Zipkin / GUID). |
+| `BaseObjectFormatter`, `BaseErrorObjectFormatter` | абстрактные классы | Базовые классы для пользовательских `IObjectFormatter`. |
 
-```typescript
+## Подключение модуля
+
+```ts
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ElkLoggerConfig, ElkLoggerModule } from 'src/modules/elk-logger';
+import { ElkLoggerModule } from 'src/modules/elk-logger';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ ... }),
-    ElkLoggerModule.forRoot({ ... }),
+    ConfigModule.forRoot({ /* ... */ }),
+    ElkLoggerModule.forRoot({
+      defaultFields: { module: 'MyApp' },
+      formattersOptions: {
+        sortFields: ['timestamp', 'level', 'module', 'message'],
+      },
+    }),
   ],
 })
-export class AppModule()
+export class MainModule {}
 ```
 
-В метод `forRoot` можно передать опции `IElkLoggerModuleOptions` для тонкой настройки формирования конечной записи лога.
+### Опции `IElkLoggerModuleOptions`
 
-| Параметр `IElkLoggerModuleOptions` | Описание | Примеры |
-|-|-|-|
-|`imports`| Подключение дополнительных модулей, если providers из них могут быть нужны для inject | |
-|`providers`| Включение дополнительных providers, если нужны для inject | |
-| `defaultFields` | Позволяет задать базовые значения полей лога, которые всегда буду добавляться к конечной записи лога. | `defaultFields: { index: 'My Application' } as ILogFields` - добавит ко всем логам дополнительное поле `index` |
-| `formattersOptions.ignoreObjects` | Массив `CheckObjectsType` (**@see** `src/modules/common`) для задания исключений в алгоритме приведения неизвестных объектов к виду `IKeyValue`. <br> По умолчанию в список исключений добавлены `Error`, `DateTimestamp` (**@see** `src/modules/date-timestamp`) и `MomentCheckObject` (**@see** `src/modules/common`). <br> Здесь следует указывать `CheckObjectsType`, для которых не предусмотрены специализированные `formattersOptions.objectFormatters` |  |
-| `formattersOptions.sortFields` | Массив `string` - имена полей `ILogRecord`. Все поля в конечной записи лога будут отсортированы в указанном порядке |  |
-| `formattersOptions.exceptionFormatters` | Массив `IErrorFormatter` - набор пользовательских форматеров для различных типов ошибок. |  |
-| `formattersOptions.objectFormatters` | Массив `IObjectFormatter` - набор пользовательских форматеров для различных объектов  |  |
-| `formatters` | Задает массив дополнительных форматеров для `ILogRecord` которые будут применены перед формированием конечной записи лога. <br> По умолчанию включены следующие форматеры: `CircularFormatter`, `ObjectFormatter`, `PruneFormatter`, `SortFieldsFormatter`. |  |
-| `encoders` | Задает массив дополнительных форматеров, которые будут применены после приведения `ILogRecord` к  **json-строке**. <br> По умолчанию включены следующие форматеры: `PruneEncoder`. |  |
+`ElkLoggerModule.forRoot(options?: IElkLoggerModuleOptions)` — все поля опциональны; при вызове без аргументов используются только настройки из env (`ElkLoggerConfig`, `PruneConfig`) и стандартный набор форматеров.
 
-После инициализации модуля `ElkLoggerModule` вам будут доступны следующие сервисы:
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `imports` | `ImportsType` | нет | `[]` | Дополнительные модули для DI-зависимостей, передаваемых в `providers` / `useFactory`. |
+| `providers` | `Provider[]` | нет | `[]` | Дополнительные провайдеры, доступные внутри модуля. |
+| `defaultFields` | `ILogFields` | нет | `{}` | Базовые поля, добавляемые ко всем логам (например, `{ index: 'My Application', module: 'MyApp' }`). Мёржатся с `defaultFields` из `IElkLoggerServiceBuilder.build()` и с вызовом логгера. |
+| `formattersOptions.ignoreObjects` | `IServiceClassProvider<CheckObjectsType[]>` \| `IServiceValueProvider<CheckObjectsType[]>` \| `IServiceFactoryProvider<CheckObjectsType[]>` | нет | `[Error, DateTimestamp, MomentCheckObject]` | Массив типов, исключаемых `CircularFormatter` из преобразования к `IKeyValue`. Пользовательский список добавляется к дефолтному. |
+| `formattersOptions.sortFields` | `string[]` | нет | `undefined` (порядок не задан) | Имена полей `ILogRecord` в нужном порядке вывода. Используется `SortFieldsFormatter`. |
+| `formattersOptions.exceptionFormatters` | `IServiceClassProvider<BaseErrorObjectFormatter[]>` \| `IServiceValueProvider<BaseErrorObjectFormatter[]>` \| `IServiceFactoryProvider<BaseErrorObjectFormatter[]>` | нет | Только встроенный `ErrorObjectFormatter` | Пользовательские форматеры ошибок (наследники `BaseErrorObjectFormatter`). |
+| `formattersOptions.objectFormatters` | `IServiceClassProvider<BaseObjectFormatter[]>` \| `IServiceValueProvider<BaseObjectFormatter[]>` \| `IServiceFactoryProvider<BaseObjectFormatter[]>` | нет | `[]` | Пользовательские форматеры объектов (наследники `BaseObjectFormatter`). |
+| `formatters` | `IServiceClassProvider<ILogRecordFormatter[]>` \| `IServiceValueProvider<ILogRecordFormatter[]>` \| `IServiceFactoryProvider<ILogRecordFormatter[]>` | нет | `[]` | Дополнительные `ILogRecord → ILogRecord` форматеры, выполняемые между `ObjectFormatter` и `PruneFormatter`. Порядок задаётся `priority()`. |
+| `encoders` | `IServiceClassProvider<IEncodeFormatter[]>` \| `IServiceValueProvider<IEncodeFormatter[]>` \| `IServiceFactoryProvider<IEncodeFormatter[]>` | нет | `[]` | Дополнительные `string → string` форматеры пост-обработки, выполняемые после основного `Encoder` и перед `PruneEncoder`. Порядок задаётся `priority()`. |
 
-| `provide` | Описание |
-|-|-|
-|`ElkLoggerConfig`| Параметры конфигурации модуля логирования, полученные из параметров окружения `env`|
-|`PruneConfig`| Параметры удаления данных из конечной записи лога, с целью уменьшения конечного объема записи лога. Так же формируются на основе параметров окружения `env`|
-|`ELK_LOGGER_SERVICE_DI`|  Экземпляр основного сервиса логирования, реализующий интерфейс `IElkLoggerService`. |
-|`ELK_NEST_LOGGER_SERVICE_DI`|  Экземпляр сервиса логирования, реализующий интерфейс `LoggerService @nestjs/common`. |
-|`ELK_LOGGER_SERVICE_BUILDER_DI`|  Экземпляр сервиса, реализующего интерфейс `IElkLoggerServiceBuilder`. Предназначен для создания пользовательских сервисов `IElkLoggerService`. |
+Все параметры с `IServiceProvider<T>` совместимы с `useClass` / `useValue` / `useFactory` через `ProviderBuilder.build`.
 
 ## Параметры окружения
 
-### Базовые - `ElkLoggerConfig`
+### Базовые — `ElkLoggerConfig`
 
-| Параметры окружения (**env**)| Обязательный| возможные значения | Описание|
-|---|---|---|---|
-|`LOGGER_FORMAT_RECORD`| нет. По умолчанию: **FULL** |  1. **FULL** - полный лог в формате json **@see** `FullFormatter` <br> 2. **SIMPLE** - сжатый лог **@see** `SimpleFormatter` <br> 3. **SHORT** -  максимально сжатый лог **@see** `SortFieldsFormatter` <br> 4.  **NULL** - не выводить логи.| Определяет формат вывода лога . <br> При указании **FULL** конечная запись лога будет соответствовать **json-строке**. В остальных случаях будет сформирована запись в удобном для восприятия виде. Полезно при локальной разработке.  |
-|`LOGGER_IGNORE_MODULES`| нет.| Строка. Регистр имеет значение.  | Через разделитель **','** указываются список значений `ILogRecord.module`, которые будут проигнорированы. Конечная запись лога не будет записана. |
-|`LOGGER_LEVELS`| нет.| Регистр не имеет значение. <br> 1. **TRACE** <br> 2. **DEBUG**  <br> 3. **INFO**  <br> 4.  **WARN**  | Через разделитель **','** указываются уровни логирования, которые следует писать. Если не указан, то будут писаться все логи. |
-|`LOGGER_FORMAT_TIMESTAMP`| нет. По умолчанию: **'YYYY-MM-DDTHH:mm:ssZ'** | Строка. Регистр имеет значение. | Определяет формат вывода поля `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp/types/constants.ts`). <br> Если не указан будет использован формат **'YYYY-MM-DDTHH:mm:ssZ'** - **'2022-01-16T20:08:24+03:00'** |
-|`LOGGER_STORE_FILE`| нет.| Строка. Регистр имеет значение. | Задает путь к файлу, в который будет писаться полный лог. Будет использован только, если `LOGGER_FORMAT_RECORD=SHORT`. <br> Пример: `LOGGER_STORE_FILE=log.log` |
+| Переменная | Тип | По умолчанию | Значения | Описание |
+|---|---|---|---|---|
+| `LOGGER_FORMAT_RECORD` | string | `FULL` | `FULL` / `SIMPLE` / `SHORT` / `NULL` | Формат конечной записи лога. `FULL` — валидный JSON (для production / ElasticSearch). `SIMPLE` и `SHORT` — человекочитаемые варианты с цветами, `NULL` — отключает вывод. |
+| `LOGGER_IGNORE_MODULES` | string (CSV) | — | Имена модулей с учётом регистра | Список `ILogRecord.module`, для которых лог полностью подавляется. |
+| `LOGGER_LEVELS` | string (CSV) | — | `TRACE`, `DEBUG`, `INFO`, `WARN` (регистр не важен) | Уровни, которые следует писать. Если пусто — пишутся все. |
+| `LOGGER_FORMAT_TIMESTAMP` | string | `YYYY-MM-DDTHH:mm:ssZ` | Шаблон moment.js | Формат `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp`). |
+| `LOGGER_STORE_FILE` | string | — | Путь к файлу | Путь записи лога в файл. Применяется только при `LOGGER_FORMAT_RECORD=SHORT`. |
 
-### Параметры сжатия - `PruneConfig` (**@see** `PruneFormatter`)
+### Сжатие — `PruneConfig` (**@see** `PruneFormatter`)
 
-| Параметры окружения (**env**)| Обязательный| возможные значения | Описание|
-|---|---|---|---|
-| `LOGGER_PRUNE_ENABLED`| нет. По умолчанию: **NO**  |  1. **NO**  (Регистронезависимый) Не применяется <br> 2. **YES** (Регистронезависимый) Лог будет обрезан до длины **--default--** из настройки `LOGGER_PRUNE_MAX_LENGTH_FIELDS`  <br> 3. Любое другое значение (регистр имеет значение) будет интерпретировано, как имя поля из настройки `LOGGER_PRUNE_MAX_LENGTH_FIELDS`, для определения длины обрезания лога.   | |
-| `LOGGER_PRUNE_MAX_FIELDS`| нет. По умолчанию: **0** |  Число.   | Определяет максимальное кол-во полей в `ILogRecord.businessData` / `ILogRecord.payload`.  Значение **0** отключает проверку. |
-| `LOGGER_PRUNE_MAX_DEPTH`| нет. По умолчанию: **0** |  Число.   | Определяет максимальную длину вложенности данных в `ILogRecord.businessData` / `ILogRecord.payload`.  Значение **0** отключает проверку. |
-| `LOGGER_PRUNE_APPLY_FOR_FORMATS`| нет. |  Строка. Через разделитель **','** указывается для какого форматера применять `PruneFormatter`. **@see** `LOGGER_FORMAT_RECORD`  | Например: `LOGGER_PRUNE_APPLY_FOR_FORMATS=FULL,SHORT` |
-| `LOGGER_PRUNE_MAX_LENGTH_FIELDS`| нет. |  Строка. Через разделитель **','** указывается пара (через разделитель **'='**): **имя_поля=число** (до какой длины обрезать данное поле)  | Применяется для строк и массивов. Возможно указание глобальных лимитов. Значения 0 или меньше - отключает применение для указанного поля. <br> Пример: `LOGGER_PRUNE_MAX_LENGTH_FIELDS=--array--=2,--default--=40,fileBody=20`. Здесь **--array--** и **--default--** - служебные значения для указания ограничения длины по умолчанию для массивов и общего ограничения.|
+| Переменная | Тип | По умолчанию | Значения | Описание |
+|---|---|---|---|---|
+| `LOGGER_PRUNE_ENABLED` | string | `NO` | `NO` / `YES` / `<имя_поля>` | `NO` — не применять. `YES` — обрезать до длины `--default--` из `LOGGER_PRUNE_MAX_LENGTH_FIELDS`. Любое другое значение трактуется как имя поля из `LOGGER_PRUNE_MAX_LENGTH_FIELDS`. |
+| `LOGGER_PRUNE_MAX_FIELDS` | number | `0` | `0` — без ограничений | Максимальное количество полей в `businessData` / `payload`. |
+| `LOGGER_PRUNE_MAX_DEPTH` | number | `0` | `0` — без ограничений | Максимальная глубина вложенности в `businessData` / `payload`. |
+| `LOGGER_PRUNE_APPLY_FOR_FORMATS` | string (CSV) | — | `FULL`, `SIMPLE`, `SHORT`, `NULL` | Форматы, к которым применяется `PruneFormatter`. |
+| `LOGGER_PRUNE_MAX_LENGTH_FIELDS` | string (CSV `имя=длина`) | — | Служебные имена `--default--`, `--array--`; `<= 0` отключает лимит | Лимиты длин для строк и массивов. Пример: `--array--=2,--default--=40,fileBody=20`. |
+
+## Pipeline форматеров
+
+Порядок применения при каждом вызове логгера:
+
+```
+CircularFormatter → ObjectFormatter → [пользовательские ILogRecordFormatter]
+  → PruneFormatter → SortFieldsFormatter
+  → Encoder (FULL/SIMPLE/SHORT/FILE)
+  → [пользовательские IEncodeFormatter] → PruneEncoder → stdout / file
+```
+
+### Record Formatters `IFormatter<ILogRecord, ILogRecord>`
+
+| Форматер | Роль |
+|---|---|
+| `CircularFormatter` | Удаляет циклические ссылки из `businessData`/`payload`, нормализует к `IKeyValue`. Выполняется первым. |
+| `ObjectFormatter` | Преобразует экземпляры объектов к читаемому виду. Всегда включает `ErrorObjectFormatter`. Принимает пользовательские `objectFormatters` / `exceptionFormatters`. |
+| Пользовательские `ILogRecordFormatter` | Регистрируются через опцию `formatters`. У каждого может быть `priority()` для управления порядком. |
+| `PruneFormatter` | Обрезает данные по `PruneConfig`. Выполняется предпоследним. |
+| `SortFieldsFormatter` | Сортирует поля `ILogRecord` согласно `formattersOptions.sortFields`. |
+
+### Record Encoders `IFormatter<ILogRecord, string>` (выбирается по `LOGGER_FORMAT_RECORD`)
+
+| Encoder | Формат |
+|---|---|
+| `FullFormatter` | Валидная JSON-строка. |
+| `SimpleFormatter` | Читаемая строка с цветовой схемой по `LogLevel`. |
+| `ShortFormatter` | Сильно сокращённая цветная строка. |
+| `FileFormatter` | Форматированный вывод для записи в файл. |
+
+### String Encoders `IFormatter<string, string>`
+
+| Encoder | Роль |
+|---|---|
+| Пользовательские `IEncodeFormatter` | Регистрируются через опцию `encoders`, имеют `priority()`. |
+| `PruneEncoder` | Дополнительно обрезает уже сформированную строку до длины `--default--` или поля, указанного в `LOGGER_PRUNE_ENABLED`. |
+
+**Внимание**: при написании собственных `encoders` можно легко получить невалидный JSON — будьте аккуратны.
+
+## Пользовательские форматеры объектов
+
+Наследуйтесь от `BaseObjectFormatter` / `BaseErrorObjectFormatter`:
+
+```ts
+import { BaseObjectFormatter } from 'src/modules/elk-logger';
+
+class BufferObjectFormatter extends BaseObjectFormatter<Buffer> {
+  isInstance(obj: unknown): obj is Buffer {
+    return Buffer.isBuffer(obj);
+  }
+
+  transform(from: Buffer): unknown {
+    return { type: 'Buffer', length: from.length };
+  }
+}
+
+ElkLoggerModule.forRoot({
+  formattersOptions: {
+    objectFormatters: { useValue: [new BufferObjectFormatter()] },
+  },
+});
+```
 
 ## `INestElkLoggerService`
 
-Данный сервис логирования предназначен для замены основного сервиса логирования `NestApplication` и реализует интерфейс `LoggerService @nestjs/common`.
+Замена основного логгера `NestApplication`. Подключается в два этапа (**@see** `src/main.ts`).
 
-Создание этого сервиса и замещение основного сервиса логирования `NestApplication` подразумевает два этапа.
+```ts
+import { NestElkLoggerServiceBuilder, ELK_NEST_LOGGER_SERVICE_DI } from 'src/modules/elk-logger';
 
-1. Создание экземпляра `INestElkLoggerService` до вызова `NestFactory.create`, что бы иметь возможность писать логи, даже если `NestFactory.create` выкинет ошибку и не сможет создать экземпляр приложения. Для этого нужно использовать `NestElkLoggerServiceBuilder` (**@see** `main.ts` функция `bootstrap`):
+async function bootstrap() {
+  let nestLogger = NestElkLoggerServiceBuilder.build({ /* те же опции, что forRoot */ });
 
-```typescript
-import {
-  NestElkLoggerServiceBuilder,
-} from 'src/modules/elk-logger';
+  const app = await NestFactory.create<NestExpressApplication>(MainModule, {
+    logger: nestLogger,
+    bufferLogs: true,
+  });
 
-...
-    let nestLogger = NestElkLoggerServiceBuilder.build({ ... });
-
-    const app = await NestFactory.create<NestExpressApplication>(MainModule, { logger: nestLogger, bufferLogs: true });
-...
-```
-
-Метод `NestElkLoggerServiceBuilder.build` принимает те же настройки, что и метод `ElkLoggerModule.forRoot` и еще экземпляр `ConfigService`.
-
-2. После создания экземпляра приложения, задать основной сервис логирования
-
-```typescript
-import {
-  ELK_NEST_LOGGER_SERVICE_DI,
-} from 'src/modules/elk-logger';
-
-...
   nestLogger = app.get(ELK_NEST_LOGGER_SERVICE_DI);
   app.useLogger(nestLogger);
   app.flushLogs();
-...
+}
 ```
+
+`NestElkLoggerServiceBuilder.build` принимает те же опции, что и `ElkLoggerModule.forRoot`, плюс экземпляр `ConfigService`.
 
 ## `IElkLoggerService`
 
-Сервис логирования.
+Сервис логирования бизнес-логики. Получается через `IElkLoggerServiceBuilder`:
 
-Необходимо использовать `IElkLoggerServiceBuilder` для получения экземпляра данного сервиса.
-
-```typescript
+```ts
 import { Inject, Injectable } from '@nestjs/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 
 @Injectable()
 export class AppService {
-    constructor(
-        @Inject(ELK_LOGGER_SERVICE_BUILDER_DI)
-        private readonly loggerBuilder: IElkLoggerServiceBuilder,
-    ){};
+  constructor(
+    @Inject(ELK_LOGGER_SERVICE_BUILDER_DI)
+    private readonly loggerBuilder: IElkLoggerServiceBuilder,
+  ) {}
 
-    run(): void {
-        const logger = this.loggerBuilder..build({ ... });
+  run(): void {
+    const logger = this.loggerBuilder.build({ module: 'AppService' });
 
-        logger.info('Call run!', {...});
-    }
+    logger.info('Call run!', { payload: { foo: 'bar' } });
+  }
 }
 ```
 
-Метод `IElkLoggerServiceBuilder.build` позволяет задать базовые значения полей лога, которые всегда будут добавляться сервисом `logger` к конечной записи лога. Они будут объединены с `defaultFields` (которые задаются через `ElkLoggerModule.forRoot`) и с `IOptionLog` (которые передаются в момент вызова метода логирования сервиса `logger`).
+`defaultFields` из `build()` объединяются с `defaultFields` модуля и с `IOptionLog` вызова.
 
-Альтернативным способом использования `IElkLoggerService` является применение декораторов `ElkLoggerOnService` и `ElkLoggerOnMethod`, которые позволяют настраивать логирование вызова метода и его результата.
+Уровни логирования: `trace` / `debug` / `info` / `warn` / `error` / `fatal` и общий `log(level, message, data?)`.
 
-```typescript
-import { Inject, Injectable } from '@nestjs/common';
+## Декораторы `@ElkLoggerOnService` / `@ElkLoggerOnMethod`
+
+Альтернатива прямому вызову логера — автоматическая фиксация `before` / `after` / `throw` вокруг метода:
+
+```ts
+import { Injectable } from '@nestjs/common';
 import { ElkLoggerOnMethod, ElkLoggerOnService } from 'src/modules/elk-logger';
 
 @ElkLoggerOnService({
-  fields: () => {
-    return {
-      module: 'Custom'
-    }
-  }
+  fields: () => ({ module: 'Custom' }),
 })
 @Injectable()
 export class AppService {
   @ElkLoggerOnMethod({
-    fields: ({ methodsArgs }) => {
-      return {
-        payload: {
-          args: methodsArgs,
-        },
-      };
-    },
+    fields: ({ methodsArgs }) => ({ payload: { args: methodsArgs } }),
     before: false,
-    after: ({ result }) => {
-      return {
-        message: 'AppService.run success',
-        data: {
-          payload: {
-            result,
-          },
-        },
-      };
-    },
-    throw: ({ error }) => {
-      return {
-        message: 'AppService.run failed',
-        data: {
-          payload: {
-            error,
-          },
-        },
-      };
-    },
+    after: ({ result }) => ({
+      message: 'AppService.run success',
+      data: { payload: { result } },
+    }),
+    throw: ({ error }) => ({
+      message: 'AppService.run failed',
+      data: { payload: { error } },
+    }),
   })
-  run(...args) {
-    ...
-
-    return ...;
+  run(...args: unknown[]) {
+    return /* ... */;
   }
 }
 ```
 
-## Дополнительные возможности
+### Параметры `@ElkLoggerOnService`
+
+Декоратор класса. Задаёт поля по умолчанию (`ILogFields`), которые будут применяться ко всем логам методов класса, задекорированных `@ElkLoggerOnMethod`. Принимает объект `ElkLoggerBuilderOptions`:
+
+| Поле | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `fields` | `ILogFields \| (() => ILogFields)` | да | Поля лога, общие для класса. Значение или функция-фабрика (вычисляется один раз при применении декоратора). Мёржится с `fields` из `@ElkLoggerOnMethod`. |
+
+### Параметры `@ElkLoggerOnMethod`
+
+Декоратор метода. Принимает объект `IElkLoggerOnMethod` с описанием хуков вокруг вызова метода. Каждый хук (`before` / `after` / `throw` / `finally`) может быть: значением `IElkLoggerParams`, `boolean` (включить/выключить событие с дефолтным payload), либо функцией, принимающей контекст вызова и возвращающей одно из вышеперечисленных.
+
+| Поле | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `fields` | `ILogFields \| ((opts: { service?, method?, methodsArgs? }) => ILogFields)` | нет | Поля лога на уровне метода. Мёржатся поверх `fields` из `@ElkLoggerOnService`. |
+| `before` | `Omit<IElkLoggerParams, 'fields'> \| boolean \| ((opts: { service?, method?, methodsArgs? }) => ...)` | нет | Лог перед вызовом. По умолчанию — дефолтный payload с `args`. `false` отключает. |
+| `after` | `Omit<IElkLoggerParams, 'fields'> \| boolean \| ((opts: { service?, method?, result?, duration?, methodsArgs? }) => ...)` | нет | Лог после успешного вызова (для промиса — после `resolve`). `false` отключает. |
+| `throw` | `Omit<IElkLoggerParams, 'fields'> \| boolean \| ((opts: { service?, method?, error, duration?, methodsArgs? }) => ...)` | нет | Лог при выбросе исключения (для промиса — при `reject`). `false` отключает. |
+| `finally` | `Omit<IElkLoggerParams, 'fields'> \| boolean \| ((opts: { service?, method?, duration?, methodsArgs? }) => ...)` | нет | Лог в блоке `finally`. По умолчанию **не эмитится** (в отличие от остальных хуков — `undefined` трактуется как `false`). |
+
+Поля `IElkLoggerParams` (возвращаемое значение из хуков, кроме `fields`):
+
+| Поле | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `level` | `LogLevel` | нет | Уровень лога (`trace` / `debug` / `info` / `warn` / `error` / `fatal`). |
+| `message` | `string` | нет | Сообщение лога. |
+| `data` | `IOptionLog` | нет | Произвольные данные: `payload`, `markers`, `tags`, `error` и т. п. |
+
+## Вспомогательные утилиты
 
 ### `TraceSpanHelper`
 
-Определяет набор базовых операций с параметрами сквозного логирования: `generateRandomValue`, `toZipkinFormat`, `toGuidFormat`, `formatToZipkin`, `formatToGuid`
+Набор операций над параметрами сквозного логирования: `generateRandomValue`, `toZipkinFormat`, `toGuidFormat`, `formatToZipkin`, `formatToGuid`.
 
 ### `TraceSpanBuilder`
 
-Позволяет создать параметры сквозного логирования: `build`
-
-## Record Formatters `IFormatter<ILogRecord, ILogRecord>`
-
-### `CircularFormatter`
-
-Выполняется самым первым: удаляет из `ILogRecord.businessData` и `ILogRecord.payload` циклические ссылки, нормализует данные приводя к виду `IKeyValue` (**@see** `src/modules/common`).
-
-### `ObjectFormatter`
-
-Применяется сразу после `CircularFormatter`. Преобразует различные экземпляры объектов к человеко читаемому виду. По умолчанию он включает в себя базовый форматер для объектов класса `Error` (`ErrorObjectFormatter`). Подключать пользовательские форматеры, которые будет использовать `ObjectFormatter`, можно указав соответствующие настройки при подключения модуля (**@see** `formattersOptions.exceptionFormatters` и  `formattersOptions.objectFormatters`).
-
-При реализации форматеров `formattersOptions.objectFormatters` и `formattersOptions.exceptionFormatters` используйте `BaseObjectFormatter` и `BaseErrorObjectFormatter` соответственно.
-
-### `PruneFormatter`
-
-Применяется предпоследним. Сразу после того как отработают все пользовательские форматеры. Обрезает данные логирования согласно настройкам `PruneConfig`.
-
-### `SortFieldsFormatter`
-
-Применяется последним, до того как данные лога `ILogRecord` будут преобразованы в `string` одним из форматеров `LOGGER_FORMAT_RECORD`.
-
-## Record Encodes `IFormatter<ILogRecord, string>`
-
-**@see** `LOGGER_FORMAT_RECORD`.
-
-### `FullFormatter`
-
-Преобразует данные лога к валидной **json-строке**.
-
-### `SimpleFormatter`
-
-Преобразует данные лога к отформатированной строке, применяя цветовую схему в зависимости от уровня лога `LogLevel`.
-
-### `ShortFormatter`
-
-Преобразует данные лога к отформатированной строке, применяя цветовую схему в зависимости от уровня лога `LogLevel`. Выводит сильно меньше информации, по сравнению с `SimpleFormatter`.
-
-### `FileFormatter`
-
-Преобразует данные лога для записи в файл.
-
-## Encoders `IFormatter<string, string>`
-
-Обрабатывают данные логирования преобразованные в строку. По сути являются форматерами пост-обработки. Например, можно реализовать форматер для удаления лишних пробелов и т.п.
-
-### ВНИМАНИЕ
-
-При написании собственных `encoders` будьте предельно аккуратны, так как на выходе можете получить не валидную **json-строку**.
-
-### `PruneEncoder`
-
-Если логи в формате `SHORT` окажутся по прежнему довольно большими, то этот форматер сделает их еще меньше насильно обрезая до **--default--** или длины поля указанного в `LOGGER_PRUNE_ENABLED`.
+Собирает объект `ITraceSpan` (`traceId`, `spanId`, `initialSpanId`, `parentSpanId`) через метод `build`. Используется адаптерами транспортов (`*HeadersToAsyncContextAdapter`) для извлечения контекста из входящих заголовков.

@@ -30,7 +30,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
           correlationId: undefined,
         },
       },
-    ) as undefined as IKeyValue<string>;
+    ) as unknown as IKeyValue<string>;
 
     const context = adapter.adapt(headers);
 
@@ -58,7 +58,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
           useZipkin: true,
         },
       },
-    ) as undefined as IKeyValue<string>;
+    ) as unknown as IKeyValue<string>;
 
     const context = adapter.adapt(headers);
 
@@ -83,7 +83,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
           correlationId: undefined,
         },
       },
-    ) as undefined as IKeyValue<string>;
+    ) as unknown as IKeyValue<string>;
 
     const context = adapter.adapt(headers);
 
@@ -102,7 +102,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
       {
         transient: {},
       },
-    ) as undefined as IKeyValue<string>;
+    ) as unknown as IKeyValue<string>;
 
     const context = adapter.adapt(headers);
 
@@ -121,7 +121,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
           asArray: true,
         },
       },
-    ) as undefined as IKeyValue<string[]>;
+    ) as unknown as IKeyValue<string[]>;
 
     const traceId = headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID].join('-');
 

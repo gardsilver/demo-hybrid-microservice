@@ -26,13 +26,15 @@ describe(ShortFormatter.name, () => {
     [LogLevel.DEBUG, LogLevel.TRACE, LogLevel.INFO, LogLevel.WARN, LogLevel.ERROR, LogLevel.FATAL].forEach((level) => {
       logRecord.level = level;
       const mesCol =
-        {
-          [LogLevel.DEBUG]: ConsoleColors.GRAY,
-          [LogLevel.WARN]: ConsoleColors.YELLOW,
-          [LogLevel.ERROR]: ConsoleColors.RED,
-          [LogLevel.FATAL]: ConsoleColors.RED,
-          [LogLevel.INFO]: ConsoleColors.GREEN,
-        }[level] ?? '';
+        (
+          {
+            [LogLevel.DEBUG]: ConsoleColors.GRAY,
+            [LogLevel.WARN]: ConsoleColors.YELLOW,
+            [LogLevel.ERROR]: ConsoleColors.RED,
+            [LogLevel.FATAL]: ConsoleColors.RED,
+            [LogLevel.INFO]: ConsoleColors.GREEN,
+          } as Record<string, ConsoleColors>
+        )[level] ?? '';
 
       const levCol =
         {
@@ -61,7 +63,7 @@ describe(ShortFormatter.name, () => {
   it('transform: array', async () => {
     const logRecord = logRecordFactory.build({
       markers: [LoggerMarkers.REQUEST],
-      payload: ['rest'] as undefined as IKeyValue,
+      payload: ['rest'] as unknown as IKeyValue,
     });
 
     const copyLogRecord = merge({}, logRecord);
@@ -100,9 +102,9 @@ describe(ShortFormatter.name, () => {
       markers: [LoggerMarkers.REQUEST],
     });
 
-    logRecord.traceId = undefined;
-    logRecord.spanId = undefined;
-    logRecord.module = undefined;
+    logRecord.traceId = undefined as unknown as string;
+    logRecord.spanId = undefined as unknown as string;
+    logRecord.module = undefined as unknown as string;
 
     const copyLogRecord = merge({}, logRecord);
     const encodeLogRecord = formatter.transform(logRecord);

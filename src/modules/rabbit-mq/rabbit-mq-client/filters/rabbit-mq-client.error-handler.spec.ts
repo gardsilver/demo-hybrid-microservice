@@ -34,8 +34,8 @@ describe(RabbitMqClientErrorHandler.name, () => {
   let error: Error;
   let rabbitMqClientError: RabbitMqClientError;
   let rabbitMqError: RabbitMqError;
-  let spyLogBuilder;
-  let spyLog;
+  let spyLogBuilder: jest.SpyInstance;
+  let spyLog: jest.SpyInstance;
 
   beforeEach(async () => {
     logger = new MockElkLoggerService();
@@ -167,7 +167,7 @@ describe(RabbitMqClientErrorHandler.name, () => {
   });
 
   describe('handleError', () => {
-    let spyLoggingStatus;
+    let spyLoggingStatus: jest.SpyInstance;
 
     beforeEach(async () => {
       spyLoggingStatus = jest.spyOn(handler, 'loggingStatus');

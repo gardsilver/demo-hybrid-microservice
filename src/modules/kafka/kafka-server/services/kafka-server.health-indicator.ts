@@ -6,9 +6,9 @@ import { KafkaRetryConfig } from 'src/modules/kafka/kafka-common';
 import { KafkaServerService } from './kafka-server.service';
 
 export class KafkaServerHealthIndicator {
-  private status: KafkaStatus;
-  private topics: string[];
-  private admin: Admin;
+  private status: KafkaStatus = KafkaStatus.DISCONNECTED;
+  private topics: string[] | undefined;
+  private admin: Admin | undefined;
 
   constructor(
     private readonly serverName: string,
@@ -21,7 +21,7 @@ export class KafkaServerHealthIndicator {
     this.server.status
       .pipe(
         tap((status) => {
-          this.status = status as undefined as KafkaStatus;
+          this.status = status as unknown as KafkaStatus;
         }),
       )
       .subscribe();
@@ -68,7 +68,7 @@ export class KafkaServerHealthIndicator {
 
       return KafkaStatus.CONNECTED;
     } catch (error) {
-      return error.toString() ?? KafkaStatus.DISCONNECTED;
+      return (error as Error)?.toString() ?? KafkaStatus.DISCONNECTED;
     }
   }
 
@@ -81,6 +81,6 @@ export class KafkaServerHealthIndicator {
       }
     }
 
-    return this.admin;
+    return this.admin ?? null;
   }
 }

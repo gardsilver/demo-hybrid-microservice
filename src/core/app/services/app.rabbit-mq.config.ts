@@ -4,7 +4,7 @@ import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { ConfigServiceHelper } from 'src/modules/common';
 import { RabbitMqFormatterHelper } from 'src/modules/rabbit-mq/rabbit-mq-common';
 
-export interface RabbitMqRetryConfig {
+export interface IRabbitMqRetryConfig {
   maxConnectionAttempts?: number;
   heartbeatIntervalInSeconds?: number;
   reconnectTimeInSeconds?: number;
@@ -13,15 +13,15 @@ export interface RabbitMqRetryConfig {
 @Injectable()
 export class AppRabbitMqConfig {
   private urls: string[];
-  private user: string;
-  private pass: string;
+  private user: string | undefined;
+  private pass: string | undefined;
 
   constructor(private readonly configService: ConfigService) {
     const configServiceHelper = new ConfigServiceHelper(configService, 'RABBIT_MQ_');
 
     this.urls = configServiceHelper.parseArray('URLS');
-    this.user = this.configService.get<string>(configServiceHelper.getKeyName('USER'));
-    this.pass = this.configService.get<string>(configServiceHelper.getKeyName('PASSWORD'));
+    this.user = this.configService.get<string>(configServiceHelper.getKeyName('USER'))?.trim();
+    this.pass = this.configService.get<string>(configServiceHelper.getKeyName('PASSWORD'))?.trim();
   }
 
   getUrls(): RmqUrl[] {
@@ -34,15 +34,15 @@ export class AppRabbitMqConfig {
     });
   }
 
-  getUser(): string {
+  getUser(): string | undefined {
     return this.user;
   }
 
-  getPass(): string {
+  getPass(): string | undefined {
     return this.pass;
   }
 
-  getRetryConfig(): RabbitMqRetryConfig {
+  getRetryConfig(): IRabbitMqRetryConfig {
     return {
       heartbeatIntervalInSeconds: 5,
       reconnectTimeInSeconds: 10,

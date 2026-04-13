@@ -111,12 +111,12 @@ export class GracefulShutdownCountHandler implements OnModuleInit {
 
     const values = await this.prometheusManager.gauge().get(ACTIVE_METHODS_GAUGE);
 
-    values.values.forEach((value) => {
+    values?.values.forEach((value) => {
       if (value.value) {
         total.total += value.value;
         total.details.push({
-          service: value.labels.service.toString(),
-          method: value.labels.method.toString(),
+          service: value.labels.service?.toString() ?? '',
+          method: value.labels.method?.toString() ?? '',
           count: value.value,
         });
       }

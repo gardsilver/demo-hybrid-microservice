@@ -28,8 +28,8 @@ export const kafkaMessageFactory = Factory.define<
   }
 >(({ params, transientParams }) => {
   return {
-    key: createBuffer(params?.key as undefined as Buffer | null, transientParams?.key),
-    value: createBuffer(params?.value as undefined as Buffer | null, transientParams?.value),
+    key: createBuffer(params?.key as unknown as Buffer | null, transientParams?.key),
+    value: createBuffer(params?.value as unknown as Buffer | null, transientParams?.value),
     timestamp: new DateTimestamp().getTimestamp().toString(),
     attributes: 0,
     offset: faker.number.int(4).toString(),

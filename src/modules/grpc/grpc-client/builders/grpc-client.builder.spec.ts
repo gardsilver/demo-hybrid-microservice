@@ -5,9 +5,9 @@ import { GrpcClientBuilder } from './grpc-client.builder';
 import { IGrpcClientProxyBuilderOptions } from '../types/types';
 
 describe(GrpcClientBuilder.name, () => {
-  let spyUrlHelper;
-  let spyExistPaths;
-  let spyExistJoinBase;
+  let spyUrlHelper: jest.SpyInstance;
+  let spyExistPaths: jest.SpyInstance;
+  let spyExistJoinBase: jest.SpyInstance;
 
   beforeEach(async () => {
     spyUrlHelper = jest.spyOn(UrlHelper, 'normalize');
@@ -58,7 +58,7 @@ describe(GrpcClientBuilder.name, () => {
   it('buildClientGrpc', async () => {
     const mockClientGrpcProxy = {
       getService: jest.fn(),
-    } as undefined as ClientGrpcProxy;
+    } as unknown as ClientGrpcProxy;
 
     const spy = jest.spyOn(mockClientGrpcProxy, 'getService');
 

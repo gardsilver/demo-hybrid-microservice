@@ -2,13 +2,13 @@ import { Options } from 'amqplib';
 import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { IKeyValue } from 'src/modules/common';
 import { RABBIT_MQ_DEFAULT_URL_PARAMS } from '../types/constants';
-import { IRabbitMqUrl, RMQErrorInfo } from '../types/types';
+import { IRabbitMqUrl, IRMQErrorInfo } from '../types/types';
 
 const REPLACE_VALUE = ' ***** ';
 const IS_FULL_URL = new RegExp(`^\\S*://\\S+$`);
 
 export abstract class RabbitMqFormatterHelper {
-  public static errorInfoFormat(errorInfo?: RMQErrorInfo): IKeyValue<unknown> {
+  public static errorInfoFormat(errorInfo?: IRMQErrorInfo): IKeyValue<unknown> | undefined {
     let url = errorInfo?.url;
 
     if (url && typeof url === 'object') {

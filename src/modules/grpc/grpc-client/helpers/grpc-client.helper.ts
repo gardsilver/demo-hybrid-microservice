@@ -1,11 +1,15 @@
 import { IGrpcClientError } from '../errors/grpc-client.error';
 import { GRPC_CLIENT_DEFAULT_OPTIONS } from '../types/constants';
-import { IGrpcRequestOptions } from '../types/types';
+import { IGrpcRequestOptions, IGrpcResolvedRequestOptions } from '../types/types';
 
 export abstract class GrpcClientHelper {
   public static canRetry(error: IGrpcClientError, options?: IGrpcRequestOptions): boolean {
+    if (error.statusCode === undefined) {
+      return false;
+    }
+
     if (options?.retryOptions?.statusCodes?.length) {
-      return options?.retryOptions?.statusCodes.includes(error.statusCode);
+      return options.retryOptions.statusCodes.includes(error.statusCode);
     }
 
     return false;
@@ -14,8 +18,8 @@ export abstract class GrpcClientHelper {
   public static mergeRequestOptions(
     globalOptions: IGrpcRequestOptions,
     options?: IGrpcRequestOptions,
-  ): IGrpcRequestOptions {
-    const requestOptions: IGrpcRequestOptions = {
+  ): IGrpcResolvedRequestOptions {
+    const requestOptions = {
       metadataBuilderOptions: {
         ...globalOptions.metadataBuilderOptions,
         ...options?.metadataBuilderOptions,
@@ -51,6 +55,6 @@ export abstract class GrpcClientHelper {
       requestOptions.retryOptions.retry = false;
     }
 
-    return requestOptions;
+    return requestOptions as IGrpcResolvedRequestOptions;
   }
 }

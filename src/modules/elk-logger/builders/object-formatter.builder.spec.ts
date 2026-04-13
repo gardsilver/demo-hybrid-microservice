@@ -13,7 +13,7 @@ describe(ObjectFormatterBuilder.name, () => {
   let loggerConfig: ElkLoggerConfig;
 
   beforeEach(async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
   });
 
@@ -23,14 +23,14 @@ describe(ObjectFormatterBuilder.name, () => {
     expect(formatter instanceof ObjectFormatter).toBeTruthy();
     expect(formatter['unknownFormatter'] instanceof UnknownFormatter).toBeTruthy();
 
-    const unknownFormatter: UnknownFormatter = formatter['unknownFormatter'] as undefined as UnknownFormatter;
+    const unknownFormatter: UnknownFormatter = formatter['unknownFormatter'] as unknown as UnknownFormatter;
 
     expect(unknownFormatter['objectFormatters']?.length).toBe(1);
     expect(unknownFormatter['objectFormatters'][0] instanceof ErrorObjectFormatter).toBeTruthy();
 
     const errorObjectFormatter: ErrorObjectFormatter = unknownFormatter[
       'objectFormatters'
-    ][0] as undefined as ErrorObjectFormatter;
+    ][0] as unknown as ErrorObjectFormatter;
 
     expect(errorObjectFormatter['unknownFormatter']).toEqual(unknownFormatter);
     expect(errorObjectFormatter['exceptionFormatters'].length).toBe(1);
@@ -47,17 +47,17 @@ describe(ObjectFormatterBuilder.name, () => {
     expect(formatter instanceof ObjectFormatter).toBeTruthy();
     expect(formatter['unknownFormatter'] instanceof UnknownFormatter).toBeTruthy();
 
-    const unknownFormatter: UnknownFormatter = formatter['unknownFormatter'] as undefined as UnknownFormatter;
+    const unknownFormatter: UnknownFormatter = formatter['unknownFormatter'] as unknown as UnknownFormatter;
 
     expect(unknownFormatter['objectFormatters']?.length).toBe(2);
     expect(unknownFormatter['objectFormatters'][0] instanceof MockObjectFormatter).toBeTruthy();
-    expect(unknownFormatter['objectFormatters'][0]['fieldName']).toBe('object');
+    expect((unknownFormatter['objectFormatters'][0] as unknown as Record<string, unknown>)['fieldName']).toBe('object');
 
     expect(unknownFormatter['objectFormatters'][1] instanceof ErrorObjectFormatter).toBeTruthy();
 
     const errorObjectFormatter: ErrorObjectFormatter = unknownFormatter[
       'objectFormatters'
-    ][1] as undefined as ErrorObjectFormatter;
+    ][1] as unknown as ErrorObjectFormatter;
 
     expect(errorObjectFormatter['unknownFormatter']).toEqual(unknownFormatter);
     expect(errorObjectFormatter['exceptionFormatters'].length).toBe(2);
@@ -66,6 +66,8 @@ describe(ObjectFormatterBuilder.name, () => {
     expect(errorObjectFormatter['exceptionFormatters'][0]['unknownFormatter']).toEqual(unknownFormatter);
 
     expect(errorObjectFormatter['exceptionFormatters'][1] instanceof MockErrorFormatter).toBeTruthy();
-    expect(errorObjectFormatter['exceptionFormatters'][1]['fieldName']).toBe('error');
+    expect((errorObjectFormatter['exceptionFormatters'][1] as unknown as Record<string, unknown>)['fieldName']).toBe(
+      'error',
+    );
   });
 });

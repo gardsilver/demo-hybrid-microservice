@@ -32,7 +32,7 @@ describe(GrpcServiceErrorFormatter.name, () => {
 
     serverError = new Error('Test Error Server') as ServiceError;
     serverError.code = GrpcStatus.INTERNAL;
-    serverError.metadata = null;
+    serverError.metadata = null as unknown as Metadata;
   });
 
   it('isInstanceOf', async () => {

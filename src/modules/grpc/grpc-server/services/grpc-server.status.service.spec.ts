@@ -1,4 +1,4 @@
-import { HealthImplementation } from 'grpc-health-check';
+import { HealthImplementation, ServingStatusMap } from 'grpc-health-check';
 import { GrpcServerStatusService } from './grpc-server.status.service';
 
 describe(GrpcServerStatusService.name, () => {
@@ -7,7 +7,7 @@ describe(GrpcServerStatusService.name, () => {
   let service: GrpcServerStatusService;
 
   beforeEach(async () => {
-    const initialStatusMap = {};
+    const initialStatusMap: ServingStatusMap = {};
 
     grpcServices = ['TestService'];
     grpcServices.forEach((service) => {

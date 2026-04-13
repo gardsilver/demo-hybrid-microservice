@@ -9,7 +9,7 @@ export abstract class TraceSpanBuilder {
       traceId: ts?.traceId ?? TraceSpanHelper.generateRandomValue(),
       spanId,
       parentSpanId: ts?.parentSpanId ?? spanId,
-      initialSpanId: ts?.initialSpanId ?? undefined,
+      initialSpanId: ts?.initialSpanId,
     };
   }
 }

@@ -1,20 +1,20 @@
 import { Provider } from '@nestjs/common';
-import { ImportsType, ServiceClassProvider, ServiceValueProvider, ServiceFactoryProvider } from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceValueProvider, IServiceFactoryProvider } from 'src/modules/common';
 import { IGrpcClientProxyBuilderOptions, IGrpcMetadataRequestBuilder, IGrpcRequestOptions } from './types';
 
 export interface IGrpcClientModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   grpcClientProxyBuilderOptions:
-    | ServiceClassProvider<IGrpcClientProxyBuilderOptions>
-    | ServiceValueProvider<IGrpcClientProxyBuilderOptions>
-    | ServiceFactoryProvider<IGrpcClientProxyBuilderOptions>;
+    | IServiceClassProvider<IGrpcClientProxyBuilderOptions>
+    | IServiceValueProvider<IGrpcClientProxyBuilderOptions>
+    | IServiceFactoryProvider<IGrpcClientProxyBuilderOptions>;
   metadataRequestBuilder?:
-    | ServiceClassProvider<IGrpcMetadataRequestBuilder>
-    | ServiceValueProvider<IGrpcMetadataRequestBuilder>
-    | ServiceFactoryProvider<IGrpcMetadataRequestBuilder>;
+    | IServiceClassProvider<IGrpcMetadataRequestBuilder>
+    | IServiceValueProvider<IGrpcMetadataRequestBuilder>
+    | IServiceFactoryProvider<IGrpcMetadataRequestBuilder>;
   requestOptions?:
-    | ServiceClassProvider<IGrpcRequestOptions>
-    | ServiceValueProvider<IGrpcRequestOptions>
-    | ServiceFactoryProvider<IGrpcRequestOptions>;
+    | IServiceClassProvider<IGrpcRequestOptions>
+    | IServiceValueProvider<IGrpcRequestOptions>
+    | IServiceFactoryProvider<IGrpcRequestOptions>;
 }

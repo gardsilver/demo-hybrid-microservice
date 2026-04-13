@@ -29,7 +29,7 @@ export class AppConfig {
     return Number(this.grpcPort);
   }
 
-  getCorsOptions(): CorsOptions {
+  getCorsOptions(): CorsOptions | undefined {
     return this.corsOptions ? JSON.parse(this.corsOptions) : undefined;
   }
 }

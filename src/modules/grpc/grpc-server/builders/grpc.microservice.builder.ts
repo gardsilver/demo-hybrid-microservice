@@ -1,4 +1,4 @@
-import { HealthImplementation, protoPath as healthCheckProtoPath } from 'grpc-health-check';
+import { HealthImplementation, protoPath as healthCheckProtoPath, ServingStatusMap } from 'grpc-health-check';
 import { ReflectionService } from '@grpc/reflection';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MicroserviceOptions, Transport, GrpcOptions } from '@nestjs/microservices';
@@ -58,7 +58,7 @@ export abstract class GrpcMicroserviceBuilder {
   }
 
   private static createHealthImplementation(grpcServices: string[]): HealthImplementation {
-    const initialStatusMap = {};
+    const initialStatusMap: ServingStatusMap = {};
 
     grpcServices.forEach((service) => {
       initialStatusMap[service] = 'UNKNOWN';
@@ -84,7 +84,7 @@ export abstract class GrpcMicroserviceBuilder {
         onLoadPackageDefinition(pkg, server) {
           options.grpcHealthImpl.addToServer(server);
 
-          options.services.forEach((service) => {
+          options.services?.forEach((service) => {
             options.grpcHealthImpl.setStatus(service, 'SERVING');
           });
 

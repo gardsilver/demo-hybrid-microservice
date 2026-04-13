@@ -34,13 +34,13 @@ import { KafkaService } from '../services/kafka.service';
 ])
 export class HttpController {
   private logger: IElkLoggerService;
-  private readonly responses: BehaviorSubject<IKafkaMessage<MainResponse>>;
+  private readonly responses: BehaviorSubject<IKafkaMessage<MainResponse> | undefined>;
 
   constructor(
     @Inject(ELK_LOGGER_SERVICE_BUILDER_DI) private readonly loggerBuilder: IElkLoggerServiceBuilder,
     private readonly service: KafkaService,
   ) {
-    this.responses = new BehaviorSubject<IKafkaMessage<MainResponse>>(undefined);
+    this.responses = new BehaviorSubject<IKafkaMessage<MainResponse> | undefined>(undefined);
     this.logger = this.loggerBuilder.build({ module: 'examples.kafka' });
   }
 
@@ -64,6 +64,8 @@ export class HttpController {
         ...response.value.data,
       };
     }
+
+    return { status: 'error' };
   }
 
   /**
@@ -129,7 +131,7 @@ export class HttpController {
             },
           });
 
-          reject(error as undefined as Error);
+          reject(error as unknown as Error);
         },
       });
     });

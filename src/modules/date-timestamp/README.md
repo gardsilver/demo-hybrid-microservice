@@ -50,3 +50,66 @@
 
 * `delay` - выполняет приостановку выполнения кода на указанное количество миллисекунд.
 * `promisesTimeout` - выбросит исключение `TimeoutError`, если длительность выполнения переданных `Promise` превысит заданный интервал в миллисекундах.
+
+## Константы
+
+Экспортируются константы для работы с интервалами: `MILLISECONDS_IN_SECOND`, `SECONDS_IN_MINUTE`, `MINUTES_IN_HOUR`, `HOURS_IN_DAY` и набор форматов (`DATE_BASE_FORMAT`, `DATE_TIME_FORMAT`, `DATE_WORLD_STANDARD_FORMAT` и др.).
+
+## Ошибки
+
+* `TimeoutError` — выбрасывается `promisesTimeout` при превышении интервала.
+
+## Параметры окружения
+
+Модуль не зависит от переменных окружения — все операции производятся над переданными ему значениями.
+
+## Публичное API
+
+Модуль не является `DynamicModule` и не регистрируется в NestJS. Классы и утилиты используются напрямую через `import { ... } from 'src/modules/date-timestamp'`.
+
+## Пример использования
+
+```ts
+import { Injectable } from '@nestjs/common';
+import {
+  DateTimestamp,
+  DateTimestampHelper,
+  DATE_BASE_FORMAT_WITH_MILLISECONDS,
+  MILLISECONDS_IN_SECOND,
+  delay,
+  promisesTimeout,
+  TimeoutError,
+} from 'src/modules/date-timestamp';
+
+@Injectable()
+export class ReportService {
+  public formatNow(): string {
+    const now = new DateTimestamp();
+
+    return now.format(DATE_BASE_FORMAT_WITH_MILLISECONDS);
+  }
+
+  public async waitAndRun<T>(run: () => Promise<T>): Promise<T> {
+    await delay(MILLISECONDS_IN_SECOND);
+
+    try {
+      return await promisesTimeout(5 * MILLISECONDS_IN_SECOND, run());
+    } catch (error) {
+      if (error instanceof TimeoutError) {
+        throw new Error('operation timed out');
+      }
+      throw error;
+    }
+  }
+
+  public diffToNow(isoString: string): number {
+    const from = new DateTimestamp().set(isoString);
+
+    return new DateTimestamp().diff(from);
+  }
+
+  public toProto(): ReturnType<typeof DateTimestampHelper.toTimestamp> {
+    return DateTimestampHelper.toTimestamp(new DateTimestamp());
+  }
+}
+```

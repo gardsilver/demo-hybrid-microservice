@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 import Long = require('long');
-import * as moment from 'moment';
+import moment from 'moment';
 import { Timestamp } from 'protos/compiled/google/protobuf/timestamp';
 import {
   DATE_FORMAT,

@@ -3,13 +3,13 @@ import { MockConfigService } from 'tests/nestjs';
 import { ConfigServiceHelper } from './config-service.helper';
 
 describe(ConfigServiceHelper.name, () => {
-  let spyError;
-  let spyKeyName;
+  let spyError: jest.SpyInstance;
+  let spyKeyName: jest.SpyInstance;
   let config: ConfigService;
   let helper: ConfigServiceHelper;
 
   beforeEach(async () => {
-    config = new MockConfigService() as undefined as ConfigService;
+    config = new MockConfigService() as unknown as ConfigService;
     helper = new ConfigServiceHelper(config);
 
     spyError = jest.spyOn(ConfigServiceHelper.prototype, 'error');
@@ -55,7 +55,7 @@ describe(ConfigServiceHelper.name, () => {
     it('success', async () => {
       config = new MockConfigService({
         bool: ' no ',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config);
 
       expect(helper.parseBoolean('bool')).toBeFalsy();
@@ -63,7 +63,7 @@ describe(ConfigServiceHelper.name, () => {
 
       config = new MockConfigService({
         bool: 'No',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config);
 
       expect(helper.parseBoolean('bool')).toBeFalsy();
@@ -74,7 +74,7 @@ describe(ConfigServiceHelper.name, () => {
     it('failed', async () => {
       config = new MockConfigService({
         prefix_bool: 'anyValue',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config, 'prefix_');
 
       let result;
@@ -95,7 +95,7 @@ describe(ConfigServiceHelper.name, () => {
     it('success', async () => {
       config = new MockConfigService({
         int: ' 12345 ',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config);
 
       expect(helper.parseInt('int', undefined)).toBe(12345);
@@ -103,7 +103,7 @@ describe(ConfigServiceHelper.name, () => {
 
       config = new MockConfigService({
         int: '12345',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config);
 
       expect(helper.parseInt('int', undefined)).toBe(12345);
@@ -113,7 +113,7 @@ describe(ConfigServiceHelper.name, () => {
     it('failed', async () => {
       config = new MockConfigService({
         prefix_int: 'abc15e-12345 abc',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config, 'prefix_');
 
       let result;
@@ -134,7 +134,7 @@ describe(ConfigServiceHelper.name, () => {
     it('success', async () => {
       config = new MockConfigService({
         array: ' 12345 weqr34    546 756 2345',
-      }) as undefined as ConfigService;
+      }) as unknown as ConfigService;
       helper = new ConfigServiceHelper(config);
 
       expect(helper.parseArray('array')).toEqual(['12345 weqr34    546 756 2345']);

@@ -76,44 +76,48 @@ describe(KafkaJsErrorObjectFormatter.name, () => {
   });
 
   it('transform KafkaJSConnectionClosedError', async () => {
-    kafkaError['host'] = faker.string.alpha(10);
-    kafkaError['port'] = faker.string.alpha(10);
+    const kafkaErrorWithExtras = kafkaError as unknown as KafkaJSError & { host: string; port: string };
+    kafkaErrorWithExtras.host = faker.string.alpha(10);
+    kafkaErrorWithExtras.port = faker.string.alpha(10);
 
-    expect(formatter.transform(kafkaError)).toEqual({
+    expect(formatter.transform(kafkaErrorWithExtras)).toEqual({
       retriable: true,
-      host: kafkaError['host'],
-      port: kafkaError['port'],
+      host: kafkaErrorWithExtras.host,
+      port: kafkaErrorWithExtras.port,
     });
   });
 
   it('transform KafkaJSMemberIdRequired', async () => {
-    kafkaError['memberId'] = faker.string.alpha(10);
+    const kafkaErrorWithExtras = kafkaError as unknown as KafkaJSError & { memberId: string };
+    kafkaErrorWithExtras.memberId = faker.string.alpha(10);
 
-    expect(formatter.transform(kafkaError)).toEqual({
+    expect(formatter.transform(kafkaErrorWithExtras)).toEqual({
       retriable: true,
-      memberId: kafkaError['memberId'],
+      memberId: kafkaErrorWithExtras.memberId,
     });
   });
 
   it('transform KafkaJSCreateTopicError', async () => {
-    kafkaError['topic'] = faker.string.alpha(10);
+    const kafkaErrorWithExtras = kafkaError as unknown as KafkaJSError & { topic: string };
+    kafkaErrorWithExtras.topic = faker.string.alpha(10);
 
-    expect(formatter.transform(kafkaError)).toEqual({
+    expect(formatter.transform(kafkaErrorWithExtras)).toEqual({
       retriable: true,
-      topic: kafkaError['topic'],
+      topic: kafkaErrorWithExtras.topic,
     });
   });
 
   it('transform KafkaJSProtocolError', async () => {
-    kafkaError['type'] = faker.string.alpha(10);
-    kafkaError['code'] = faker.string.alpha(10);
+    const kafkaErrorWithExtras = kafkaError as unknown as KafkaJSError & { type: string; code: string };
+    kafkaErrorWithExtras.type = faker.string.alpha(10);
+    kafkaErrorWithExtras.code = faker.string.alpha(10);
 
-    const error = new KafkaJSProtocolError(kafkaError);
+    const error = new KafkaJSProtocolError(kafkaErrorWithExtras);
 
     expect(formatter.transform(error)).toEqual({
       retriable: true,
-      type: kafkaError['type'],
-      code: kafkaError['code'],
+      type: kafkaErrorWithExtras.type,
+      code: kafkaErrorWithExtras.code,
     });
   });
 

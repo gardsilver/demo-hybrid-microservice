@@ -18,7 +18,7 @@ describe(DatabaseConnectOptionsBuilder.name, () => {
       DATABASE_USER: 'user',
       DATABASE_PASSWORD: 'password',
       DATABASE_LOGGING_ENABLED: 'yes',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     const databaseConfig = new DatabaseConfig(config);
     const logger = new MockElkLoggerService();
@@ -27,7 +27,7 @@ describe(DatabaseConnectOptionsBuilder.name, () => {
 
     expect({
       ...options,
-      logging: options.logging['length'],
+      logging: (options.logging as (...args: unknown[]) => void)?.length,
     }).toEqual({
       dialect: 'postgres',
       host: 'host',
@@ -56,7 +56,7 @@ describe(DatabaseConnectOptionsBuilder.name, () => {
   });
 
   it('build with out logging', async () => {
-    const config = new MockConfigService() as undefined as ConfigService;
+    const config = new MockConfigService() as unknown as ConfigService;
     const databaseConfig = new DatabaseConfig(config);
     const logger = new MockElkLoggerService();
 
@@ -64,7 +64,7 @@ describe(DatabaseConnectOptionsBuilder.name, () => {
 
     expect({
       ...options,
-      logging: options.logging['length'],
+      logging: (options.logging as (...args: unknown[]) => void)?.length,
     }).toEqual({
       benchmark: false,
       logging: 0,

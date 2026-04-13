@@ -13,11 +13,11 @@ describe(KafkaServerHealthIndicator.name, () => {
   beforeEach(async () => {
     kafkaAdmin = {
       fetchTopicMetadata: jest.fn(),
-    } as undefined as Admin;
+    } as unknown as Admin;
 
     kafkaClient = {
       admin: () => kafkaAdmin,
-    } as undefined as Kafka;
+    } as unknown as Kafka;
 
     server = {
       status: new Observable((subscriber) => {
@@ -27,7 +27,7 @@ describe(KafkaServerHealthIndicator.name, () => {
         return new Map([['topic', true]]);
       },
       unwrap: () => [kafkaClient, null, null],
-    } as undefined as KafkaServerService;
+    } as unknown as KafkaServerService;
   });
 
   describe('use events', () => {

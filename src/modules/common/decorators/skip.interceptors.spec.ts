@@ -54,8 +54,8 @@ describe('Skip interceptors decorators', () => {
     };
 
     const options = getSkipInterceptors(
-      mockContext as undefined as ExecutionContext,
-      mockReflector as undefined as Reflector,
+      mockContext as unknown as ExecutionContext,
+      mockReflector as unknown as Reflector,
     );
 
     expect(options).toEqual({

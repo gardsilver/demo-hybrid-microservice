@@ -30,11 +30,7 @@ import {
 } from '../types/types';
 import { KafkaClientProxy } from './kafka-client.proxy';
 
-jest.mock('kafkajs', () => {
-  const actualKafkaJs = jest.requireActual('kafkajs');
-
-  return Object.assign(actualKafkaJs, { Kafka: jest.fn((prams?) => new MockKafka(prams)) });
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK_WITH_ORIGINALS);
 
 describe(KafkaClientProxy.name, () => {
   let serverName: string;
@@ -262,7 +258,7 @@ describe(KafkaClientProxy.name, () => {
       it('send Invalid Message', async () => {
         let error;
         try {
-          await firstValueFrom(clientProxy.send(undefined, undefined));
+          await firstValueFrom(clientProxy.send(undefined as unknown as IKafkaRequest, undefined));
         } catch (err) {
           error = err;
         }
@@ -270,7 +266,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.send({} as undefined as IKafkaRequest, undefined));
+          await firstValueFrom(clientProxy.send({} as unknown as IKafkaRequest, undefined));
         } catch (err) {
           error = err;
         }
@@ -279,7 +275,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.send({ topic: faker.string.alpha(5) } as undefined as IKafkaRequest, undefined),
+            clientProxy.send({ topic: faker.string.alpha(5) } as unknown as IKafkaRequest, undefined),
           );
         } catch (err) {
           error = err;
@@ -289,7 +285,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.send({ topic: faker.string.alpha(5), data: [] } as undefined as IKafkaRequest, undefined),
+            clientProxy.send({ topic: faker.string.alpha(5), data: [] } as unknown as IKafkaRequest, undefined),
           );
         } catch (err) {
           error = err;
@@ -318,7 +314,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -365,7 +361,7 @@ describe(KafkaClientProxy.name, () => {
         await firstValueFrom(
           clientProxy.send({
             ...request,
-            data: [request.data as undefined as IKafkaMessage<unknown>],
+            data: [request.data as unknown as IKafkaMessage<unknown>],
           }),
         );
 
@@ -375,7 +371,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -424,6 +420,10 @@ describe(KafkaClientProxy.name, () => {
 
         await firstValueFrom(clientProxy.send(request, options));
 
+        if (options.headerBuilder === undefined || options.serializer === undefined) {
+          throw new Error('options.headerBuilder or options.serializer is not set');
+        }
+
         expect(spyHeadersBuild).toHaveBeenCalledTimes(0);
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(options.headerBuilder.build).toHaveBeenCalledWith(
@@ -431,7 +431,7 @@ describe(KafkaClientProxy.name, () => {
             asyncContext: {
               message: 'ok',
             },
-            headers: request.data['headers'],
+            headers: (request.data as IKafkaMessage<unknown>).headers,
           },
           undefined,
         );
@@ -470,7 +470,7 @@ describe(KafkaClientProxy.name, () => {
       it('sendBatch Invalid Message', async () => {
         let error;
         try {
-          await firstValueFrom(clientProxy.sendBatch(undefined, undefined));
+          await firstValueFrom(clientProxy.sendBatch(undefined as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }
@@ -478,7 +478,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.sendBatch([] as undefined as IKafkaRequest[], undefined));
+          await firstValueFrom(clientProxy.sendBatch([] as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }
@@ -486,7 +486,7 @@ describe(KafkaClientProxy.name, () => {
 
         error = undefined;
         try {
-          await firstValueFrom(clientProxy.sendBatch([{}] as undefined as IKafkaRequest[], undefined));
+          await firstValueFrom(clientProxy.sendBatch([{}] as unknown as IKafkaRequest[], undefined));
         } catch (err) {
           error = err;
         }
@@ -495,7 +495,7 @@ describe(KafkaClientProxy.name, () => {
         error = undefined;
         try {
           await firstValueFrom(
-            clientProxy.sendBatch([{ topic: faker.string.alpha(5) }] as undefined as IKafkaRequest[], undefined),
+            clientProxy.sendBatch([{ topic: faker.string.alpha(5) }] as unknown as IKafkaRequest[], undefined),
           );
         } catch (err) {
           error = err;
@@ -506,7 +506,7 @@ describe(KafkaClientProxy.name, () => {
         try {
           await firstValueFrom(
             clientProxy.sendBatch(
-              [{ topic: faker.string.alpha(5), data: [] }] as undefined as IKafkaRequest[],
+              [{ topic: faker.string.alpha(5), data: [] }] as unknown as IKafkaRequest[],
               undefined,
             ),
           );

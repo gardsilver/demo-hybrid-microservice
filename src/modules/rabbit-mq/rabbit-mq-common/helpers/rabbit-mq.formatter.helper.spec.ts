@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker';
-import { RMQErrorInfo } from '../types/types';
+import { IRMQErrorInfo } from '../types/types';
 import { RabbitMqFormatterHelper } from './rabbit-mq.formatter.helper';
 import { RABBIT_MQ_DEFAULT_URL_PARAMS } from '../types/constants';
 
 describe(RabbitMqFormatterHelper.name, () => {
-  let hostname;
-  let errorInfo: RMQErrorInfo;
+  let hostname: string;
+  let errorInfo: IRMQErrorInfo;
 
   beforeEach(async () => {
     hostname = faker.string.alpha(7);

@@ -55,10 +55,7 @@ describe(HttpClientResponseHandler.name, () => {
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
@@ -140,7 +137,7 @@ describe(HttpClientResponseHandler.name, () => {
       const result = responseHandler.handleError(error, { fieldsLogs });
 
       expect(result instanceof HttpClientError).toBeFalsy();
-      expect(result['data']).toBeNull();
+      expect((result as AxiosResponse)['data']).toBeNull();
 
       expect(spyLoggingResponse).toHaveBeenCalledWith(axiosResponse, {
         logLevel: 'WARN',
@@ -344,7 +341,7 @@ describe(HttpClientResponseHandler.name, () => {
 
       it('HttpClientError with response', async () => {
         axiosError.stack = undefined;
-        axiosError.cause = { description: 'Test error' } as undefined as Error;
+        axiosError.cause = { description: 'Test error' } as unknown as Error;
 
         const error = new HttpClientInternalError('Bed request', AxiosError.ERR_BAD_REQUEST, axiosError, axiosResponse);
 

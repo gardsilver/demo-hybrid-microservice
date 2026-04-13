@@ -17,7 +17,7 @@ describe(KafkaService.name, () => {
   beforeEach(async () => {
     kafkaClientService = {
       request: () => {},
-    } as undefined as KafkaClientService;
+    } as unknown as KafkaClientService;
 
     const module = await Test.createTestingModule({
       providers: [
@@ -82,9 +82,8 @@ describe(KafkaService.name, () => {
   });
 
   it('search not found', async () => {
-    const spy = jest.spyOn(kafkaClientService, 'request').mockImplementation(async () => {
-      return undefined;
-    });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const spy = jest.spyOn(kafkaClientService, 'request').mockResolvedValue(undefined as any);
 
     const result = await KafkaAsyncContext.instance.runWithContextAsync(
       () => kafkaService.search(request),

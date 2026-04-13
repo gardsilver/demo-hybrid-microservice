@@ -5,12 +5,11 @@ import { IProducerSerializer, IProducerSerializerOptions } from 'src/modules/rab
 export class DemoRequestSerializer implements IProducerSerializer<MainRequest> {
   serialize(
     value: IRabbitMqProducerMessage<MainRequest>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options: IProducerSerializerOptions,
+    _options: IProducerSerializerOptions,
   ): IRabbitMqProducerMessage<Buffer | string> {
     return {
       ...value,
-      content: Buffer.from(MainRequest.encode(value.content).finish()),
+      content: value.content ? Buffer.from(MainRequest.encode(value.content).finish()) : undefined,
     };
   }
 }

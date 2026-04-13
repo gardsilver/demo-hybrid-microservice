@@ -16,7 +16,7 @@ describe(KafkaClientHelper.name, () => {
   });
 
   it('mergeRequestOptions', async () => {
-    const globalOptions: Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'> = {
+    const globalOptions = {
       timeout: faker.number.int(),
       partition: faker.number.int(),
       serializerOption: {
@@ -27,9 +27,9 @@ describe(KafkaClientHelper.name, () => {
         useZipkin: true,
         asArray: false,
       },
-    };
+    } satisfies Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>;
 
-    const options: Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'> = {
+    const options = {
       timeout: faker.number.int(),
       acks: faker.number.int(),
       serializerOption: {
@@ -39,7 +39,7 @@ describe(KafkaClientHelper.name, () => {
         asArray: true,
         skip: false,
       },
-    };
+    } satisfies Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>;
 
     expect(KafkaClientHelper.mergeRequestOptions(globalOptions)).toEqual(globalOptions);
     expect(KafkaClientHelper.mergeRequestOptions(globalOptions, options)).toEqual({

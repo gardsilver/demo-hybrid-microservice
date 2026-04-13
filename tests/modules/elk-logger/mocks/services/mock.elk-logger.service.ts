@@ -1,7 +1,7 @@
 import { IElkLoggerService, ILogRecord } from 'src/modules/elk-logger';
 
 export class MockElkLoggerService implements IElkLoggerService {
-  getLastLogRecord(): ILogRecord {
+  getLastLogRecord(): ILogRecord | undefined {
     return undefined;
   }
   addDefaultLogFields(): IElkLoggerService {

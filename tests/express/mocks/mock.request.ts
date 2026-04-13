@@ -29,7 +29,11 @@ export class MockRequest implements IRequest {
     this.body = options?.body;
   }
 
-  public header(name: string): string | string[] {
+  public header(name: string): string | string[] | undefined {
+    if (this.headers === undefined) {
+      return undefined;
+    }
+
     return name in this.headers ? this.headers[name] : undefined;
   }
 }

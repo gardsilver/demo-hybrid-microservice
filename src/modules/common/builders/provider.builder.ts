@@ -1,12 +1,12 @@
 import { InjectionToken, Provider } from '@nestjs/common';
-import { ServiceClassProvider, ServiceValueProvider, ServiceFactoryProvider } from '../types/interfaces';
+import { IServiceClassProvider, IServiceValueProvider, IServiceFactoryProvider } from '../types/interfaces';
 
 export abstract class ProviderBuilder {
   public static build<T>(
     di: InjectionToken,
     params?: {
-      providerType?: ServiceClassProvider<T> | ServiceValueProvider<T> | ServiceFactoryProvider<T>;
-      defaultType?: ServiceClassProvider<T> | ServiceValueProvider<T> | ServiceFactoryProvider<T>;
+      providerType?: IServiceClassProvider<T> | IServiceValueProvider<T> | IServiceFactoryProvider<T>;
+      defaultType?: IServiceClassProvider<T> | IServiceValueProvider<T> | IServiceFactoryProvider<T>;
     },
   ): Provider {
     if (params?.providerType) {
@@ -16,9 +16,13 @@ export abstract class ProviderBuilder {
       };
     }
 
+    if (!params?.defaultType) {
+      throw new Error(`ProviderBuilder: defaultType is not defined for ${di.toString()}`);
+    }
+
     return {
       provide: di,
       ...params.defaultType,
-    };
+    } as Provider;
   }
 }

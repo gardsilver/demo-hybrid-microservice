@@ -1,7 +1,7 @@
 import { IKeyValue, IHeaders } from '../types/types';
 
 export abstract class BaseHeadersHelper {
-  public static normalize<H = IKeyValue>(headers: H): IHeaders {
+  public static normalize<H extends object = IKeyValue>(headers: H): IHeaders {
     const tgt: IHeaders = {};
     for (const [k, v] of Object.entries(headers)) {
       if (v === undefined) {
@@ -14,7 +14,10 @@ export abstract class BaseHeadersHelper {
         continue;
       }
 
-      tgt[k.toString().toLocaleLowerCase().trim()] = v?.toString()?.trim();
+      const str = v?.toString()?.trim();
+      if (str !== undefined) {
+        tgt[k.toString().toLocaleLowerCase().trim()] = str;
+      }
     }
 
     return tgt;
@@ -24,10 +27,13 @@ export abstract class BaseHeadersHelper {
     headers: IHeaders,
     ...headerName: string[]
   ): {
-    header: string;
-    value: string | string[];
+    header: string | undefined;
+    value: string | string[] | undefined;
   } {
-    return headerName.reduce(
+    return headerName.reduce<{
+      header: string | undefined;
+      value: string | string[] | undefined;
+    }>(
       (result, useHeaderName) => {
         if (result.value !== undefined || !(useHeaderName in headers)) {
           return result;

@@ -35,7 +35,7 @@ export class KafkaServerStatusService {
     event: GracefulShutdownEvents.BEFORE_DESTROY,
   })
   async beforeDestroy(): Promise<void> {
-    const tasks = [];
+    const tasks: Promise<unknown>[] = [];
 
     this.kafkaServices.forEach((kafkaServices) => {
       tasks.push(

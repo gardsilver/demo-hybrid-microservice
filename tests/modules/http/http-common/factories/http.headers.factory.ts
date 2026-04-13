@@ -4,13 +4,8 @@ import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 
-export interface IBaseHeaders extends IHeaders {
-  [HttpGeneralAsyncContextHeaderNames.TRACE_ID]?: string | string[];
-  [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]?: string | string[];
-  [HttpGeneralAsyncContextHeaderNames.SPAN_ID]?: string | string[];
-  [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]?: string | string[];
-  [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]?: string | string[];
-  [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]?: string | string[];
+export interface IBaseHeaders {
+  [key: string]: string | string[];
 }
 
 export const httpHeadersFactory = Factory.define<

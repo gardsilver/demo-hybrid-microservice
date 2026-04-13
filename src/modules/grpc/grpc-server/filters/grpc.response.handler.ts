@@ -14,7 +14,7 @@ import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { IGrpcMetadataResponseBuilder } from '../types/types';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI, GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI } from '../types/tokens';
 
-const StatusErrorAsCode = {
+const StatusErrorAsCode: Record<string, GrpcStatus> = {
   'Forbidden resource': GrpcStatus.UNAUTHENTICATED,
 };
 
@@ -99,27 +99,29 @@ export class GrpcResponseHandler {
 
         rpcCode = StatusErrorAsCode[responseStatus] ?? GrpcStatus.UNKNOWN;
 
-        resolvedError['error'] = new StatusBuilder()
+        (resolvedError as unknown as { error: unknown }).error = new StatusBuilder()
           .withCode(rpcCode)
           .withDetails(responseStatus)
           .withMetadata(metadataResponse)
           .build();
       } else {
+        const responseStatusObject = responseStatus as Record<string, unknown>;
+
         response = {
           ...response,
-          ...responseStatus,
+          ...responseStatusObject,
         };
 
-        if ('metadata' in responseStatus && responseStatus['metadata'] instanceof Metadata) {
-          for (const [k, v] of Object.entries(responseStatus['metadata'].getMap())) {
-            metadataResponse.set(k, v as undefined as MetadataValue);
+        if ('metadata' in responseStatusObject && responseStatusObject['metadata'] instanceof Metadata) {
+          for (const [k, v] of Object.entries(responseStatusObject['metadata'].getMap())) {
+            metadataResponse.set(k, v as unknown as MetadataValue);
           }
           delete response['metadata'];
           response['headers'] = GrpcHeadersHelper.normalize(metadataResponse.getMap());
-          resolvedError.getError()['metadata'] = metadataResponse;
+          (resolvedError.getError() as Record<string, unknown>)['metadata'] = metadataResponse;
         }
-        if (responseStatus['code'] && typeof responseStatus['code'] === 'number') {
-          rpcCode = responseStatus['code'];
+        if (typeof responseStatusObject['code'] === 'number') {
+          rpcCode = responseStatusObject['code'];
         }
       }
     } else {
@@ -136,7 +138,7 @@ export class GrpcResponseHandler {
 
     this.loggingResponse(
       rpcCode,
-      LogFieldsHelper.merge(fieldsLogs, {
+      LogFieldsHelper.merge(fieldsLogs ?? {}, {
         ...ts,
         payload: {
           request: {

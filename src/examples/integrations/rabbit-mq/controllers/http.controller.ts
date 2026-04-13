@@ -38,13 +38,13 @@ import { DemoResponseDeserializer } from '../adapters/demo.response.deserializer
 ])
 export class HttpController {
   private logger: IElkLoggerService;
-  private readonly responses: BehaviorSubject<IRabbitMqConsumeMessage<MainResponse>>;
+  private readonly responses: BehaviorSubject<IRabbitMqConsumeMessage<MainResponse> | undefined>;
 
   constructor(
     @Inject(ELK_LOGGER_SERVICE_BUILDER_DI) private readonly loggerBuilder: IElkLoggerServiceBuilder,
     private readonly service: RabbitMqService,
   ) {
-    this.responses = new BehaviorSubject<IRabbitMqConsumeMessage<MainResponse>>(undefined);
+    this.responses = new BehaviorSubject<IRabbitMqConsumeMessage<MainResponse> | undefined>(undefined);
     this.logger = this.loggerBuilder.build({ module: 'examples.rabbit-mq' });
   }
 
@@ -68,6 +68,8 @@ export class HttpController {
         ...response.content?.data,
       };
     }
+
+    return { status: 'error' };
   }
 
   /**
@@ -141,7 +143,7 @@ export class HttpController {
             },
           });
 
-          reject(error as undefined as Error);
+          reject(error as unknown as Error);
         },
       });
     });

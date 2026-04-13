@@ -16,7 +16,7 @@ export const EventRabbitMqMessage: {
     | (Record<string, any> & IEventRabbitMqMessageOptions<K>)
     | (() => Record<string, any> & IEventRabbitMqMessageOptions<K>),
 ): MethodDecorator => {
-  const params: Record<string, any> & IEventRabbitMqMessageOptions<K> =
+  const params: (Record<string, any> & IEventRabbitMqMessageOptions<K>) | undefined =
     typeof options === 'function' ? options() : options;
 
   const extras = {

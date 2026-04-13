@@ -61,7 +61,7 @@ describe(PrometheusSummaryService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         observe: spy,
-      } as undefined as Summary;
+      } as unknown as Summary;
     });
 
     summaryService.observe(METRIC_SUMMARY, {
@@ -107,7 +107,7 @@ describe(PrometheusSummaryService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         startTimer: spy,
-      } as undefined as Summary;
+      } as unknown as Summary;
     });
 
     summaryService.startTimer(METRIC_SUMMARY);

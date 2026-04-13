@@ -5,7 +5,7 @@ import { GRACEFUL_SHUTDOWN_DEFAULT_OPTIONS } from '../types/constants';
 
 describe(GracefulShutdownConfig.name, () => {
   it('default', async () => {
-    const configService = new MockConfigService() as undefined as ConfigService;
+    const configService = new MockConfigService() as unknown as ConfigService;
     const gracefulShutdownConfig = new GracefulShutdownConfig(configService);
 
     expect({
@@ -33,7 +33,7 @@ describe(GracefulShutdownConfig.name, () => {
       GRACEFUL_SHUTDOWN_GRACE_PERIOD: String(40_000),
       GRACEFUL_SHUTDOWN_DESTROY_SIGNAL: 'SIGINT',
       GRACEFUL_SHUTDOWN_ENABLED: 'no',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     const gracefulShutdownConfig = new GracefulShutdownConfig(configService);
 
     expect({
@@ -56,7 +56,7 @@ describe(GracefulShutdownConfig.name, () => {
   it('failed', async () => {
     const configService = new MockConfigService({
       GRACEFUL_SHUTDOWN_DESTROY_SIGNAL: 'test',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     expect(() => {
       return new GracefulShutdownConfig(configService);

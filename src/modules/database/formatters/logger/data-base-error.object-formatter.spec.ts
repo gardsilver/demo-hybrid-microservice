@@ -48,7 +48,7 @@ describe(DataBaseErrorFormatter.name, () => {
           ValidationErrorItemType['validation error'],
           'path',
           'value',
-          { name: 'First name' } as undefined as Model,
+          { name: 'First name' } as unknown as Model,
           'validatorKey',
           'fnName',
           ['Second Name'],
@@ -76,7 +76,7 @@ describe(DataBaseErrorFormatter.name, () => {
     error.stack = undefined;
     error.cause = dataBaseError;
 
-    const bulkRecordError = new BulkRecordError(dataBaseError, { name: 'First name' } as undefined as Model);
+    const bulkRecordError = new BulkRecordError(dataBaseError, { name: 'First name' } as unknown as Model);
     bulkRecordError.stack = undefined;
 
     expect(formatter.transform(bulkRecordError)).toEqual({
@@ -124,7 +124,7 @@ describe(DataBaseErrorFormatter.name, () => {
       ValidationErrorItemType['validation error'],
       'path',
       'value',
-      { name: 'First name' } as undefined as Model,
+      { name: 'First name' } as unknown as Model,
       'validatorKey',
       'fnName',
       ['Second Name'],

@@ -61,8 +61,8 @@ describe(MockProducerSerializer.name, () => {
   });
 
   it('serialize', async () => {
-    let result;
-    let content;
+    let result: IRabbitMqProducerMessage<Buffer | string>;
+    let content: unknown;
 
     value.content = null;
     result = serializer.serialize(value, options);
@@ -72,7 +72,7 @@ describe(MockProducerSerializer.name, () => {
     });
 
     content = faker.string.alpha(15);
-    value.content = Buffer.from(content);
+    value.content = Buffer.from(content as string);
     result = serializer.serialize(value, options);
     expect(result).toEqual({
       ...result,
@@ -90,7 +90,7 @@ describe(MockProducerSerializer.name, () => {
     result = serializer.serialize(value, options);
     expect(result).toEqual({
       ...result,
-      content: content.toString(),
+      content: String(content),
     });
 
     content = [faker.number.int(5)];
@@ -98,7 +98,7 @@ describe(MockProducerSerializer.name, () => {
     result = serializer.serialize(value, options);
     expect(result).toEqual({
       ...result,
-      content: content.toString(),
+      content: String(content),
     });
 
     content = {
@@ -109,7 +109,7 @@ describe(MockProducerSerializer.name, () => {
     result = serializer.serialize(value, options);
     expect(result).toEqual({
       ...result,
-      content: content.toString(),
+      content: String(content),
     });
   });
 });

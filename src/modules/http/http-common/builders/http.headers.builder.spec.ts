@@ -10,7 +10,12 @@ import { HttpHeadersBuilder } from './http.headers.builder';
 
 describe(HttpHeadersBuilder.name, () => {
   let traceSpan: ITraceSpan;
-  let asyncContext: IGeneralAsyncContext;
+  let asyncContext: IGeneralAsyncContext & {
+    traceId: string;
+    spanId: string;
+    correlationId: string;
+    requestId: string;
+  };
   let headers: IHeaders;
 
   let builder: IHttpHeadersBuilder;
@@ -20,20 +25,28 @@ describe(HttpHeadersBuilder.name, () => {
 
     traceSpan = TraceSpanBuilder.build();
 
-    asyncContext = generalAsyncContextFactory.build(
+    const builtContext = generalAsyncContextFactory.build(
       {},
       {
         transient: {
-          traceId: undefined,
-          spanId: undefined,
           initialSpanId: undefined,
-          parentSpanId: undefined,
           requestId: undefined,
           correlationId: undefined,
           ...traceSpan,
         },
       },
     );
+
+    if (
+      builtContext.traceId === undefined ||
+      builtContext.spanId === undefined ||
+      builtContext.correlationId === undefined ||
+      builtContext.requestId === undefined
+    ) {
+      throw new Error('asyncContext is not fully populated by factory');
+    }
+
+    asyncContext = builtContext as typeof asyncContext;
 
     headers = httpHeadersFactory.build(
       {
@@ -161,5 +174,17 @@ describe(HttpHeadersBuilder.name, () => {
       [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });
+  });
+
+  it('strips authorization header from input', async () => {
+    const result = builder.build({
+      asyncContext,
+      headers: {
+        authorization: 'Bearer secret',
+        'x-keep': 'value',
+      },
+    });
+    expect(result.authorization).toBeUndefined();
+    expect(result['x-keep']).toBe('value');
   });
 });

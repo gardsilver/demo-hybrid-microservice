@@ -5,15 +5,15 @@ import { ConfigServiceHelper } from 'src/modules/common';
 @Injectable()
 export class DatabaseConfig {
   private readonly migrationsEnabled: boolean;
-  private readonly migrationsTable: string;
-  private readonly host: string;
-  private readonly port: number;
-  private readonly dialect: string;
-  private readonly databaseName: string;
-  private readonly prefix: string;
-  private readonly databaseSchema: string;
-  private readonly user: string;
-  private readonly password: string;
+  private readonly migrationsTable: string | undefined;
+  private readonly host: string | undefined;
+  private readonly port: number | undefined;
+  private readonly dialect: string | undefined;
+  private readonly databaseName: string | undefined;
+  private readonly prefix: string | undefined;
+  private readonly databaseSchema: string | undefined;
+  private readonly user: string | undefined;
+  private readonly password: string | undefined;
   private readonly loggingEnabled: boolean;
 
   constructor(readonly config: ConfigService) {
@@ -35,39 +35,39 @@ export class DatabaseConfig {
   getMigrationsEnabled(): boolean {
     return this.migrationsEnabled;
   }
-  getMigrationsTable(): string {
+  getMigrationsTable(): string | undefined {
     return this.migrationsTable;
   }
 
-  getHost(): string {
+  getHost(): string | undefined {
     return this.host;
   }
 
-  getPort(): number {
+  getPort(): number | undefined {
     return this.port;
   }
 
-  getDialect(): string {
+  getDialect(): string | undefined {
     return this.dialect;
   }
 
-  getDatabaseName(): string {
+  getDatabaseName(): string | undefined {
     return this.databaseName;
   }
 
-  getPrefix(): string {
+  getPrefix(): string | undefined {
     return this.prefix ?? undefined;
   }
 
-  getDatabaseSchema(): string {
+  getDatabaseSchema(): string | undefined {
     return this.databaseSchema;
   }
 
-  getUser(): string {
+  getUser(): string | undefined {
     return this.user ?? undefined;
   }
 
-  getPassword(): string {
+  getPassword(): string | undefined {
     return this.password ?? undefined;
   }
 

@@ -8,22 +8,62 @@
 - Реализован `RabbitMqHealthIndicator`
 - Настроено логирование и фиксирование базовых метрик.
 - Добавлена поддержка одновременного подключения к нескольким независимым брокерам **RabbitMq**.
-- Реализована возможность установки пользовательских адаптеров сообщений **RabbitMq** для каждого консъюмера.
+- Реализована возможность установки пользовательских адаптеров сообщений **RabbitMq** для каждого консьюмера.
 
 ### ВАЖНО
 
-Данный модуль не реализует логику **Request/Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) для каждого консъюмера (**@see** декоратор `EventRabbitMqMessage`).
+Данный модуль не реализует логику **Request/Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) для каждого консьюмера (**@see** декоратор `EventRabbitMqMessage`).
 
-Если не задан `deserializer`, то в полученных данных будут нормализованы только `headers` (**@see** `RabbitMqMessageOptionsHelper` `src/modules/rabbit-mq/rabbit-mq-common`).
+Если не задан `deserializer`, то в полученных данных будут нормализованы только `headers` (**@see** `RabbitMqMessageHelper` `src/modules/rabbit-mq/rabbit-mq-common`).
 
-Данный модуль игнорирует настройки декораторами `MessagePattern` и `EventPattern`  (**@see** `@nestjs/microservices`). Для настройки консъюмеров используйте `EventRabbitMqMessage`.
+Данный модуль игнорирует настройки декораторами `MessagePattern` и `EventPattern`  (**@see** `@nestjs/microservices`). Для настройки консьюмеров используйте `EventRabbitMqMessage`.
+
+## Параметры окружения
+
+| Переменная | Тип | Описание |
+|---|---|---|
+| `RABBIT_MQ_URLS` | string (CSV) | Список адресов брокеров **RabbitMQ**. Пример: `rabbitmq:5672,rabbitmq2:5672`. |
+| `RABBIT_MQ_USER` | string | Имя пользователя **RabbitMQ**. |
+| `RABBIT_MQ_PASSWORD` | string | Пароль пользователя **RabbitMQ**. |
 
 ## Использование
 
 ### Подключение модуля **RabbitMqServerModule**
 
-- `RabbitMqServerModule` необходимо подключить глобально, он создаст сервисы, которые будут реагировать на общее состояние всего приложения (**@see** `src/modules/graceful-shutdown`) и на состояние подключенных консъюмеров.
+- `RabbitMqServerModule.forRoot(...)` регистрирует модуль глобально (`global: true`), создаёт сервисы, реагирующие на общее состояние приложения (**@see** `src/modules/graceful-shutdown`) и на состояние подключённых консьюмеров.
 - `RabbitMqServerStatusService` будет доступен после успешного подключения `RabbitMqServerModule`. Позволяет получить `RabbitMqHealthIndicator` и в случае завершения приложения остановит работу всех **Consumer**.
+- По умолчанию используется адаптер заголовков сообщения `RabbitMqMessagePropertiesToAsyncContextAdapter` (**@see** `src/modules/rabbit-mq/rabbit-mq-common`). Его можно переопределить через `messagePropertiesAdapter` параметра `IRabbitMqServerModuleOptions`.
+
+```ts
+import { Module } from '@nestjs/common';
+import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
+
+@Module({
+  imports: [
+    ...
+    RabbitMqServerModule.forRoot(),
+    ...
+  ],
+})
+export class MainModule {}
+```
+
+`RabbitMqServerModule.forRoot()` принимает `IRabbitMqServerModuleOptions`:
+
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `imports` | `ImportsType` | Нет | `[]` | Дополнительные модули для разрешения зависимостей пользовательских провайдеров. |
+| `providers` | `Provider[]` | Нет | `[]` | Дополнительные провайдеры, регистрируемые внутри `RabbitMqServerModule`. |
+| `messagePropertiesAdapter` | `IServiceClassProvider<IRabbitMqMessagePropertiesToAsyncContextAdapter>` \| `IServiceValueProvider<...>` \| `IServiceFactoryProvider<...>` | Нет | `RabbitMqMessagePropertiesToAsyncContextAdapter` из `rabbit-mq-common` | Переопределение адаптера преобразования `MessageProperties` **RabbitMQ** в `GeneralAsyncContext`. |
+
+Форма провайдера `messagePropertiesAdapter` — один из трёх типов:
+
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `useClass` | `Type<IRabbitMqMessagePropertiesToAsyncContextAdapter>` | Да (для class-провайдера) | — | Класс адаптера. |
+| `useValue` | `IRabbitMqMessagePropertiesToAsyncContextAdapter` | Да (для value-провайдера) | — | Готовый экземпляр адаптера. |
+| `useFactory` | `(...deps) => IRabbitMqMessagePropertiesToAsyncContextAdapter \| Promise<...>` | Да (для factory-провайдера) | — | Фабрика, создающая адаптер. |
+| `inject` | `Array<Token>` | Нет | `[]` | Зависимости, передаваемые в `useFactory`. |
 
 ### Подключение **RabbitMq**-сервера
 
@@ -42,13 +82,13 @@ const { server, serverHealthIndicator } =  RabbitMqMicroserviceBuilder.setup(app
 
 | Параметр `IRabbitMqMicroserviceBuilderOptions` | Описание | Примеры |
 |-|-|-|
-|`serverName`| Имя **RabbitMq**-сервера, используется как идентификатор для настройки консъюмеров, и он же будет отображать состояние данного сервера в  `RabbitMqHealthIndicator` |  |
+|`serverName`| Имя **RabbitMq**-сервера, используется как идентификатор для настройки консьюмеров, и он же будет отображать состояние данного сервера в  `RabbitMqHealthIndicator` |  |
 |`urls`| Список URL-адресов для повторных попыток подключения к **RabbitMq**-серверу |  |
-|`consumer`| Опции настройки подключения к **RabbitMq**-серверу и настройки консъюмеров по умолчанию. <br>  - `socketOptions.connectionOptions` опции подключения к **RabbitMq**-серверу <br>  - `socketOptions.heartbeatIntervalInSeconds` heartbeat в сек. <br>  - `socketOptions.reconnectTimeInSeconds` пауза в сек. между повторными попытками подключения <br>  - `maxConnectionAttempts` определяет максимальное количество повторных подключений. При достижении указанного значения будет выброшена соответствующая ошибка, а процесс повторных подключений остановлен. Значение `-1` (по умолчанию) отключает контроль количества повторных подключений. <br>  - `queueOptions` опции настройки очередей, которые будут использоваться по умолчанию. <br>  - `exchangeArguments` аргументы `exchange`, которые будут использоваться по умолчанию |  |
+|`consumer`| Опции настройки подключения к **RabbitMq**-серверу и настройки консьюмеров по умолчанию. <br>  - `socketOptions.connectionOptions` опции подключения к **RabbitMq**-серверу <br>  - `socketOptions.heartbeatIntervalInSeconds` heartbeat в сек. <br>  - `socketOptions.reconnectTimeInSeconds` пауза в сек. между повторными попытками подключения <br>  - `maxConnectionAttempts` определяет максимальное количество повторных подключений. При достижении указанного значения будет выброшена соответствующая ошибка, а процесс повторных подключений остановлен. Значение `-1` (по умолчанию) отключает контроль количества повторных подключений. <br>  - `queueOptions` опции настройки очередей, которые будут использоваться по умолчанию. <br>  - `exchangeArguments` аргументы `exchange`, которые будут использоваться по умолчанию |  |
 
-### Настройки консъюмеров
+### Настройки консьюмеров
 
-Для создания консъюмера необходимо использовать декоратор `EventRabbitMqMessage`:
+Для создания консьюмера необходимо использовать декоратор `EventRabbitMqMessage`:
 
 ```typescript
 
@@ -57,7 +97,7 @@ import { IRabbitMqConsumeMessage } from 'src/modules/rabbit-mq/rabbit-mq-common'
 import { EventRabbitMqMessage, RabbitMqContext } from 'src/modules/rabbit-mq/rabbit-mq-server';
 ...
 
-  @EventRabbitMqMessage('request', { // идентификатор консъюмера.
+  @EventRabbitMqMessage('request', { // идентификатор консьюмера.
     serverName: '...', // Данный параметр должен соответствовать serverName указанному в RabbitMqMicroserviceBuilder.setup
     ...
   })
@@ -73,9 +113,25 @@ import { EventRabbitMqMessage, RabbitMqContext } from 'src/modules/rabbit-mq/rab
 - `getMessageRef()` полученное сообщение (необходимо использовать в пользовательском вызове `ack`/`nack`).
 - `getMessage()` декодированное сообщение.
 - `getChannelRef()` экземпляр `Channel` (**@see**  `amqp-connection-manager`).
-- `messageOptions()` опции `IRabbitMqEventOptions`, в которых будут данные `serverName`, идентификатор консъюмера (`pattern`) и используемой очереди (`queue`).
+- `getMessageOptions()` опции `IRabbitMqEventOptions & { pattern: string }`, в которых будут данные `serverName`, идентификатор консьюмера (`pattern`) и используемой очереди (`queue`).
 
 Декоратор `EventRabbitMqMessage` полностью соответствует декоратору `EventPattern` (**@see** `@nestjs/microservices`) и в сочетании с ним можно дополнительно использовать стандартные декораторы `Payload` и `Ctx`, как на примере выше.
+
+#### Параметры `EventRabbitMqMessage(metadata, options)`
+
+| Параметр | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `metadata` | `string \| string[]` (обобщённый `T`) | Нет | Идентификатор консьюмера (`pattern`). Передаётся в базовый `EventPattern` и используется для привязки обработчика к очереди. |
+| `options` | `IEventRabbitMqMessageOptions<K>` либо функция, возвращающая такой объект | Нет | Настройки консьюмера для данного обработчика. Функция вычисляется во время применения декоратора. |
+
+Поля `options` (`IEventRabbitMqMessageOptions<K>`):
+
+| Поле | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `serverName` | `string` | Да | Идентификатор **RabbitMq**-сервера. Должен совпадать со `serverName`, переданным в `RabbitMqMicroserviceBuilder.setup`. |
+| `consumer` | `Partial<IRabbitMqChannelOptions & IRabbitMqConsumerOptions>` | Нет | Переопределение опций канала и консьюмера для данного обработчика (очередь, exchange, routing keys, prefetch, `queueOptions`, `exchangeArguments` и т.п.). Сливается с настройками по умолчанию из `RabbitMqMicroserviceBuilder.setup`. |
+| `deserializer` | `IConsumerDeserializer<K>` | Нет | Пользовательский десериализатор `ConsumeMessage`. Если задан, универсальный `deserializer` из `RabbitMqMicroserviceBuilder.setup` игнорируется. |
+| `[key: string]` | `unknown` | Нет | Любые дополнительные поля — пробрасываются в метаданные `EventPattern` как `extras`. |
 
 ### Фильтрация сообщений
 
@@ -85,7 +141,7 @@ import { EventRabbitMqMessage, RabbitMqContext } from 'src/modules/rabbit-mq/rab
 
 - Реализовать универсальный `deserializer` и подключить его через `RabbitMqMicroserviceBuilder.setup`.
 
-Доступ к `serverName` и `pattern` (идентификатор консъюмера) в `deserializer` будет всегда (**@see** `options: IRabbitMqEventOptions`), поэтому можно организовать выбор способа десериализации для `ConsumeMessage` (**@see** `amqplib`).
+Доступ к `serverName` и `pattern` (идентификатор консьюмера) в `deserializer` будет всегда (**@see** `options: IRabbitMqEventOptions`), поэтому можно организовать выбор способа десериализации для `ConsumeMessage` (**@see** `amqplib`).
 
 - Задать через декоратор `EventRabbitMqMessage`. В этом случае универсальный будет проигнорирован.
 - Или воспользоваться стандартными механизмами `NodeJs` и реализовать **Middleware**, **Interceptors**, **Pipe**.

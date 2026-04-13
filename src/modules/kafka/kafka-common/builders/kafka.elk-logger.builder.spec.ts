@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { LogEntry, logLevel } from 'kafkajs';
+import { LogEntry, logLevel, logCreator } from 'kafkajs';
 import { Test } from '@nestjs/testing';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
@@ -9,7 +9,7 @@ import {
   ILogFields,
 } from 'src/modules/elk-logger';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
-import { KafkaElkLoggerBuilder, kafkaLogFilter } from './kafka.ekf-logger.builder';
+import { KafkaElkLoggerBuilder, kafkaLogFilter } from './kafka.elk-logger.builder';
 
 describe(KafkaElkLoggerBuilder.name, () => {
   const logFields: ILogFields = {
@@ -17,9 +17,9 @@ describe(KafkaElkLoggerBuilder.name, () => {
   };
   let entry: LogEntry;
   let logger: IElkLoggerService, loggerBuilder: IElkLoggerServiceBuilder;
-  let kafkaLogger;
-  let spyOnLogger;
-  let spyOnLoggerBuilder;
+  let kafkaLogger: logCreator;
+  let spyOnLogger: jest.SpyInstance;
+  let spyOnLoggerBuilder: jest.SpyInstance;
 
   beforeEach(async () => {
     logger = new MockElkLoggerService();
@@ -110,7 +110,7 @@ describe(KafkaElkLoggerBuilder.name, () => {
 
       expect(spyOnLogger).toHaveBeenCalledTimes(0);
 
-      entry.level = undefined;
+      entry.level = undefined as unknown as logLevel;
 
       kafkaLogger(logLevel.INFO)(entry);
 

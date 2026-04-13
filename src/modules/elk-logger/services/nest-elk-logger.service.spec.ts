@@ -1,10 +1,10 @@
-import * as fs from 'fs';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
 import { CheckObjectsType } from 'src/modules/common';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
+import { FS_MOCK } from 'tests/fs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
 import { TestService } from 'tests/src/test-module';
 import { NestElkLoggerService } from './nest-elk-logger.service';
@@ -28,20 +28,14 @@ import {
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  appendFileSync: jest.fn(),
-  openSync: jest.fn(() => 1002),
-  writeSync: jest.fn(),
-  closeSync: jest.fn(),
-}));
+jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(NestElkLoggerService.name, () => {
-  let mockUuid;
-  let spyFormatter;
-  let spyRecordEncodeFormatter;
-  let spyEncodeFormatter;
-  let spyLogWriter;
+  let mockUuid: string;
+  let spyFormatter: jest.SpyInstance;
+  let spyRecordEncodeFormatter: jest.SpyInstance;
+  let spyEncodeFormatter: jest.SpyInstance;
+  let spyLogWriter: jest.SpyInstance;
 
   let loggerConfig: ElkLoggerConfig;
   let formatter: ILogRecordFormatter;
@@ -96,7 +90,7 @@ describe(NestElkLoggerService.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
               sortFields,
               defaultFields,
             );
@@ -469,6 +463,31 @@ describe(NestElkLoggerService.name, () => {
         });
       });
 
+      it('error with object containing string and Error values', async () => {
+        const nestedError = new Error('nested');
+        const obj = {
+          foo: 'stringVal',
+          baz: nestedError,
+          extra: 42,
+        };
+
+        logger.error(obj);
+
+        const record = logger.getLastLogRecord();
+        expect(record?.message).toBe('stringVal');
+        expect((record?.payload as Record<string, unknown>).errors).toEqual([nestedError]);
+        expect((record?.payload as Record<string, unknown>).extra).toBe(42);
+      });
+
+      it('error with object whose first Error message becomes message', async () => {
+        const e = new Error('from error');
+        logger.error({ e });
+
+        const record = logger.getLastLogRecord();
+        expect(record?.message).toBe('from error');
+        expect((record?.payload as Record<string, unknown>).errors).toEqual([e]);
+      });
+
       it('error with message, stack and context', async () => {
         logger.error('Test application failed', 'anyStackTrace', 'TestApplication');
 
@@ -668,23 +687,23 @@ describe(NestElkLoggerService.name, () => {
   });
 
   describe('other methods', () => {
-    let spyOnOpenSync;
-    let spyOnAppendFileSync;
+    let spyOnOpenSync: jest.Mock;
+    let spyOnAppendFileSync: jest.Mock;
 
     beforeEach(async () => {
       loggerConfig = new ElkLoggerConfig(
         new MockConfigService({
           LOGGER_FORMAT_RECORD: 'SHORT',
           LOGGER_STORE_FILE: 'log.log',
-        }) as undefined as ConfigService,
+        }) as unknown as ConfigService,
         [],
         [],
       );
 
       logger = new NestElkLoggerService(loggerConfig, recordEncodeFormattersFactory, formattersFactory);
 
-      spyOnOpenSync = jest.spyOn(fs, 'openSync');
-      spyOnAppendFileSync = jest.spyOn(fs, 'appendFileSync');
+      spyOnOpenSync = FS_MOCK.openSync;
+      spyOnAppendFileSync = FS_MOCK.appendFileSync;
     });
 
     it('setLogLevels', async () => {

@@ -62,7 +62,7 @@ describe('promisesTimeout', () => {
 
   it('TimeoutError', async () => {
     jest.advanceTimersToNextTimerAsync(10_000);
-    let result: boolean;
+    let result: boolean | undefined;
     try {
       await promisesTimeout(5_000);
       result = true;
@@ -75,7 +75,7 @@ describe('promisesTimeout', () => {
   it('TimeoutError for single task', async () => {
     jest.advanceTimersToNextTimerAsync(10_000);
 
-    let result: boolean;
+    let result: boolean | undefined;
     try {
       const promise = delay(10_000);
       await promisesTimeout(5_000, promise);
@@ -89,7 +89,7 @@ describe('promisesTimeout', () => {
   it('TimeoutError for many tasks', async () => {
     jest.advanceTimersToNextTimerAsync(10_000);
 
-    let result: boolean;
+    let result: boolean | undefined;
     try {
       await promisesTimeout(5_000, delay(10_000), delay(12_000));
       result = true;

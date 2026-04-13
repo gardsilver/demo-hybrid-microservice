@@ -39,16 +39,15 @@ export interface ILogRecord extends ILogFields {
   traceId: string;
   spanId: string;
   initialSpanId: string;
-  parentSpanId: null | string;
+  parentSpanId: string | undefined;
 }
 
-export interface IOptionLog
-  extends Partial<
-    Pick<
-      ILogFields,
-      'module' | 'markers' | 'businessData' | 'payload' | 'traceId' | 'spanId' | 'initialSpanId' | 'parentSpanId'
-    >
-  > {}
+export interface IOptionLog extends Partial<
+  Pick<
+    ILogFields,
+    'module' | 'markers' | 'businessData' | 'payload' | 'traceId' | 'spanId' | 'initialSpanId' | 'parentSpanId'
+  >
+> {}
 
 export interface IUnknownFormatter {
   transform(value: unknown): unknown | IKeyValue<unknown>;
@@ -71,7 +70,7 @@ export interface IEncodeFormatter extends IFormatter<string, string> {
 }
 
 export interface INestElkLoggerService extends LoggerService {
-  getLastLogRecord(): ILogRecord;
+  getLastLogRecord(): ILogRecord | undefined;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setLogLevels?(levels: NestLogLevel[]): any;
 }

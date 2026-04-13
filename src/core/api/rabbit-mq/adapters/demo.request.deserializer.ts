@@ -25,7 +25,7 @@ export class DemoRequestDeserializer implements IConsumerDeserializer<MainReques
       data: result.data
         ? {
             ...result?.data,
-            content: result.data.content ? MainRequest.decode(result.data.content) : null,
+            content: result.data.content ? MainRequest.decode(result.data.content) : undefined,
           }
         : undefined,
     };

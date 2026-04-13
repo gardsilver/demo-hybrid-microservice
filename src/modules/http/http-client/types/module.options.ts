@@ -1,26 +1,26 @@
 import { Provider } from '@nestjs/common';
-import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceFactoryProvider, IServiceValueProvider } from 'src/modules/common';
 import { IHttpHeadersRequestBuilder, IHttpRequest, IHttpRequestOptions } from './types';
 
 export type HttpOptions = Partial<IHttpRequest>;
 
-export interface HttpClientModuleOptions {
+export interface IHttpClientModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   headersRequestBuilder?:
-    | ServiceClassProvider<IHttpHeadersRequestBuilder>
-    | ServiceValueProvider<IHttpHeadersRequestBuilder>
-    | ServiceFactoryProvider<IHttpHeadersRequestBuilder>;
+    | IServiceClassProvider<IHttpHeadersRequestBuilder>
+    | IServiceValueProvider<IHttpHeadersRequestBuilder>
+    | IServiceFactoryProvider<IHttpHeadersRequestBuilder>;
   httpModuleOptions?: {
     imports?: ImportsType;
     providers?: Provider[];
     options:
-      | ServiceClassProvider<HttpOptions>
-      | ServiceValueProvider<HttpOptions>
-      | ServiceFactoryProvider<HttpOptions>;
+      | IServiceClassProvider<HttpOptions>
+      | IServiceValueProvider<HttpOptions>
+      | IServiceFactoryProvider<HttpOptions>;
   };
   requestOptions?:
-    | ServiceClassProvider<IHttpRequestOptions>
-    | ServiceValueProvider<IHttpRequestOptions>
-    | ServiceFactoryProvider<IHttpRequestOptions>;
+    | IServiceClassProvider<IHttpRequestOptions>
+    | IServiceValueProvider<IHttpRequestOptions>
+    | IServiceFactoryProvider<IHttpRequestOptions>;
 }

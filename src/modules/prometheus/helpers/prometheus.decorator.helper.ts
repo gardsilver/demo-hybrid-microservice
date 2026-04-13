@@ -4,7 +4,7 @@ export abstract class PrometheusDecoratorHelper {
   public static buildLabels(
     labels: PrometheusLabels | undefined,
     defaultLabels: PrometheusLabels | false,
-  ): PrometheusLabels {
+  ): PrometheusLabels | undefined {
     if (labels === undefined && defaultLabels === false) {
       return undefined;
     }

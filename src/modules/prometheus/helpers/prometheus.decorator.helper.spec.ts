@@ -43,16 +43,16 @@ describe(PrometheusDecoratorHelper.name, () => {
       labelNames: ['method'],
     };
 
-    let metricConfig;
+    let metricConfig: IMetricConfig | Error;
 
     try {
-      metricConfig = PrometheusDecoratorHelper.buildMetricConfig(undefined, false, errorMessage);
+      metricConfig = PrometheusDecoratorHelper.buildMetricConfig<IMetricConfig>(undefined, false, errorMessage);
     } catch (e) {
-      metricConfig = e;
+      metricConfig = e as Error;
     }
 
     expect(metricConfig instanceof Error).toBeTruthy();
-    expect(metricConfig.message).toBe(errorMessage);
+    expect((metricConfig as Error).message).toBe(errorMessage);
 
     metricConfig = PrometheusDecoratorHelper.buildMetricConfig(undefined, defaultMetricConfig, errorMessage);
 

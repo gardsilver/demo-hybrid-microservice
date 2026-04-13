@@ -3,8 +3,10 @@ import { IRabbitMqProducerMessage } from 'src/modules/rabbit-mq/rabbit-mq-common
 import { IProducerSerializer, IProducerSerializerOptions } from '../types/types';
 
 export class ProducerSerializer<T = unknown> implements IProducerSerializer<T> {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  serialize(value: IRabbitMqProducerMessage<T>, options: IProducerSerializerOptions): IRabbitMqProducerMessage<Buffer> {
+  serialize(
+    value: IRabbitMqProducerMessage<T>,
+    _options: IProducerSerializerOptions,
+  ): IRabbitMqProducerMessage<Buffer | null> {
     return {
       ...value,
       content: this.encode(value.content),

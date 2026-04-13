@@ -11,8 +11,8 @@ import { ILogFields } from '../types/elk-logger.types';
 
 describe(ElkLoggerOnMethod.name, () => {
   let mockContext: IGeneralAsyncContext;
-  let spyEmit;
-  let mockError;
+  let spyEmit: jest.Mock;
+  let mockError: Error;
   let fields: ILogFields;
 
   beforeEach(async () => {
@@ -492,11 +492,11 @@ describe(ElkLoggerOnMethod.name, () => {
   });
 
   describe('custom no async as function', () => {
-    let spyFields;
-    let spyBefore;
-    let spyAfter;
-    let spyThrow;
-    let spyFinally;
+    let spyFields: jest.Mock;
+    let spyBefore: jest.Mock;
+    let spyAfter: jest.Mock;
+    let spyThrow: jest.Mock;
+    let spyFinally: jest.Mock;
 
     beforeAll(async () => {
       spyFields = jest.fn().mockImplementation(() => fields);
@@ -1148,11 +1148,11 @@ describe(ElkLoggerOnMethod.name, () => {
   });
 
   describe('custom async as function', () => {
-    let spyFields;
-    let spyBefore;
-    let spyAfter;
-    let spyThrow;
-    let spyFinally;
+    let spyFields: jest.Mock;
+    let spyBefore: jest.Mock;
+    let spyAfter: jest.Mock;
+    let spyThrow: jest.Mock;
+    let spyFinally: jest.Mock;
 
     beforeAll(async () => {
       spyFields = jest.fn().mockImplementation(() => fields);

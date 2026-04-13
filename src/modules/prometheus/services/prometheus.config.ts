@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PrometheusConfig {
-  private applicationName: string;
-  private microserviceName: string;
-  private microserviceVersion: string;
+  private applicationName: string | undefined;
+  private microserviceName: string | undefined;
+  private microserviceVersion: string | undefined;
 
   constructor(configService: ConfigService) {
     this.applicationName = configService.get<string>('APPLICATION_NAME');
@@ -13,15 +13,15 @@ export class PrometheusConfig {
     this.microserviceVersion = configService.get<string>('MICROSERVICE_VERSION');
   }
 
-  getApplicationName(): string {
+  getApplicationName(): string | undefined {
     return this.applicationName;
   }
 
-  getMicroserviceName(): string {
+  getMicroserviceName(): string | undefined {
     return this.microserviceName;
   }
 
-  getMicroserviceVersion(): string {
+  getMicroserviceVersion(): string | undefined {
     return this.microserviceVersion;
   }
 }

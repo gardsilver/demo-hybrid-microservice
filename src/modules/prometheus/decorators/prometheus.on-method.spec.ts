@@ -12,16 +12,11 @@ import { PrometheusLabels } from '../types/types';
 import { IPrometheusEventConfig, IPrometheusOnMethod, ITargetPrometheusOnMethod } from '../types/decorators.type';
 import { PrometheusMetricConfigOnService } from './prometheus.metric-config.on-service';
 
-let mockUuid;
+import { CRYPTO_MOCK } from 'tests/crypto';
 
-jest.mock('crypto', () => {
-  const actualMoment = jest.requireActual('crypto');
+jest.mock('crypto', () => ({ ...jest.requireActual('crypto'), ...jest.requireActual('tests/crypto').CRYPTO_MOCK }));
 
-  return {
-    ...actualMoment,
-    randomUUID: () => mockUuid,
-  };
-});
+let mockUuid: string;
 
 const eventConfigBuilder = (): IPrometheusEventConfig => {
   return {
@@ -149,16 +144,16 @@ const useEventConfig: IPrometheusOnMethod = {
 };
 
 describe('PrometheusOnMethod', () => {
-  let spyBuildLabels;
-  let spyBuildEventConfig;
-  let spyEmit;
+  let spyBuildLabels: jest.Mock;
+  let spyBuildEventConfig: jest.Mock;
+  let spyEmit: jest.Mock;
 
   let context: IGeneralAsyncContext;
 
   let defaultLabels: PrometheusLabels;
   let eventConfig: IPrometheusEventConfig;
 
-  let mockError;
+  let mockError: Error;
 
   beforeEach(async () => {
     spyBuildLabels = jest.fn().mockImplementation(() => defaultLabels);
@@ -170,6 +165,7 @@ describe('PrometheusOnMethod', () => {
     PrometheusEventService.emit = spyEmit;
 
     mockUuid = faker.string.uuid();
+    CRYPTO_MOCK.randomUUID.mockImplementation(() => mockUuid);
 
     context = {
       ...TraceSpanBuilder.build(),
@@ -1546,6 +1542,158 @@ describe('PrometheusOnMethod', () => {
           },
         );
       });
+    });
+  });
+
+  describe('function configs', () => {
+    it('invokes labels/before/after/throw/finally as functions and handles false labels', async () => {
+      spyBuildLabels.mockImplementation(() => undefined);
+
+      const labelsFn = jest.fn(() => ({ k: 'v' }));
+      const beforeFn = jest.fn(() => eventConfig);
+      const afterFn = jest.fn(() => eventConfig);
+      const throwFn = jest.fn(() => eventConfig);
+      const finallyFn = jest.fn(() => eventConfig);
+
+      class SyncOk {
+        @PrometheusOnMethod({
+          labels: labelsFn,
+          before: beforeFn,
+          after: afterFn,
+          throw: throwFn,
+          finally: finallyFn,
+        })
+        run(input: string) {
+          return input;
+        }
+      }
+
+      class SyncFail {
+        @PrometheusOnMethod({
+          labels: labelsFn,
+          before: beforeFn,
+          after: afterFn,
+          throw: throwFn,
+          finally: finallyFn,
+        })
+        run(_input: string) {
+          throw mockError;
+        }
+      }
+
+      const ok = new SyncOk();
+      expect(ok.run('hi')).toBe('hi');
+      expect(labelsFn).toHaveBeenCalled();
+      expect(beforeFn).toHaveBeenCalled();
+      expect(afterFn).toHaveBeenCalled();
+      expect(finallyFn).toHaveBeenCalled();
+
+      const fail = new SyncFail();
+      expect(() => fail.run('hi')).toThrow(mockError);
+      expect(throwFn).toHaveBeenCalled();
+    });
+
+    it('async promise resolves and rejects emit events', async () => {
+      class AsyncOk {
+        @PrometheusOnMethod({})
+        async run(v: string) {
+          return v;
+        }
+      }
+      class AsyncFail {
+        @PrometheusOnMethod({})
+        async run(_v: string) {
+          throw mockError;
+        }
+      }
+
+      await expect(new AsyncOk().run('x')).resolves.toBe('x');
+      await expect(new AsyncFail().run('x')).rejects.toBe(mockError);
+    });
+
+    it('beforeCall with histogram/summary startTimer triggers endConfig', async () => {
+      const cfgWithTimer: IPrometheusEventConfig = {
+        histogram: {
+          startTimer: {
+            metricConfig: { name: 'h', help: 'h', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+        summary: {
+          startTimer: {
+            metricConfig: { name: 's', help: 's', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+      };
+
+      spyBuildEventConfig.mockImplementation(() => cfgWithTimer);
+
+      class TimedSync {
+        @PrometheusOnMethod({ before: cfgWithTimer, finally: cfgWithTimer })
+        run(v: string) {
+          return v;
+        }
+      }
+
+      expect(new TimedSync().run('ok')).toBe('ok');
+      expect(spyBuildEventConfig).toHaveBeenCalled();
+    });
+
+    it('async method with histogram/summary timer in beforeCall triggers endConfig in finally', async () => {
+      const cfgWithTimer: IPrometheusEventConfig = {
+        histogram: {
+          startTimer: {
+            metricConfig: { name: 'h', help: 'h', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+        summary: {
+          startTimer: {
+            metricConfig: { name: 's', help: 's', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+      };
+
+      spyBuildEventConfig.mockImplementation(() => cfgWithTimer);
+
+      class TimedAsync {
+        @PrometheusOnMethod({ before: cfgWithTimer, finally: cfgWithTimer, after: cfgWithTimer })
+        async run(v: string) {
+          return v;
+        }
+      }
+
+      await expect(new TimedAsync().run('ok')).resolves.toBe('ok');
+    });
+
+    it('async method with histogram/summary timer in beforeCall also exercises throw', async () => {
+      const cfgWithTimer: IPrometheusEventConfig = {
+        histogram: {
+          startTimer: {
+            metricConfig: { name: 'h', help: 'h', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+        summary: {
+          startTimer: {
+            metricConfig: { name: 's', help: 's', labelNames: [] },
+            params: { value: 1 },
+          },
+        },
+      };
+
+      spyBuildEventConfig.mockImplementation(() => cfgWithTimer);
+
+      class TimedAsyncFail {
+        @PrometheusOnMethod({ before: cfgWithTimer, finally: cfgWithTimer, throw: cfgWithTimer })
+        async run(_v: string) {
+          throw mockError;
+        }
+      }
+
+      await expect(new TimedAsyncFail().run('ok')).rejects.toBe(mockError);
     });
   });
 });

@@ -1,6 +1,14 @@
 import { HttpStatusCode, AxiosError } from 'axios';
 
-export const HTTP_CLIENT_DEFAULT_OPTIONS = {
+export const HTTP_CLIENT_DEFAULT_OPTIONS: {
+  requestOptions: { timeout: number };
+  retryOptions: {
+    timeout: number;
+    delay: number;
+    retryMaxCount: number;
+    statusCodes: Array<string | number>;
+  };
+} = {
   requestOptions: {
     timeout: 15_000,
   },

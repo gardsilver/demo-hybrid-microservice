@@ -2,7 +2,7 @@ import { AxiosResponse } from 'axios';
 
 export interface IHttpClientError<T, D> {
   message: string;
-  statusCode: string | number;
+  statusCode: string | number | undefined;
   loggerMarker: string;
   cause?: unknown;
   response?: AxiosResponse<T, D>;
@@ -11,8 +11,8 @@ export interface IHttpClientError<T, D> {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export abstract class HttpClientError<T = any, D = any> extends Error implements IHttpClientError<T, D> {
   protected constructor(
-    message: string,
-    public readonly statusCode: string | number,
+    message: string | undefined,
+    public readonly statusCode: string | number | undefined,
     public readonly loggerMarker: string,
     cause?: unknown,
     public readonly response?: AxiosResponse<T, D>,

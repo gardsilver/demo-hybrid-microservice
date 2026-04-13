@@ -5,7 +5,7 @@ import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttHeadersHelper, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { messagePropertiesFactory, messagePropertyHeadersFactory } from 'tests/amqplib';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
-import { IRabbitMqMessageProperties, IRabbitMqPublishOptionsBuilderOptions } from '../types/types';
+import { IRabbitMqHeaders, IRabbitMqMessageProperties, IRabbitMqPublishOptionsBuilderOptions } from '../types/types';
 import { IRabbitMqAsyncContext } from '../types/rabbit-mq.async-context.type';
 import { RabbitMqMessageHelper } from './rabbit-mq.message.helper';
 
@@ -43,7 +43,7 @@ const headersFactory = (
 
 describe(RabbitMqMessageHelper.name, () => {
   let mockId: string;
-  let traceSpan: IRabbitMqAsyncContext;
+  let traceSpan: IRabbitMqAsyncContext & { traceId: string; spanId: string; requestId: string; correlationId: string };
   let correlationId: string;
   let headers: MessagePropertyHeaders;
 
@@ -79,7 +79,7 @@ describe(RabbitMqMessageHelper.name, () => {
 
   describe('nameAsHeaderName', () => {
     it('default', async () => {
-      const headerNames = {};
+      const headerNames: Record<string, string | undefined> = {};
 
       const spy = jest.spyOn(HttHeadersHelper, 'nameAsHeaderName');
 
@@ -102,7 +102,7 @@ describe(RabbitMqMessageHelper.name, () => {
     });
 
     it('useZipkin', async () => {
-      const headerNames = {};
+      const headerNames: Record<string, string | undefined> = {};
       const spy = jest.spyOn(HttHeadersHelper, 'nameAsHeaderName');
 
       ['traceId', 'spanId', 'correlationId', 'requestId', 'customParam'].forEach((paramName) => {
@@ -126,10 +126,10 @@ describe(RabbitMqMessageHelper.name, () => {
 
   describe('searchValue', () => {
     it('default', async () => {
-      const testHeaders = {};
+      const testHeaders: IRabbitMqHeaders = {};
       expect(RabbitMqMessageHelper.searchValue(testHeaders, 'test-header')).toEqual({});
 
-      testHeaders['test-header'] = undefined;
+      testHeaders['test-header'] = undefined as unknown as IRabbitMqHeaders[string];
       expect(RabbitMqMessageHelper.searchValue(testHeaders, 'test-header')).toEqual({
         header: 'test-header',
         value: undefined,
@@ -225,7 +225,7 @@ describe(RabbitMqMessageHelper.name, () => {
             },
           },
         },
-      );
+      ) as unknown as IRabbitMqMessageProperties;
     });
 
     it('default', async () => {

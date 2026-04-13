@@ -84,7 +84,7 @@ export class ElkLoggerModule {
         ) => {
           return new ElkLoggerConfig(
             configService,
-            [].concat(ignoreObjects, objectFormatters),
+            [...ignoreObjects, ...objectFormatters] as CheckObjectsType[],
             sortFields,
             defaultFields,
           );

@@ -36,9 +36,9 @@ export class KafkaClientProxy {
   protected brokers: string[] | BrokersFunction;
   protected clientId: string;
   private clientConfig: KafkaConfig;
-  private client: Kafka = null;
+  private client: Kafka | null = null;
   private producerConfig: ProducerConfig;
-  private producer: Producer = null;
+  private producer: Producer | null = null;
   private sendConfig: Omit<ProducerRecord, 'topic' | 'messages'>;
 
   constructor(
@@ -101,6 +101,8 @@ export class KafkaClientProxy {
     this.client = this.createClient();
     this.producer = this.client.producer(this.producerConfig);
     await this.producer.connect();
+
+    return this.producer;
   }
 
   /**
@@ -165,6 +167,10 @@ export class KafkaClientProxy {
       ...KafkaClientHelper.buildProducerParams(options),
     };
 
+    if (this.producer === null) {
+      throw new Error('Kafka producer is not connected');
+    }
+
     return this.producer.send(producerRecord);
   }
 
@@ -188,6 +194,10 @@ export class KafkaClientProxy {
         };
       }),
     };
+
+    if (this.producer === null) {
+      throw new Error('Kafka producer is not connected');
+    }
 
     return this.producer.sendBatch(producerBatch);
   }

@@ -9,7 +9,7 @@ export class JsonRedisCacheAdapter implements IRedisCacheAdapter<any> {
       return undefined;
     }
 
-    return JSON.parse(data) as undefined as any;
+    return JSON.parse(data) as unknown as any;
   }
 
   public decode(data: unknown): string {

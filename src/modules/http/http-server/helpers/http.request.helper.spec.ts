@@ -51,7 +51,9 @@ describe(HttpRequestHelper.name, () => {
 
     expect(copyAsyncContext).toEqual(asyncContext);
     expect(METADATA_ASYNC_CONTEXT_KEY in request).toBeTruthy();
-    expect(request[METADATA_ASYNC_CONTEXT_KEY]).toEqual(copyAsyncContext);
+    expect((request as unknown as Record<string | symbol, unknown>)[METADATA_ASYNC_CONTEXT_KEY]).toEqual(
+      copyAsyncContext,
+    );
 
     const result = HttpRequestHelper.getAsyncContext(request);
 
@@ -70,7 +72,7 @@ describe(HttpRequestHelper.name, () => {
 
     expect(copyAuthInfo).toEqual(authInfo);
     expect(METADATA_AUTH_INFO_KEY in request).toBeTruthy();
-    expect(request[METADATA_AUTH_INFO_KEY]).toEqual(copyAuthInfo);
+    expect((request as unknown as Record<string | symbol, unknown>)[METADATA_AUTH_INFO_KEY]).toEqual(copyAuthInfo);
 
     const result = HttpRequestHelper.getAuthInfo(request);
 

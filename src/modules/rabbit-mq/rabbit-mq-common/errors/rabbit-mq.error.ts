@@ -1,5 +1,5 @@
 import { RabbitMqFormatterHelper } from '../helpers/rabbit-mq.formatter.helper';
-import { IRabbitMqUrl, RMQErrorInfo } from '../types/types';
+import { IRabbitMqUrl, IRMQErrorInfo } from '../types/types';
 
 export interface IRabbitMqErrorData {
   serverName: string;
@@ -21,7 +21,7 @@ export class RabbitMqError extends Error {
     }
   }
 
-  public static buildFromRMQErrorInfo(serverName: string, eventType: string, errorInfo: RMQErrorInfo): RabbitMqError {
+  public static buildFromRMQErrorInfo(serverName: string, eventType: string, errorInfo: IRMQErrorInfo): RabbitMqError {
     return new RabbitMqError(
       errorInfo?.err?.message,
       {

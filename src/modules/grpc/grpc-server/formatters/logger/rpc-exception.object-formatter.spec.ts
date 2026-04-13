@@ -17,7 +17,7 @@ describe(RpcExceptionFormatter.name, () => {
   let formatter: RpcExceptionFormatter;
 
   beforeEach(async () => {
-    const configService = new MockConfigService() as undefined as ConfigService;
+    const configService = new MockConfigService() as unknown as ConfigService;
     const loggerConfig = new ElkLoggerConfig(configService, [Metadata], []);
     unknownFormatter = new UnknownFormatter(loggerConfig, [new MockObjectFormatter()]);
     formatter = new RpcExceptionFormatter();

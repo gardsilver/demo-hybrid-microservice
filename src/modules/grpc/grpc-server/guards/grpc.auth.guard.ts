@@ -41,7 +41,7 @@ export class GrpcAuthGuard implements CanActivate {
     }
 
     const auth = await GeneralAsyncContext.instance.runWithContextAsync(async () => {
-      return await this.authService.authenticate(jwtToken);
+      return await this.authService.authenticate(jwtToken ?? null);
     }, asyncContext);
 
     GrpcMetadataHelper.setAuthInfo(auth, metadata);

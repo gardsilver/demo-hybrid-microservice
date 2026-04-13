@@ -154,7 +154,7 @@ export class GracefulShutdownService implements BeforeApplicationShutdown {
     });
   }
 
-  private handleError(exception, methodsCountObservable: BehaviorSubject<number>): Error {
+  private handleError(exception: unknown, methodsCountObservable: BehaviorSubject<number>): Error {
     this.logger.error(GracefulShutdownMessages.WAIT_METHODS_MESSAGE + ': timeout', {
       payload: {
         totalCount: methodsCountObservable.value,

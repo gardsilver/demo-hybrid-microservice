@@ -10,14 +10,14 @@ import { HttpGeneralAsyncContext } from './http.general.async-context';
 
 describe('Decorators', () => {
   class Test {
-    public testAuth(@HttpAuthInfo() value) {
+    public testAuth(@HttpAuthInfo() value: unknown) {
       return value;
     }
-    public testGeneralAsyncContext(@HttpGeneralAsyncContext() value) {
+    public testGeneralAsyncContext(@HttpGeneralAsyncContext() value: unknown) {
       return value;
     }
 
-    public testCookies(@HttpCookies() value) {
+    public testCookies(@HttpCookies() value: unknown) {
       return value;
     }
   }
@@ -28,7 +28,7 @@ describe('Decorators', () => {
     return args[Object.keys(args)[0]].factory;
   };
 
-  const mockContext = (header: string) => {
+  const mockContext = (header: string | undefined) => {
     return {
       switchToHttp: () => {
         return {
@@ -40,8 +40,8 @@ describe('Decorators', () => {
                 [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: header,
                 [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: header,
                 [COOKIE_HEADER_NAME]: header,
-              },
-            });
+              } as unknown as Record<string, string | string[]>,
+            }) as unknown as Record<string | symbol, unknown>;
             request[METADATA_ASYNC_CONTEXT_KEY] = {
               traceId: header,
               spanId: header,

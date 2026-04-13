@@ -6,7 +6,7 @@ import { ConsumerMode, IKafkaMessageOptions } from '../types/types';
 import { KafkaContext } from './kafka.context';
 
 describe(KafkaContext.name, () => {
-  let spy;
+  let spy: jest.Mock;
   let serverName: string;
   let topic: string;
   let partition: number;
@@ -20,7 +20,7 @@ describe(KafkaContext.name, () => {
     serverName = faker.string.alpha(10);
     partition = faker.number.int();
 
-    consumer = {} as undefined as Consumer;
+    consumer = {} as unknown as Consumer;
     kafkaMessage = kafkaMessageFactory.build(undefined, {
       transient: {
         key: 'test key',
@@ -47,7 +47,7 @@ describe(KafkaContext.name, () => {
       ConsumerMode.EACH_MESSAGE,
       {
         serverName,
-      } as undefined as IKafkaMessageOptions,
+      } as unknown as IKafkaMessageOptions,
     ]);
 
     jest.clearAllMocks();

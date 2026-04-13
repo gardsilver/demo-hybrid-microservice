@@ -28,8 +28,8 @@ start-dev: ## Запустить приложение в режиме разра
 
 .PHONY: rebuild
 rebuild: ## Полная пересборка проекта (Linux)
-	rmdir /s /q .\dist
-	rmdir /s /q .\node_modules
+	rm -rf ./dist
+	rm -rf ./node_modules
 	npm i
 	npm run proto-compile
 

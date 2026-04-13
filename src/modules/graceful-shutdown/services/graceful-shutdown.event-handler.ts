@@ -117,7 +117,7 @@ export class GracefulShutdownEventHandler implements OnModuleInit {
     });
 
     try {
-      await Promise.all([handler.method.apply(handler.instance)]);
+      await handler.method.apply(handler.instance);
 
       this.logger.debug(handleMessage + `. Success ${payload.event}`, {
         markers: [LoggerMarkers.SUCCESS],

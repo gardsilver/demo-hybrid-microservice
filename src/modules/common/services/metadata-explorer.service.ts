@@ -3,7 +3,7 @@ import { DiscoveryService, MetadataScanner } from '@nestjs/core';
 
 export interface ITargetInstanceMethod<T> {
   instance: object;
-  method: (() => void) | (() => Promise<void>);
+  method: () => void | Promise<void>;
   metadata: T;
 }
 

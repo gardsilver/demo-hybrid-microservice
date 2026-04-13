@@ -139,6 +139,40 @@ describe(AbstractAsyncContext.name, () => {
     });
   });
 
+  it('define - without initCallback runs with empty context', async () => {
+    jest.restoreAllMocks();
+    const spyRun = jest.spyOn(AsyncLocalStorage.prototype, 'run');
+
+    class Subject {
+      @AbstractAsyncContext.define()
+      async run(): Promise<string> {
+        return 'ok';
+      }
+    }
+
+    const result = await new Subject().run();
+    expect(result).toBe('ok');
+    expect(spyRun).toHaveBeenCalledWith({}, expect.any(Function));
+  });
+
+  it('define - with initCallback invokes it with method args', async () => {
+    jest.restoreAllMocks();
+    const initCallback = jest.fn((value: number) => ({ startTimestamp: value }) as ITestAsyncContext);
+    const spyRun = jest.spyOn(AsyncLocalStorage.prototype, 'run');
+
+    class Subject {
+      @AbstractAsyncContext.define<ITestAsyncContext>(initCallback)
+      async run(_value: number): Promise<string> {
+        return 'ok';
+      }
+    }
+
+    const ts = faker.number.int();
+    await new Subject().run(ts);
+    expect(initCallback).toHaveBeenCalledWith(ts);
+    expect(spyRun).toHaveBeenCalledWith({ startTimestamp: ts }, expect.any(Function));
+  });
+
   it('setMultiple', async () => {
     const copyContext = circularRemove(mockContext) as ITestAsyncContext;
     const spyGetStore = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockReturnValue(mockContext);

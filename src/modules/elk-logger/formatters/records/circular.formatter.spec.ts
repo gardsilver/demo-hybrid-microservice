@@ -93,8 +93,8 @@ describe(CircularFormatter.name, () => {
       },
     });
     const result = formatter.transform(logRecord);
-    expect(result.payload.undefField).toBeUndefined();
-    expect(result.payload.zeroField).toBe(0);
-    expect(result.payload.emptyStr).toBe('');
+    expect(result.payload?.undefField).toBeUndefined();
+    expect(result.payload?.zeroField).toBe(0);
+    expect(result.payload?.emptyStr).toBe('');
   });
 });

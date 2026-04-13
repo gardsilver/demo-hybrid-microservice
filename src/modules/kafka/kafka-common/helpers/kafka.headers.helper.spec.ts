@@ -86,7 +86,7 @@ describe(KafkaHeadersHelper.name, () => {
         replyPartition: ts.replyPartition,
       });
 
-      headers[KafkaAsyncContextHeaderNames.REPLY_PARTITION] = undefined;
+      delete headers[KafkaAsyncContextHeaderNames.REPLY_PARTITION];
 
       expect(KafkaHeadersHelper.toAsyncContext(headers)).toEqual({
         traceId: ts.traceId,

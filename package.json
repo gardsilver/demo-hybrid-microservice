@@ -128,6 +128,14 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "<rootDir>/coverage",
+    "coverageThreshold": {
+      "global": {
+        "branches": 90,
+        "functions": 90,
+        "lines": 90,
+        "statements": 90
+      }
+    },
     "testEnvironment": "node",
     "transformIgnorePatterns": [
       "node_modules/(?!(@faker-js/faker|ts-deepmerge|kafkajs)/)"

@@ -28,15 +28,14 @@ start-dev: ## Запустить приложение в режиме разра
 
 .PHONY: rebuild
 rebuild: ## Полная пересборка проекта (Linux)
-	rm -rf ./dist
-	rm -rf ./node_modules
+	rm -rf ./dist ./node_modules
 	npm i
 	npm run proto-compile
 
 .PHONY: rebuild-win
 rebuild-win: ## Полная пересборка проекта (Windows)
-	rmdir /s /q .\dist
-	rmdir /s /q .\node_modules
+	if exist .\dist rmdir /s /q .\dist
+	if exist .\node_modules rmdir /s /q .\node_modules
 	npm i
 	npm run proto-compile-win
 

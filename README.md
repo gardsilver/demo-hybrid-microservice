@@ -87,7 +87,7 @@ make start-dev          # nest start --watch
 
 ```bash
 make lint-all           # ESLint + Prettier
-make test-cov           # unit-тесты с покрытием (порог 90% по всем метрикам)
+make test-cov           # unit-тесты с покрытием (порог 90% по всем метрикам, зафиксирован в jest.coverageThreshold)
 ```
 
 ## Порты и эндпоинты
@@ -183,7 +183,7 @@ curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app
 | `make lint` | `npm run format` <br> `npm run lint:diff` | Форматирование + линтинг изменённых файлов (относительно `origin/master`; только Linux) |
 | `make lint-all` | `npm run format` <br> `npm run lint:all` | Форматирование + линтинг всего кода |
 | `make test` | `npm run test` | Unit-тесты без покрытия |
-| `make test-cov` | `npm run test:cov` | Unit-тесты с покрытием (порог 90% по всем метрикам) |
+| `make test-cov` | `npm run test:cov` | Unit-тесты с покрытием (порог 90% по всем метрикам, зафиксирован в `jest.coverageThreshold`) |
 | `make test-e2e` | `npm run test:e2e` | End-to-end тесты |
 | — | `npm run migrate:generate <имя>` | Генерация новой Sequelize-миграции |
 

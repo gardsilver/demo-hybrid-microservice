@@ -33,6 +33,10 @@ export class KafkaHeadersBuilder implements IKafkaHeadersBuilder {
 
     for (const key of asyncContextKeys) {
       const useHeaderName = KafkaHeadersHelper.nameAsHeaderName(key, useZipkin);
+      if (useHeaderName === undefined) {
+        continue;
+      }
+
       const asZipkin = useZipkin && (key === 'traceId' || key === 'spanId');
 
       let value: string | undefined;
@@ -59,7 +63,7 @@ export class KafkaHeadersBuilder implements IKafkaHeadersBuilder {
 
       [KafkaHeadersHelper.nameAsHeaderName(key, false), KafkaHeadersHelper.nameAsHeaderName(key, true)].forEach(
         (headerName) => {
-          if (headerName in headers) {
+          if (headerName !== undefined && headerName in headers) {
             delete headers[headerName];
           }
         },

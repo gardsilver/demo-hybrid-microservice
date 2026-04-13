@@ -6,7 +6,7 @@ export class MockChannel {
   queue = '';
   messageCount = 0;
   consumerCount = 0;
-  testOnMessage: ((msg: ConsumeMessage | null) => void) | undefined;
+  testOnMessage!: (msg: ConsumeMessage | null) => void;
 
   constructor() {}
 

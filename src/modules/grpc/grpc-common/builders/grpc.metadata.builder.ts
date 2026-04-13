@@ -22,16 +22,24 @@ export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
 
     const tgt: IHeaders = {};
 
-    for (const key of ['traceId', 'spanId', 'correlationId', 'requestId']) {
+    const asyncContextKeys = ['traceId', 'spanId', 'correlationId', 'requestId'] as const;
+
+    for (const key of asyncContextKeys) {
       const useHeaderName = HttHeadersHelper.nameAsHeaderName(key, useZipkin);
-      const asZipkin = useZipkin && ['traceId', 'spanId'].includes(key);
+      if (useHeaderName === undefined) {
+        continue;
+      }
 
-      let value: string;
+      const asZipkin = useZipkin && (key === 'traceId' || key === 'spanId');
 
-      if (params?.asyncContext && key in params.asyncContext && params.asyncContext[key] !== undefined) {
-        value = params.asyncContext[key].toString();
+      let value: string | undefined;
+
+      const asyncContextValue = params?.asyncContext?.[key];
+      if (asyncContextValue !== undefined) {
+        value = asyncContextValue.toString();
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
-        value = Array.isArray(headers[useHeaderName]) ? headers[useHeaderName].join('-') : headers[useHeaderName];
+        const headerValue = headers[useHeaderName];
+        value = Array.isArray(headerValue) ? headerValue.join('-') : headerValue;
 
         if (value !== '' && asZipkin) {
           value = TraceSpanHelper.formatToGuid(value);
@@ -48,7 +56,7 @@ export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
 
       [HttHeadersHelper.nameAsHeaderName(key, false), HttHeadersHelper.nameAsHeaderName(key, true)].forEach(
         (headerName) => {
-          if (headerName in headers) {
+          if (headerName !== undefined && headerName in headers) {
             delete headers[headerName];
           }
         },

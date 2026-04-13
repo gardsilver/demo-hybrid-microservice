@@ -64,7 +64,7 @@ describe(KafkaOptionsBuilder.name, () => {
       client: {
         ...{
           ...clientOptions,
-          brokers: clientOptions.brokers as undefined as string[],
+          brokers: clientOptions.brokers as unknown as string[],
         },
       },
       consumer: {
@@ -89,7 +89,7 @@ describe(KafkaOptionsBuilder.name, () => {
       counter: () => ({
         increment: () => {},
       }),
-    } as undefined as PrometheusManager;
+    } as unknown as PrometheusManager;
 
     builder = new KafkaOptionsBuilder(loggerBuilder, prometheusManager);
 
@@ -113,6 +113,10 @@ describe(KafkaOptionsBuilder.name, () => {
     const tgt = builder.build(builderOptions);
 
     expect(spyLogBuilder).toHaveBeenCalledWith({ module: 'KafkaConsumer', ...mockTraceSpan });
+
+    if (tgt.consumer === undefined || tgt.consumer.retry === undefined) {
+      throw new Error('tgt.consumer/retry is not populated');
+    }
 
     expect({
       ...tgt,
@@ -141,7 +145,12 @@ describe(KafkaOptionsBuilder.name, () => {
 
     expect(typeof tgt.consumer.retry.restartOnFailure).toBe('function');
 
-    const restartOnFailure = (error: Error) => tgt.consumer.retry.restartOnFailure(error);
+    const builtRestartOnFailure = tgt.consumer.retry.restartOnFailure;
+    if (builtRestartOnFailure === undefined) {
+      throw new Error('tgt.consumer.retry.restartOnFailure is not populated');
+    }
+
+    const restartOnFailure = (error: Error) => builtRestartOnFailure(error);
 
     let error: Error = new KafkaJSConnectionError('Test error');
 
@@ -184,6 +193,10 @@ describe(KafkaOptionsBuilder.name, () => {
   });
 
   it('build without retry', async () => {
+    if (builderOptions.consumer === undefined) {
+      throw new Error('builderOptions.consumer is not populated');
+    }
+
     const tgt = builder.build({
       ...builderOptions,
       client: {
@@ -197,6 +210,10 @@ describe(KafkaOptionsBuilder.name, () => {
         },
       },
     });
+
+    if (tgt.consumer === undefined || tgt.consumer.retry === undefined || tgt.client === undefined) {
+      throw new Error('tgt.consumer/client is not populated');
+    }
 
     expect(tgt.client.retry).toBeDefined();
     expect({

@@ -22,7 +22,7 @@ describe(GracefulShutdownService.name, () => {
   let countHandler: GracefulShutdownCountHandler;
   let service: GracefulShutdownService;
   let testShutdownService: TestShutdownService;
-  let spyExit;
+  let spyExit: jest.SpyInstance;
 
   beforeEach(async () => {
     logger = new MockElkLoggerService();

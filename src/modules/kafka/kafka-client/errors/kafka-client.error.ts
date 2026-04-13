@@ -1,14 +1,15 @@
 export interface IKafkaClientError {
+  name: string;
   message: string;
   loggerMarker: string;
-  statusCode: string | number;
+  statusCode: string | number | undefined;
   cause?: unknown;
 }
 
 export abstract class KafkaClientError extends Error implements IKafkaClientError {
   protected constructor(
-    message: string,
-    public readonly statusCode: string | number,
+    message: string | undefined,
+    public readonly statusCode: string | number | undefined,
     public readonly loggerMarker: string,
     cause?: unknown,
   ) {

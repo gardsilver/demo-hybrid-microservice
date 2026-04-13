@@ -7,6 +7,7 @@ import { IKafkaRequest, IProducerPacket, KafkaClientService } from 'src/modules/
 import {
   ConsumerMode,
   EventKafkaMessage,
+  IKafkaMessageOptions,
   KafkaContext,
   KAFKA_SERVER_HEADERS_ADAPTER_DI,
 } from 'src/modules/kafka/kafka-server';
@@ -33,7 +34,7 @@ export class KafkaDemoController {
     deserializer: new DemoRequestDeserializer(),
   })
   async eachBatch(@Payload() data: IKafkaMessage<MainRequest>[], @Ctx() ctx: KafkaContext) {
-    const messageOptions = ctx.getMessageOptions();
+    const messageOptions = ctx.getMessageOptions() as IKafkaMessageOptions[];
 
     this.logger.info('Kafka read batch message', {
       payload: {
@@ -42,7 +43,7 @@ export class KafkaDemoController {
       },
     });
 
-    const results: Promise<IProducerPacket<MainResponse>>[] = [];
+    const results: Promise<IProducerPacket<MainResponse> | undefined>[] = [];
 
     data.forEach((request, index) => {
       results.push(
@@ -60,7 +61,7 @@ export class KafkaDemoController {
     const responses: Record<string, IKafkaRequest<MainResponse>> = {};
 
     (await Promise.all(results))
-      .filter((response) => response)
+      .filter((response): response is IProducerPacket<MainResponse> => !!response)
       .forEach((response) => {
         if (response.topic in responses) {
           (responses[response.topic].data as IKafkaMessage<MainResponse>[]).push(response.data);

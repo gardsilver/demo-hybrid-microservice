@@ -11,7 +11,7 @@ import {
   HTTP_CLIENT_HTTP_MODULE_OPTIONS_DI,
   HTTP_CLIENT_REQUEST_OPTIONS_DI,
 } from './types/tokens';
-import { HttpClientModuleOptions, HttpOptions } from './types/module.options';
+import { IHttpClientModuleOptions, HttpOptions } from './types/module.options';
 import { HttpClientService } from './services/http-client.service';
 import { HttpHeadersRequestBuilder } from './builders/http.headers-request.builder';
 import { HttpClientResponseHandler } from './filters/http-client.response.handler';
@@ -19,7 +19,7 @@ import { HttpClientConfigService } from './services/http-client.config.service';
 
 @Module({})
 export class HttpClientModule {
-  public static register(options?: HttpClientModuleOptions): DynamicModule {
+  public static register(options?: IHttpClientModuleOptions): DynamicModule {
     const httpModuleOptions: HttpModuleAsyncOptions = {
       imports: [ConfigModule],
       inject: [HttpClientConfigService],

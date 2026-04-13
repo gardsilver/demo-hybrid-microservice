@@ -106,8 +106,8 @@ describe(GrpcPrometheus.name, () => {
         ({
           getData: () => requestData,
           getContext: () => requestMetadata,
-        }) as undefined as RpcArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as RpcArgumentsHost,
+    } as unknown as ExecutionContext;
 
     handler = {
       handle: jest.fn(),

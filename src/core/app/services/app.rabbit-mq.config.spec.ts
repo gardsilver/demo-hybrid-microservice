@@ -5,7 +5,7 @@ import { AppRabbitMqConfig } from './app.rabbit-mq.config';
 
 describe(AppRabbitMqConfig.name, () => {
   it('default', async () => {
-    const config = new MockConfigService() as ConfigService;
+    const config = new MockConfigService() as unknown as ConfigService;
     const rabbitMqConfig = new AppRabbitMqConfig(config);
 
     expect({
@@ -29,7 +29,7 @@ describe(AppRabbitMqConfig.name, () => {
       RABBIT_MQ_URLS: 'broker1,broker2:5673',
       RABBIT_MQ_USER: 'user',
       RABBIT_MQ_PASSWORD: 'pass',
-    }) as ConfigService;
+    }) as unknown as ConfigService;
     const rabbitMqConfig = new AppRabbitMqConfig(config);
 
     expect({

@@ -34,7 +34,7 @@ describe(HttpAuthHelper.name, () => {
       HttpAuthHelper.token({
         ...headers,
         [AUTHORIZATION_HEADER_NAME.toString().toUpperCase()]: undefined,
-      }),
+      } as unknown as IHeaders),
     ).toBeUndefined();
   });
 

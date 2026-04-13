@@ -89,7 +89,7 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
 
       const start = new DateTimestamp();
 
-      let duration: number;
+      let duration: number = 0;
       let response;
 
       ElkLoggerEventService.emit(IElkLoggerEvent.BEFORE_CALL, { ...params, loggerPrams: beforeCall });

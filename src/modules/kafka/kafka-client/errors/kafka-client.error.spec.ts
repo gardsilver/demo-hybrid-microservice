@@ -1,7 +1,7 @@
 import { KafkaClientError } from './kafka-client.error';
 
 class CustomKafkaClientError extends KafkaClientError {
-  constructor(message: string, statusCode: string | number, cause?: unknown) {
+  constructor(message: string | undefined, statusCode: string | number | undefined, cause?: unknown) {
     super(message, statusCode, 'custom', cause);
   }
 }

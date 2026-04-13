@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type MockListener = (...args: any[]) => void;
+
 export class MockProducer {
-  constructor(private config?) {}
+  constructor(public readonly config?: Record<string, unknown>) {}
   connect() {}
   send() {}
   sendBatch() {}
@@ -25,37 +28,44 @@ export class MockConsumer {
     REQUEST_TIMEOUT: 'consumer.network.request_timeout',
     REQUEST_QUEUE_SIZE: 'consumer.network.request_queue_size',
   };
-  private _events = new Map();
+  private _events = new Map<string, MockListener[]>();
 
-  constructor(private config?) {}
+  constructor(public readonly config?: Record<string, unknown>) {}
   connect() {}
   subscribe() {}
-  run() {}
+  run() {
+    this.emit(this.events.GROUP_JOIN);
+  }
   disconnect() {}
-  on(event, callback: () => void) {
-    let calls = [];
-    if (this._events.has(event)) {
-      calls = this._events.get(event);
-    }
+  on(event: string, callback: MockListener) {
+    const calls: MockListener[] = this._events.get(event) ?? [];
     calls.push(callback);
 
     this._events.set(event, calls);
+
+    return () => {
+      const listeners = this._events.get(event) ?? [];
+      this._events.set(
+        event,
+        listeners.filter((cb) => cb !== callback),
+      );
+    };
   }
-  emit(event) {
-    const calls = this._events.has(event) ? this._events.get(event) : [];
+  emit(event: string, ...args: any[]) {
+    const calls = this._events.get(event) ?? [];
 
     calls.forEach((element) => {
-      element();
+      element(...args);
     });
   }
 }
 
 export class MockKafka {
-  constructor(private config?) {}
-  producer(config?) {
+  constructor(public readonly config?: Record<string, unknown>) {}
+  producer(config?: Record<string, unknown>) {
     return new MockProducer(config);
   }
-  consumer(config?) {
+  consumer(config?: Record<string, unknown>) {
     return new MockConsumer(config);
   }
 }

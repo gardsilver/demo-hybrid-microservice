@@ -14,7 +14,7 @@ describe(CircularFormatter.name, () => {
   let formatter: CircularFormatter;
 
   beforeAll(async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     formatter = new CircularFormatter(loggerConfig);
   });
@@ -62,6 +62,10 @@ describe(CircularFormatter.name, () => {
 
     expect(logRecord).toEqual(copyLogRecord);
 
+    if (logRecord.payload === undefined) {
+      throw new Error('logRecord.payload is undefined');
+    }
+
     expect(encodeLogRecord).toEqual({
       ...logRecord,
       payload: {
@@ -70,7 +74,7 @@ describe(CircularFormatter.name, () => {
         request: {
           ...(logRecord.payload['request'] as IKeyValue),
           body: {
-            ...(logRecord.payload['request']['body'] as IKeyValue),
+            ...((logRecord.payload['request'] as IKeyValue)['body'] as IKeyValue),
             time: 'Circular[* 7]',
             programs: 'Circular[* 6]',
           },
@@ -78,5 +82,19 @@ describe(CircularFormatter.name, () => {
         error: 'Circular[* 10]',
       },
     });
+  });
+
+  it('transform removes undefined fields and keeps falsy values', async () => {
+    const logRecord = logRecordFactory.build({
+      payload: {
+        undefField: undefined,
+        zeroField: 0,
+        emptyStr: '',
+      },
+    });
+    const result = formatter.transform(logRecord);
+    expect(result.payload?.undefField).toBeUndefined();
+    expect(result.payload?.zeroField).toBe(0);
+    expect(result.payload?.emptyStr).toBe('');
   });
 });

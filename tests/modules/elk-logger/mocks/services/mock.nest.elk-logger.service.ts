@@ -1,7 +1,7 @@
 import { ILogRecord, INestElkLoggerService } from 'src/modules/elk-logger';
 
 export class MockNestElkLoggerService implements INestElkLoggerService {
-  getLastLogRecord(): ILogRecord {
+  getLastLogRecord(): ILogRecord | undefined {
     return undefined;
   }
   setLogLevels() {}

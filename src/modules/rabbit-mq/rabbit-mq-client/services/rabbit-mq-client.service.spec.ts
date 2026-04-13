@@ -48,12 +48,12 @@ describe(RabbitMqClientService.name, () => {
       unwrap: jest.fn(),
       on: jest.fn(),
       getServerName: () => serverName,
-    } as undefined as RabbitMqClientProxy;
+    } as unknown as RabbitMqClientProxy;
 
     handler = {
       loggingStatus: jest.fn(),
       handleError: jest.fn(),
-    } as undefined as RabbitMqClientErrorHandler;
+    } as unknown as RabbitMqClientErrorHandler;
 
     const module = await Test.createTestingModule({
       imports: [ConfigModule, ElkLoggerModule.forRoot(), PrometheusModule],

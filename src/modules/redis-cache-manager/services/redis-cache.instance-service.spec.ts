@@ -6,7 +6,7 @@ describe(RedisCacheInstanceService.name, () => {
   let service: RedisCacheInstanceService;
 
   beforeEach(async () => {
-    cacheService = {} as undefined as RedisCacheService;
+    cacheService = {} as unknown as RedisCacheService;
   });
 
   it('init', async () => {

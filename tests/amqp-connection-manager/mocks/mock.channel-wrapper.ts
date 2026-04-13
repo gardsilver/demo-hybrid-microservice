@@ -5,7 +5,7 @@ import { MockChannel } from './mock.channel';
 
 export class MockChannelWrapper {
   channel: MockChannel;
-  private options: CreateChannelOpts;
+  private options: CreateChannelOpts | undefined;
 
   constructor(private readonly connectionManager: MockAmqpConnectionManager) {
     this.channel = new MockChannel();
@@ -22,16 +22,16 @@ export class MockChannelWrapper {
       .publish(
         exchange,
         routingKey,
-        content ? (Buffer.isBuffer(content) ? content : Buffer.from(content.toString())) : undefined,
+        content ? (Buffer.isBuffer(content) ? content : Buffer.from(content.toString())) : Buffer.alloc(0),
         options,
       )
       .then((result) => {
-        done(null, result);
+        done?.(null, result);
 
         return result;
       })
       .catch((err) => {
-        done(err);
+        done?.(err);
 
         return err;
       });
@@ -46,22 +46,22 @@ export class MockChannelWrapper {
     return this.channel
       .sendToQueue(
         queue,
-        content ? (Buffer.isBuffer(content) ? content : Buffer.from(content.toString())) : undefined,
+        content ? (Buffer.isBuffer(content) ? content : Buffer.from(content.toString())) : Buffer.alloc(0),
         options,
       )
       .then((result) => {
-        done(null, result);
+        done?.(null, result);
 
         return result;
       })
       .catch((err) => {
-        done(err);
+        done?.(err);
 
         return err;
       });
   }
 
-  public setOptions(options: CreateChannelOpts): this {
+  public setOptions(options: CreateChannelOpts | undefined): this {
     this.options = options;
 
     return this;

@@ -70,7 +70,7 @@ describe(DemoRequestSerializer.name, () => {
 
     result = serializer.serialize(request, options);
 
-    expect(result.key).toBeNull();
+    expect(result.key).toBeUndefined();
     expect(result.value).toEqual(Buffer.from(MainRequest.encode(context).finish()));
     expect(result.headers).toBeUndefined();
   });

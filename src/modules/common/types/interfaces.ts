@@ -11,6 +11,6 @@ export interface IFormatter<From, To> {
 }
 export type ImportsType = ModuleMetadata['imports'];
 
-export interface ServiceClassProvider<T> extends Omit<ClassProvider<T>, 'provide'> {}
-export interface ServiceValueProvider<T> extends Omit<ValueProvider<T>, 'provide'> {}
-export interface ServiceFactoryProvider<T> extends Omit<FactoryProvider<T>, 'provide'> {}
+export interface IServiceClassProvider<T> extends Omit<ClassProvider<T>, 'provide'> {}
+export interface IServiceValueProvider<T> extends Omit<ValueProvider<T>, 'provide'> {}
+export interface IServiceFactoryProvider<T> extends Omit<FactoryProvider<T>, 'provide'> {}

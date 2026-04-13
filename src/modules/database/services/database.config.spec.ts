@@ -3,8 +3,8 @@ import { MockConfigService } from 'tests/nestjs';
 import { DatabaseConfig } from './database.config';
 
 describe(DatabaseConfig, () => {
-  let config: ConfigService;
-  let databaseConfig: DatabaseConfig;
+  let config: ConfigService | undefined;
+  let databaseConfig: DatabaseConfig | undefined;
 
   beforeEach(async () => {
     config = undefined;
@@ -12,7 +12,7 @@ describe(DatabaseConfig, () => {
   });
 
   it('default', async () => {
-    config = new MockConfigService() as undefined as ConfigService;
+    config = new MockConfigService() as unknown as ConfigService;
     databaseConfig = new DatabaseConfig(config);
 
     expect(databaseConfig.getMigrationsEnabled()).toEqual(true);
@@ -41,7 +41,7 @@ describe(DatabaseConfig, () => {
       DATABASE_USER: 'user',
       DATABASE_PASSWORD: 'password',
       DATABASE_LOGGING_ENABLED: 'yes',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     databaseConfig = new DatabaseConfig(config);
 

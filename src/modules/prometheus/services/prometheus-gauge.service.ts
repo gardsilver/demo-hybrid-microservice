@@ -58,7 +58,7 @@ export class PrometheusGaugeService implements IGaugeService {
     }
   }
 
-  public async get(metricConfig: IGaugeMetricConfig): Promise<IGaugeMetricValues> {
+  public async get(metricConfig: IGaugeMetricConfig): Promise<IGaugeMetricValues | undefined> {
     const logger = this.loggerBuilder.build({ module: `${PrometheusGaugeService.name}.${this.get.name}` });
     const metric = this.metricBuilder.build(metricConfig, MetricType.GAUGE) as Gauge;
     try {
@@ -71,6 +71,7 @@ export class PrometheusGaugeService implements IGaugeService {
         },
         markers: ['prometheus', LoggerMarkers.ERROR],
       });
+      return undefined;
     }
   }
 }

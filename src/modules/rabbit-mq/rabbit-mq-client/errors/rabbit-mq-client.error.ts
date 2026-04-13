@@ -1,7 +1,7 @@
 export abstract class RabbitMqClientError extends Error {
   protected constructor(
-    message: string,
-    public readonly statusCode: string | number,
+    message: string | undefined,
+    public readonly statusCode: string | number | undefined,
     public readonly loggerMarker: string,
     cause?: unknown,
   ) {

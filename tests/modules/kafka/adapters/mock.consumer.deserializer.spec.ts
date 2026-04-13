@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
-import { ConsumerMode } from 'src/modules/kafka/kafka-server';
+import { ConsumerMode, IKafkaMessageOptions } from 'src/modules/kafka/kafka-server';
 import { MockConsumerDeserializer } from './mock.consumer.deserializer';
 
 describe(MockConsumerDeserializer.name, () => {
@@ -19,13 +19,15 @@ describe(MockConsumerDeserializer.name, () => {
       headers: {
         'x-header': faker.string.alpha(3),
       },
-    } as undefined as KafkaMessage;
+    } as unknown as KafkaMessage;
   });
 
   it('default', async () => {
-    expect(adapter.deserialize(undefined, undefined)).toEqual({});
+    expect(
+      adapter.deserialize(undefined as unknown as KafkaMessage, undefined as unknown as IKafkaMessageOptions),
+    ).toEqual({});
 
-    expect(adapter.deserialize(kafkaMessage, undefined)).toEqual({});
+    expect(adapter.deserialize(kafkaMessage, undefined as unknown as IKafkaMessageOptions)).toEqual({});
     expect(
       adapter.deserialize(kafkaMessage, {
         topic: 'topic',
@@ -41,7 +43,7 @@ describe(MockConsumerDeserializer.name, () => {
       },
     });
 
-    kafkaMessage.headers = undefined;
+    kafkaMessage.headers = undefined as unknown as KafkaMessage['headers'];
 
     expect(
       adapter.deserialize(kafkaMessage, {

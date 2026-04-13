@@ -11,7 +11,7 @@ export class CommonApiService {
     adapter: new UserJsonCacheAdapter(),
     ttl: 10_000,
   })
-  public async getUser(query: string): Promise<IUser> {
+  public async getUser(query: string): Promise<IUser | null> {
     return this.userService.findUser({ name: query });
   }
 }

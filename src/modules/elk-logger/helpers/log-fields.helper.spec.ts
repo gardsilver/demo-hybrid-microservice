@@ -93,6 +93,16 @@ describe(LogFieldsHelper.name, () => {
 
     expect(copyLogRecordA).toEqual(logRecordA);
     expect(copyLogRecordB).toEqual(logRecordB);
+
+    if (
+      logRecordA.markers === undefined ||
+      logRecordB.markers === undefined ||
+      logRecordA.payload === undefined ||
+      logRecordB.payload === undefined
+    ) {
+      throw new Error('log records are not fully populated');
+    }
+
     expect(result).toEqual({
       ...logRecordA,
       ...logRecordB,
@@ -101,9 +111,7 @@ describe(LogFieldsHelper.name, () => {
       payload: {
         ...logRecordA.payload,
         ...logRecordB.payload,
-        details: (logRecordA.payload.details as undefined as Array<string>).concat(
-          logRecordB.payload.details as undefined as Array<string>,
-        ),
+        details: (logRecordA.payload.details as Array<string>).concat(logRecordB.payload.details as Array<string>),
       },
     });
   });

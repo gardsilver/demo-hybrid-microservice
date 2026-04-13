@@ -44,3 +44,17 @@ export interface IGrpcRequestOptions {
     statusCodes?: Array<string | number>;
   };
 }
+
+export interface IGrpcResolvedRequestOptions {
+  metadataBuilderOptions: IGrpcMetadataBuilderOptions;
+  requestOptions: {
+    timeout: number;
+  };
+  retryOptions: {
+    retry?: boolean;
+    timeout: number;
+    delay: number;
+    retryMaxCount: number;
+    statusCodes?: Array<string | number>;
+  };
+}

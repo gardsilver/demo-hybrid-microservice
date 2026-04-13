@@ -1,9 +1,9 @@
 import { Provider } from '@nestjs/common';
 import {
   ImportsType,
-  ServiceClassProvider,
-  ServiceFactoryProvider,
-  ServiceValueProvider,
+  IServiceClassProvider,
+  IServiceFactoryProvider,
+  IServiceValueProvider,
   CheckObjectsType,
 } from 'src/modules/common';
 import { ILogFields, ILogRecordFormatter, IEncodeFormatter } from './elk-logger.types';
@@ -16,25 +16,25 @@ export interface IElkLoggerModuleOptions {
   defaultFields?: ILogFields;
   formattersOptions?: {
     ignoreObjects?:
-      | ServiceClassProvider<CheckObjectsType[]>
-      | ServiceValueProvider<CheckObjectsType[]>
-      | ServiceFactoryProvider<CheckObjectsType[]>;
+      | IServiceClassProvider<CheckObjectsType[]>
+      | IServiceValueProvider<CheckObjectsType[]>
+      | IServiceFactoryProvider<CheckObjectsType[]>;
     sortFields?: string[];
     exceptionFormatters?:
-      | ServiceClassProvider<BaseErrorObjectFormatter[]>
-      | ServiceValueProvider<BaseErrorObjectFormatter[]>
-      | ServiceFactoryProvider<BaseErrorObjectFormatter[]>;
+      | IServiceClassProvider<BaseErrorObjectFormatter[]>
+      | IServiceValueProvider<BaseErrorObjectFormatter[]>
+      | IServiceFactoryProvider<BaseErrorObjectFormatter[]>;
     objectFormatters?:
-      | ServiceClassProvider<BaseObjectFormatter[]>
-      | ServiceValueProvider<BaseObjectFormatter[]>
-      | ServiceFactoryProvider<BaseObjectFormatter[]>;
+      | IServiceClassProvider<BaseObjectFormatter[]>
+      | IServiceValueProvider<BaseObjectFormatter[]>
+      | IServiceFactoryProvider<BaseObjectFormatter[]>;
   };
   formatters?:
-    | ServiceClassProvider<ILogRecordFormatter[]>
-    | ServiceValueProvider<ILogRecordFormatter[]>
-    | ServiceFactoryProvider<ILogRecordFormatter[]>;
+    | IServiceClassProvider<ILogRecordFormatter[]>
+    | IServiceValueProvider<ILogRecordFormatter[]>
+    | IServiceFactoryProvider<ILogRecordFormatter[]>;
   encoders?:
-    | ServiceClassProvider<IEncodeFormatter[]>
-    | ServiceValueProvider<IEncodeFormatter[]>
-    | ServiceFactoryProvider<IEncodeFormatter[]>;
+    | IServiceClassProvider<IEncodeFormatter[]>
+    | IServiceValueProvider<IEncodeFormatter[]>
+    | IServiceFactoryProvider<IEncodeFormatter[]>;
 }

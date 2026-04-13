@@ -32,13 +32,15 @@ export class SimpleFormatter implements ILogRecordEncodeFormatter {
 
   private getColorsMessage(level: LogLevel): string {
     return (
-      {
-        [LogLevel.DEBUG]: ConsoleColors.GRAY,
-        [LogLevel.WARN]: ConsoleColors.YELLOW,
-        [LogLevel.ERROR]: ConsoleColors.RED,
-        [LogLevel.FATAL]: ConsoleColors.RED,
-        [LogLevel.INFO]: ConsoleColors.GREEN,
-      }[level] ?? ''
+      (
+        {
+          [LogLevel.DEBUG]: ConsoleColors.GRAY,
+          [LogLevel.WARN]: ConsoleColors.YELLOW,
+          [LogLevel.ERROR]: ConsoleColors.RED,
+          [LogLevel.FATAL]: ConsoleColors.RED,
+          [LogLevel.INFO]: ConsoleColors.GREEN,
+        } as Record<string, ConsoleColors>
+      )[level] ?? ''
     );
   }
 }

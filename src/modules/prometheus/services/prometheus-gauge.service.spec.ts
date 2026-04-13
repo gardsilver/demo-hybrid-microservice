@@ -61,7 +61,7 @@ describe(PrometheusGaugeService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         inc: spy,
-      } as undefined as Gauge;
+      } as unknown as Gauge;
     });
 
     gaugeService.increment(METRIC_GAUGE, {
@@ -107,7 +107,7 @@ describe(PrometheusGaugeService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         dec: spy,
-      } as undefined as Gauge;
+      } as unknown as Gauge;
     });
 
     gaugeService.decrement(METRIC_GAUGE, {
@@ -153,7 +153,7 @@ describe(PrometheusGaugeService.name, () => {
     const spyBuild = jest.spyOn(metricBuilder, 'build').mockImplementation(() => {
       return {
         get: spy,
-      } as undefined as Gauge;
+      } as unknown as Gauge;
     });
 
     await gaugeService.get(METRIC_GAUGE);

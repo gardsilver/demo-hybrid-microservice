@@ -13,7 +13,7 @@ describe(RabbitMqService.name, () => {
   beforeEach(async () => {
     clientService = {
       request: () => {},
-    } as undefined as RabbitMqClientService;
+    } as unknown as RabbitMqClientService;
 
     const module = await Test.createTestingModule({
       providers: [

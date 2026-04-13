@@ -3,13 +3,17 @@ import { IHeaders, UrlHelper } from 'src/modules/common';
 import { MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { PrometheusLabels } from 'src/modules/prometheus';
 import { IHttpClientError } from '../errors/http-client.error';
-import { IHttpRequestOptions, IHttpRequest } from '../types/types';
+import { IHttpRequestOptions, IHttpRequest, IHttpResolvedRequestOptions } from '../types/types';
 import { HTTP_CLIENT_DEFAULT_OPTIONS } from '../types/constants';
 
 export abstract class HttpClientHelper {
   public static canRetry<T, D>(error: IHttpClientError<T, D>, options?: IHttpRequestOptions): boolean {
+    if (error.statusCode === undefined) {
+      return false;
+    }
+
     if (options?.retryOptions?.statusCodes?.length) {
-      return options?.retryOptions?.statusCodes.includes(error.statusCode);
+      return options.retryOptions.statusCodes.includes(error.statusCode);
     }
 
     return false;
@@ -55,8 +59,8 @@ export abstract class HttpClientHelper {
   public static mergeRequestOptions(
     globalOptions: IHttpRequestOptions,
     options?: IHttpRequestOptions,
-  ): IHttpRequestOptions {
-    const requestOptions: IHttpRequestOptions = {
+  ): IHttpResolvedRequestOptions {
+    const requestOptions = {
       headersBuilderOptions: {
         ...globalOptions.headersBuilderOptions,
         ...options?.headersBuilderOptions,
@@ -84,6 +88,6 @@ export abstract class HttpClientHelper {
       requestOptions.retryOptions.retry = false;
     }
 
-    return requestOptions;
+    return requestOptions as IHttpResolvedRequestOptions;
   }
 }

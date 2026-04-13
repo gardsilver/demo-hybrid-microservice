@@ -2,7 +2,12 @@ import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MessageHandler } from '@nestjs/microservices';
-import { EachBatchPayload, EachMessagePayload, KafkaMessage } from '@nestjs/microservices/external/kafka.interface';
+import {
+  Consumer,
+  EachBatchPayload,
+  EachMessagePayload,
+  KafkaMessage,
+} from '@nestjs/microservices/external/kafka.interface';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
@@ -19,9 +24,7 @@ import { KAFKA_HANDLE_MESSAGE_FAILED, KAFKA_HANDLE_MESSAGE } from '../types/metr
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerService } from './kafka-server.service';
 
-jest.mock('kafkajs', () => {
-  return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK);
 
 let mockDelay = jest.fn();
 
@@ -36,7 +39,7 @@ jest.mock('src/modules/date-timestamp', () => {
 });
 
 describe(KafkaServerService.name, () => {
-  let extras;
+  let extras: Record<string, unknown>;
   let logger: IElkLoggerService;
   let prometheusManager: PrometheusManager;
   let messageHandler: MessageHandler;
@@ -66,7 +69,7 @@ describe(KafkaServerService.name, () => {
     extras = {
       serverName,
     };
-    messageHandler = {} as undefined as MessageHandler;
+    messageHandler = {} as unknown as MessageHandler;
 
     server = new KafkaServerService({ serverName }, prometheusManager);
 
@@ -116,7 +119,8 @@ describe(KafkaServerService.name, () => {
     expect(batchConsumer).toBeDefined();
     expect(batchConsumer instanceof MockConsumer).toBeTruthy();
 
-    expect(spyOn).toHaveBeenCalledTimes(12);
+    // 6 events × 2 consumers (registerConsumerEventListeners) + 3 events × 2 consumers (waitForConsumerReady)
+    expect(spyOn).toHaveBeenCalledTimes(18);
     expect(spyConnect).toHaveBeenCalledTimes(2);
     expect(spyRun).toHaveBeenCalledTimes(2);
     expect(spyDisconnect).toHaveBeenCalledTimes(0);
@@ -189,7 +193,7 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       await server['handleEachMessage'](payload);
 
@@ -217,7 +221,7 @@ describe(KafkaServerService.name, () => {
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value.toString(),
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }
@@ -231,20 +235,20 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       const kafkaContext = new KafkaContext([
         kafkaMessage,
         payload.partition,
         payload.topic,
-        server['consumer'],
+        server['consumer'] as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_MESSAGE,
         {
           serverName,
           mode: ConsumerMode.EACH_MESSAGE,
           topic,
-        } as undefined as IKafkaMessageOptions,
+        } as unknown as IKafkaMessageOptions,
       ]);
 
       await server['handleEachMessage'](payload);
@@ -317,7 +321,7 @@ describe(KafkaServerService.name, () => {
         message: kafkaMessage,
         partition: faker.number.int(3),
         heartbeat: jest.fn(),
-      } as undefined as EachMessagePayload;
+      } as unknown as EachMessagePayload;
 
       await server['handleEachMessage'](payload);
 
@@ -396,7 +400,7 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       await server['handleBatchMessages'](payload);
 
@@ -426,7 +430,7 @@ describe(KafkaServerService.name, () => {
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value.toString(),
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }
@@ -442,13 +446,13 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       const kafkaContext = new KafkaContext([
         [kafkaMessage],
         payload.batch.partition,
         payload.batch.topic,
-        server['consumer'],
+        server['consumer'] as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_BATCH,
         [
@@ -456,7 +460,7 @@ describe(KafkaServerService.name, () => {
             serverName,
             mode: ConsumerMode.EACH_BATCH,
             topic,
-          } as undefined as IKafkaMessageOptions,
+          } as unknown as IKafkaMessageOptions,
         ],
       ]);
 
@@ -535,7 +539,7 @@ describe(KafkaServerService.name, () => {
           messages: [kafkaMessage],
         },
         heartbeat: jest.fn(),
-      } as undefined as EachBatchPayload;
+      } as unknown as EachBatchPayload;
 
       await server['handleBatchMessages'](payload);
 
@@ -564,6 +568,34 @@ describe(KafkaServerService.name, () => {
         },
         value: payload.batch.messages.length,
       });
+    });
+  });
+
+  describe('null consumer errors', () => {
+    it('bindEachEvents throws when consumer is null and handlers exist', async () => {
+      server['eachMessageHandlers'].push('topic-x');
+      server['consumer'] = null;
+      await expect(server['bindEachEvents']()).rejects.toThrow('Kafka consumer is not initialized');
+    });
+
+    it('bindBatchEvents throws when batchConsumer is null and handlers exist', async () => {
+      server['batchMessageHandlers'].push('topic-y');
+      server['batchConsumer'] = null;
+      await expect(server['bindBatchEvents']()).rejects.toThrow('Kafka batch consumer is not initialized');
+    });
+
+    it('bindEachEvents warns when no handlers', async () => {
+      server['eachMessageHandlers'].length = 0;
+      const spy = jest.spyOn(server['logger'], 'warn');
+      await expect(server['bindEachEvents']()).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('bindBatchEvents warns when no handlers', async () => {
+      server['batchMessageHandlers'].length = 0;
+      const spy = jest.spyOn(server['logger'], 'warn');
+      await expect(server['bindBatchEvents']()).resolves.toBeUndefined();
+      expect(spy).toHaveBeenCalled();
     });
   });
 });

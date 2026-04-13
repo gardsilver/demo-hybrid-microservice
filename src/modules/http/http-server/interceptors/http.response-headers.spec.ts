@@ -101,8 +101,8 @@ describe(HttpHeadersResponse.name, () => {
           getRequest: () => request,
           getResponse: () => response,
           getNext: jest.fn(),
-        }) as undefined as HttpArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as HttpArgumentsHost,
+    } as unknown as ExecutionContext;
 
     handler = {
       handle: jest.fn(),

@@ -4,10 +4,7 @@ import { IHeaders } from 'src/modules/common';
 import { IKafkaAsyncContext, KafkaAsyncContextHeaderNames } from 'src/modules/kafka/kafka-common';
 import { httpHeadersFactory, IBaseHeaders } from 'tests/modules/http/http-common';
 
-export interface IKafkaBaseHeaders extends IBaseHeaders {
-  [KafkaAsyncContextHeaderNames.REPLY_TOPIC]?: string | string[];
-  [KafkaAsyncContextHeaderNames.REPLY_PARTITION]?: string;
-}
+export interface IKafkaBaseHeaders extends IBaseHeaders {}
 
 export const kafkaHeadersFactory = Factory.define<
   IKafkaBaseHeaders,

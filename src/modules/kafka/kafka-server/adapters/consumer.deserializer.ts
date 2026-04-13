@@ -10,7 +10,7 @@ export class ConsumerDeserializer implements IConsumerDeserializer<Buffer | null
           pattern: options.topic,
           data: value.value
             ? {
-                key: value.key.toString(),
+                key: value.key?.toString(),
                 value: value.value,
                 headers: KafkaHeadersHelper.normalize(value.headers ?? {}),
               }

@@ -1,20 +1,18 @@
 export abstract class UrlHelper {
   public static getPort(provideUrl: URL): string | false {
-    let port: string;
-
     if (provideUrl.port?.length) {
-      port = provideUrl.port;
-    } else {
-      if (provideUrl.href.startsWith('https')) {
-        port = '443';
-      } else {
-        if (provideUrl.href.startsWith('http')) {
-          port = '80';
-        }
-      }
+      return provideUrl.port;
     }
 
-    return port === undefined ? false : port;
+    if (provideUrl.href.startsWith('https')) {
+      return '443';
+    }
+
+    if (provideUrl.href.startsWith('http')) {
+      return '80';
+    }
+
+    return false;
   }
 
   public static normalize(url: string): string | false {

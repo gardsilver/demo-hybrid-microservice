@@ -6,7 +6,7 @@ export class MockObjectFormatter extends BaseObjectFormatter {
     super();
   }
 
-  isInstanceOf(obj: unknown): obj is object {
+  isInstanceOf(_obj: unknown): _obj is object {
     return true;
   }
 

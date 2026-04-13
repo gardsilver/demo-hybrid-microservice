@@ -28,7 +28,7 @@ export class UncaughtExceptionFilter implements OnModuleInit {
     });
   }
 
-  private handleException(error, logger: IElkLoggerService): void {
+  private handleException(error: unknown, logger: IElkLoggerService): void {
     logger.fatal('Critical error - uncaughtException', {
       payload: { error },
     });
@@ -40,7 +40,7 @@ export class UncaughtExceptionFilter implements OnModuleInit {
     this.closeApp();
   }
 
-  private handleRejection(reason, logger: IElkLoggerService): void {
+  private handleRejection(reason: unknown, logger: IElkLoggerService): void {
     logger.fatal('Critical error - unhandledRejection', {
       payload: { reason },
     });
@@ -54,6 +54,6 @@ export class UncaughtExceptionFilter implements OnModuleInit {
 
   private closeApp() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    process.emit(this.config.getDestroySignal() as undefined as any);
+    process.emit(this.config.getDestroySignal() as unknown as any);
   }
 }

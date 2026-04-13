@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import { Type } from '@nestjs/common';
 
 export abstract class AbstractCheckObject<T extends object = object> {
@@ -126,11 +126,12 @@ export const circularRemove = (obj: unknown, option?: CircularRemoveOption): unk
       return value;
     }
 
-    const tgt = { ...value };
+    const tgt = { ...value } as Record<string, unknown>;
+    const src = value as Record<string, unknown>;
 
     for (const key in value) {
       if (Object.prototype.hasOwnProperty.call(value, key)) {
-        const item = value[key];
+        const item = src[key];
         if (item === null || !item || typeof item !== 'object') {
           tgt[key] = item;
 

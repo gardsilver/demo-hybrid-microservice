@@ -75,4 +75,10 @@ describe(DemoRequestSerializer.name, () => {
       content: Buffer.from(MainRequest.encode(content).finish()),
     });
   });
+
+  it('serialize without content', async () => {
+    const result = serializer.serialize({ ...request, content: undefined as unknown as MainRequest }, options);
+
+    expect(result.content).toBeUndefined();
+  });
 });

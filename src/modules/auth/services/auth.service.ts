@@ -62,7 +62,7 @@ export class AuthService implements IAuthService, OnModuleInit {
     return result;
   }
 
-  public getJwtToken(dataToken: IAccessTokenData): string {
+  public getJwtToken(dataToken: IAccessTokenData): string | undefined {
     return this.certificate !== null ? jwt.sign(dataToken, this.certificate) : undefined;
   }
 

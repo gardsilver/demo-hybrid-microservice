@@ -32,11 +32,11 @@ export class KafkaServerService extends KafkaServerBase {
     return [this.client, this.consumer, this.batchConsumer] as T;
   }
 
-  public async close(): Promise<void> {
-    await super.close();
-    await Promise.all([this.consumer?.disconnect(), this.batchConsumer?.disconnect()]);
+  protected async disconnect(): Promise<void> {
+    await Promise.all([this.consumer?.disconnect(), this.batchConsumer?.disconnect()]).catch(() => {});
     this.consumer = null;
     this.batchConsumer = null;
+    this.client = null;
   }
 
   protected async connect(): Promise<void> {
@@ -68,9 +68,14 @@ export class KafkaServerService extends KafkaServerBase {
       return;
     }
 
+    if (this.consumer === null) {
+      throw new Error('Kafka consumer is not initialized');
+    }
+
+    const consumer = this.consumer;
     const consumerSubscribeOptions = this.options.subscribe || {};
 
-    await this.consumer.subscribe({
+    await consumer.subscribe({
       ...consumerSubscribeOptions,
       topics: registeredPatterns,
     });
@@ -83,9 +88,12 @@ export class KafkaServerService extends KafkaServerBase {
       {
         eachMessage: async (payload: EachMessagePayload) => this.handleEachMessage(payload),
       },
-    ) as undefined as ConsumerRunConfig;
+    ) as unknown as ConsumerRunConfig;
 
-    await this.consumer.run(consumerRunOptions);
+    const readyPromise = this.waitForConsumerReady(consumer, ConsumerMode.EACH_MESSAGE);
+    readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()
+    await consumer.run(consumerRunOptions);
+    await readyPromise;
   }
 
   @KafkaAsyncContext.define(() => ({
@@ -117,7 +125,7 @@ export class KafkaServerService extends KafkaServerBase {
         payload.message,
         payload.partition,
         payload.topic,
-        this.consumer,
+        this.consumer as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_MESSAGE,
         messageOptions,
@@ -125,6 +133,7 @@ export class KafkaServerService extends KafkaServerBase {
 
       await this.handleEvent(packet.pattern, packet, kafkaContext);
     } catch (error) {
+      const err = error as Error;
       this.logger.error(this.logTitle + `handle ${ConsumerMode.EACH_MESSAGE} failed.`, {
         payload,
         error,
@@ -134,7 +143,7 @@ export class KafkaServerService extends KafkaServerBase {
           service: this.serverName,
           topics: payload.topic,
           method: ConsumerMode.EACH_MESSAGE,
-          errorType: error.name ?? error.constructor.name,
+          errorType: err.name ?? err.constructor.name,
         },
       });
     }
@@ -151,9 +160,14 @@ export class KafkaServerService extends KafkaServerBase {
       return;
     }
 
+    if (this.batchConsumer === null) {
+      throw new Error('Kafka batch consumer is not initialized');
+    }
+
+    const batchConsumer = this.batchConsumer;
     const consumerSubscribeOptions = this.options.subscribe || {};
 
-    await this.batchConsumer.subscribe({
+    await batchConsumer.subscribe({
       ...consumerSubscribeOptions,
       topics: registeredPatterns,
     });
@@ -166,9 +180,12 @@ export class KafkaServerService extends KafkaServerBase {
       {
         eachBatch: async (payload: EachBatchPayload) => this.handleBatchMessages(payload),
       },
-    ) as undefined as ConsumerRunConfig;
+    ) as unknown as ConsumerRunConfig;
 
-    return this.batchConsumer.run(consumerRunOptions);
+    const readyPromise = this.waitForConsumerReady(batchConsumer, ConsumerMode.EACH_BATCH);
+    readyPromise.catch(() => {}); // Prevent unhandledRejection if CRASH fires during consumer.run()
+    await batchConsumer.run(consumerRunOptions);
+    await readyPromise;
   }
 
   @KafkaAsyncContext.define(() => ({
@@ -206,7 +223,7 @@ export class KafkaServerService extends KafkaServerBase {
         messages.map((options) => options.kafkaMessage),
         payload.batch.partition,
         payload.batch.topic,
-        this.batchConsumer,
+        this.batchConsumer as unknown as Consumer,
         () => payload.heartbeat(),
         ConsumerMode.EACH_BATCH,
         messages.map((options) => options.messageOptions),
@@ -218,6 +235,7 @@ export class KafkaServerService extends KafkaServerBase {
         kafkaContext,
       );
     } catch (error) {
+      const err = error as Error;
       this.logger.error(this.logTitle + `handle ${ConsumerMode.EACH_BATCH} failed.`, {
         payload,
         error,
@@ -227,7 +245,7 @@ export class KafkaServerService extends KafkaServerBase {
           service: this.serverName,
           topics: payload.batch.topic,
           method: ConsumerMode.EACH_BATCH,
-          errorType: error.name ?? error.constructor.name,
+          errorType: err.name ?? err.constructor.name,
         },
         value: payload.batch.messages.length,
       });
@@ -237,7 +255,7 @@ export class KafkaServerService extends KafkaServerBase {
   protected async handleBatchOneMessage(
     pattern: string,
     kafkaMessage: KafkaMessage,
-    handler: MessageHandler,
+    handler: MessageHandler | null,
   ): Promise<{
     kafkaMessage: KafkaMessage;
     packet: IConsumerPacket;

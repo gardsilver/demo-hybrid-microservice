@@ -15,7 +15,7 @@ export class RecordEncodeFormattersFactory {
     this.formatterMap.set(LogFormat.SHORT, shortFormatter);
   }
 
-  getFormatter(format: LogFormat): ILogRecordEncodeFormatter {
+  getFormatter(format: LogFormat): ILogRecordEncodeFormatter | undefined {
     return this.formatterMap.get(format);
   }
 }

@@ -57,8 +57,8 @@ describe(DemoResponseDeserializer.name, () => {
             },
           ),
         },
-      } as undefined as MessageProperties,
-    } as undefined as ConsumeMessage;
+      } as unknown as MessageProperties,
+    } as unknown as ConsumeMessage;
     options = {
       serverName: faker.string.alpha(5),
       pattern: faker.string.alpha(5),
@@ -75,12 +75,12 @@ describe(DemoResponseDeserializer.name, () => {
         content,
         properties: {
           ...request.properties,
-          headers: RabbitMqMessageHelper.normalize(request.properties.headers),
+          headers: RabbitMqMessageHelper.normalize(request.properties.headers ?? {}),
         },
       },
     });
 
-    result = deserializer.deserialize(request, undefined);
+    result = deserializer.deserialize(request, undefined as unknown as typeof options);
 
     expect(result).toEqual({
       pattern: undefined,
@@ -102,7 +102,7 @@ describe(DemoResponseDeserializer.name, () => {
       },
     });
 
-    request.content = undefined;
+    request.content = undefined as unknown as Buffer;
     result = deserializer.deserialize(request, options);
 
     expect(result).toEqual({

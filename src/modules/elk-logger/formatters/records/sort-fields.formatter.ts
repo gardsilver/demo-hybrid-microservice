@@ -34,13 +34,14 @@ export class SortFieldsFormatter implements ILogRecordFormatter {
   }
 
   transform(from: ILogRecord): ILogRecord {
-    const tgt: Partial<ILogRecord> = {};
+    const src = from as unknown as Record<string, unknown>;
+    const tgt: Record<string, unknown> = {};
     for (const key of this.orderList) {
-      if (from[key] !== undefined) {
-        tgt[key] = from[key];
+      if (src[key] !== undefined) {
+        tgt[key] = src[key];
       }
     }
 
-    return Object.assign(tgt, from);
+    return Object.assign(tgt, from) as ILogRecord;
   }
 }

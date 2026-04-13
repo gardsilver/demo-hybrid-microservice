@@ -4,9 +4,9 @@ import { Message, ProducerRecord } from '@nestjs/microservices/external/kafka.in
 import {
   IHeaders,
   ImportsType,
-  ServiceClassProvider,
-  ServiceFactoryProvider,
-  ServiceValueProvider,
+  IServiceClassProvider,
+  IServiceFactoryProvider,
+  IServiceValueProvider,
 } from 'src/modules/common';
 import {
   IKafkaAsyncContext,
@@ -37,14 +37,14 @@ export interface IKafkaRequest<T = unknown> {
   data: IKafkaMessage<T> | IKafkaMessage<T>[];
 }
 
-export type IProducerSerializerOptions = Record<string, unknown> & {
+export interface IProducerSerializerOptions {
+  [key: string]: unknown;
   serverName: string;
   mode: ProducerMode;
-};
+}
 
 export interface IKafkaSendOptions
-  extends Omit<ProducerRecord, 'topic' | 'messages'>,
-    Omit<Message, 'key' | 'value' | 'headers'> {
+  extends Omit<ProducerRecord, 'topic' | 'messages'>, Omit<Message, 'key' | 'value' | 'headers'> {
   serializer?: IProducerSerializer;
   serializerOption?: Record<string, unknown>;
   headerBuilder?: IKafkaHeadersRequestBuilder;
@@ -58,16 +58,17 @@ export interface IProducerPacket<T = unknown> {
   data: IKafkaMessage<T>;
 }
 
-export interface IProducerSerializer<T = unknown>
-  extends Serializer<IProducerPacket<T>, IKafkaMessage<string | Buffer>> {
-  serialize(value: IProducerPacket<T>, options: IProducerSerializerOptions): IKafkaMessage<string | Buffer>;
+export interface IProducerSerializer<T = unknown> extends Serializer<
+  IProducerPacket<T>,
+  IKafkaMessage<string | Buffer | null>
+> {
+  serialize(value: IProducerPacket<T>, options: IProducerSerializerOptions): IKafkaMessage<string | Buffer | null>;
 }
 
-export interface IKafkaClientServiceOptions
-  extends Omit<
-    IKafkaClientProxyBuilderOptions,
-    'producerOnlyMode' | 'consumer' | 'run' | 'subscribe' | 'producer' | 'serializer' | 'deserializer'
-  > {
+export interface IKafkaClientServiceOptions extends Omit<
+  IKafkaClientProxyBuilderOptions,
+  'producerOnlyMode' | 'consumer' | 'run' | 'subscribe' | 'producer' | 'serializer' | 'deserializer'
+> {
   producer?: IKafkaProducerOptions;
   logTitle?: string;
 }
@@ -76,19 +77,19 @@ export interface IKafkaClientModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   kafkaClientProxyBuilderOptions:
-    | ServiceClassProvider<IKafkaClientServiceOptions>
-    | ServiceValueProvider<IKafkaClientServiceOptions>
-    | ServiceFactoryProvider<IKafkaClientServiceOptions>;
+    | IServiceClassProvider<IKafkaClientServiceOptions>
+    | IServiceValueProvider<IKafkaClientServiceOptions>
+    | IServiceFactoryProvider<IKafkaClientServiceOptions>;
   serializer?:
-    | ServiceClassProvider<IProducerSerializer>
-    | ServiceValueProvider<IProducerSerializer>
-    | ServiceFactoryProvider<IProducerSerializer>;
+    | IServiceClassProvider<IProducerSerializer>
+    | IServiceValueProvider<IProducerSerializer>
+    | IServiceFactoryProvider<IProducerSerializer>;
   headerBuilder?:
-    | ServiceClassProvider<IKafkaHeadersRequestBuilder>
-    | ServiceValueProvider<IKafkaHeadersRequestBuilder>
-    | ServiceFactoryProvider<IKafkaHeadersRequestBuilder>;
+    | IServiceClassProvider<IKafkaHeadersRequestBuilder>
+    | IServiceValueProvider<IKafkaHeadersRequestBuilder>
+    | IServiceFactoryProvider<IKafkaHeadersRequestBuilder>;
   requestOptions?:
-    | ServiceClassProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>
-    | ServiceValueProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>
-    | ServiceFactoryProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>;
+    | IServiceClassProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>
+    | IServiceValueProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>
+    | IServiceFactoryProvider<Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>>;
 }

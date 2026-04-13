@@ -16,7 +16,7 @@ class TestAsyncContext extends AbstractAsyncContext<ITestAsyncContext> {
 
 describe(AbstractAsyncContext.name, () => {
   let asyncContext: ITestAsyncContext;
-  let mockContext: ITestAsyncContext;
+  let mockContext: ITestAsyncContext | undefined;
 
   beforeEach(async () => {
     asyncContext = generalAsyncContextFactory.build(TraceSpanBuilder.build() as unknown as ITestAsyncContext, {
@@ -61,7 +61,8 @@ describe(AbstractAsyncContext.name, () => {
     const result = TestAsyncContext.instance.get('startTimestamp');
 
     expect(spyGetStore).toHaveBeenCalled();
-    expect(result).toEqual(mockContext.startTimestamp);
+    expect(mockContext).toBeDefined();
+    expect(result).toEqual(mockContext?.startTimestamp);
   });
 
   it('get - failed', async () => {
@@ -101,6 +102,30 @@ describe(AbstractAsyncContext.name, () => {
     expect(result).toEqual(mockContext);
   });
 
+  it('extend returns empty object on getStore throw', async () => {
+    const spy = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockImplementation(() => {
+      throw new Error('no store');
+    });
+    try {
+      const result = TestAsyncContext.instance.extend();
+      expect(result).toEqual({});
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('getSafe swallows getStore throw', async () => {
+    const spy = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockImplementation(() => {
+      throw new Error('no store');
+    });
+    try {
+      const result = TestAsyncContext.instance.getSafe('startTimestamp');
+      expect(result).toBeUndefined();
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('set', async () => {
     const copyContext = circularRemove(mockContext) as ITestAsyncContext;
     const spyGetStore = jest.spyOn(AsyncLocalStorage.prototype, 'getStore').mockReturnValue(mockContext);
@@ -112,6 +137,40 @@ describe(AbstractAsyncContext.name, () => {
       ...copyContext,
       traceId: asyncContext.traceId,
     });
+  });
+
+  it('define - without initCallback runs with empty context', async () => {
+    jest.restoreAllMocks();
+    const spyRun = jest.spyOn(AsyncLocalStorage.prototype, 'run');
+
+    class Subject {
+      @AbstractAsyncContext.define()
+      async run(): Promise<string> {
+        return 'ok';
+      }
+    }
+
+    const result = await new Subject().run();
+    expect(result).toBe('ok');
+    expect(spyRun).toHaveBeenCalledWith({}, expect.any(Function));
+  });
+
+  it('define - with initCallback invokes it with method args', async () => {
+    jest.restoreAllMocks();
+    const initCallback = jest.fn((value: number) => ({ startTimestamp: value }) as ITestAsyncContext);
+    const spyRun = jest.spyOn(AsyncLocalStorage.prototype, 'run');
+
+    class Subject {
+      @AbstractAsyncContext.define<ITestAsyncContext>(initCallback)
+      async run(_value: number): Promise<string> {
+        return 'ok';
+      }
+    }
+
+    const ts = faker.number.int();
+    await new Subject().run(ts);
+    expect(initCallback).toHaveBeenCalledWith(ts);
+    expect(spyRun).toHaveBeenCalledWith({ startTimestamp: ts }, expect.any(Function));
   });
 
   it('setMultiple', async () => {

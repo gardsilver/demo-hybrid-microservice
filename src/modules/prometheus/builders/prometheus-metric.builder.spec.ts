@@ -7,13 +7,18 @@ import { PrometheusConfig } from '../services/prometheus.config';
 import { MetricType } from '../types/types';
 import { PrometheusMetricBuilder } from './prometheus-metric.builder';
 
+jest.mock('prom-client', () => ({
+  ...jest.requireActual('prom-client'),
+  ...jest.requireActual('tests/prom-client').PROM_CLIENT_MOCK,
+}));
+
 describe(PrometheusMetricBuilder.name, () => {
-  let spySetDefaultLabels;
-  let spyCollectDefaultMetrics;
+  let spySetDefaultLabels: jest.SpyInstance;
+  let spyCollectDefaultMetrics: jest.SpyInstance;
   let builder: PrometheusMetricBuilder;
 
   beforeAll(async () => {
-    spyCollectDefaultMetrics = jest.spyOn(PromClient, 'collectDefaultMetrics');
+    spyCollectDefaultMetrics = jest.spyOn(PromClient, 'collectDefaultMetrics').mockImplementation(() => undefined);
     spySetDefaultLabels = jest.spyOn(PromClient.Registry.prototype, 'setDefaultLabels');
 
     const module = await Test.createTestingModule({
@@ -50,7 +55,7 @@ describe(PrometheusMetricBuilder.name, () => {
   describe('build: success', () => {
     it('Должен упасть с ошибкой при попытке получить не известную метрику', async () => {
       expect(() => {
-        return builder.build(METRIC_GAUGE, 'custom' as undefined as MetricType);
+        return builder.build(METRIC_GAUGE, 'custom' as unknown as MetricType);
       }).toThrow(new Error('Не известный тип метрики (custom)'));
     });
 

@@ -27,6 +27,10 @@ describe(GrpcMetadataBuilder.name, () => {
   });
 
   it('default', async () => {
+    if (asyncContext.traceId === undefined || asyncContext.spanId === undefined) {
+      throw new Error('asyncContext is not fully populated');
+    }
+
     expect(metadataResponseBuilder.build({ asyncContext }).getMap()).toEqual({
       [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId,
       [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId,
@@ -43,6 +47,15 @@ describe(GrpcMetadataBuilder.name, () => {
   });
 
   it('use request metadata', async () => {
+    if (
+      asyncContext.traceId === undefined ||
+      asyncContext.spanId === undefined ||
+      asyncContext.correlationId === undefined ||
+      asyncContext.requestId === undefined
+    ) {
+      throw new Error('asyncContext is not fully populated');
+    }
+
     const metadata = new Metadata();
     metadata.set(HttpGeneralAsyncContextHeaderNames.TRACE_ID, asyncContext.traceId);
     metadata.set(HttpGeneralAsyncContextHeaderNames.SPAN_ID, asyncContext.spanId);
@@ -92,5 +105,15 @@ describe(GrpcMetadataBuilder.name, () => {
       [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });
+  });
+
+  it('asArray option splits values by dash', async () => {
+    if (asyncContext.traceId === undefined || asyncContext.spanId === undefined) {
+      throw new Error('asyncContext is not fully populated');
+    }
+
+    const result = metadataResponseBuilder.build({ asyncContext }, { asArray: true }).getMap();
+
+    expect(Array.isArray(result[HttpGeneralAsyncContextHeaderNames.TRACE_ID + '-bin'])).toBe(false);
   });
 });

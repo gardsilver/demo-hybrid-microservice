@@ -28,13 +28,15 @@ interface IPrometheusEndCallback {
 
 @Injectable()
 export class PrometheusEventService implements OnApplicationShutdown {
-  private static onMethods: ReplaySubject<
-    ITargetPrometheusOnMethod & {
-      eventArgs: PrometheusEventArgs;
-      ticketId: string;
-    }
-  >;
-  private static subscription: Subscription;
+  private static onMethods:
+    | ReplaySubject<
+        ITargetPrometheusOnMethod & {
+          eventArgs: PrometheusEventArgs;
+          ticketId: string;
+        }
+      >
+    | undefined;
+  private static subscription: Subscription | undefined;
   private static onEndCallback: Map<string, IPrometheusEndCallback>;
 
   constructor(private readonly prometheusManager: PrometheusManager) {
@@ -105,10 +107,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
       clear?: boolean;
     },
   ): void {
-    this.handleCounter(param.counter);
-    this.handleGauge(param.gauge);
-    this.handleHistogram(param.histogram, options);
-    this.handleSummary(param.summary, options);
+    this.handleCounter(param.counter ?? false);
+    this.handleGauge(param.gauge ?? false);
+    this.handleHistogram(param.histogram ?? false, options);
+    this.handleSummary(param.summary ?? false, options);
     this.handleCustom(param.custom, options);
     this.handleClear(options);
   }
@@ -120,6 +122,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
 
     if (counter.increment === true) {
       throw new Error('Invalid configuration Prometheus Handle Counter Increment!!!');
+    }
+
+    if (counter.increment.metricConfig === undefined) {
+      throw new Error('Invalid configuration Prometheus Handle Counter Increment: metricConfig is required');
     }
 
     this.prometheusManager.counter().increment(counter.increment.metricConfig, counter.increment.params);
@@ -135,12 +141,20 @@ export class PrometheusEventService implements OnApplicationShutdown {
         throw new Error('Invalid configuration Prometheus Handle Gauge Increment!!!');
       }
 
+      if (gauge.increment.metricConfig === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Gauge Increment: metricConfig is required');
+      }
+
       this.prometheusManager.gauge().increment(gauge.increment.metricConfig, gauge.increment.params);
     }
 
     if (gauge.decrement) {
       if (gauge.decrement === true) {
         throw new Error('Invalid configuration Prometheus Handle Gauge Decrement!!!');
+      }
+
+      if (gauge.decrement.metricConfig === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Gauge Decrement: metricConfig is required');
       }
 
       this.prometheusManager.gauge().decrement(gauge.decrement.metricConfig, gauge.decrement.params);
@@ -164,6 +178,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
         throw new Error('Invalid configuration Prometheus Handle Histogram StartTimer!!!');
       }
 
+      if (histogram.startTimer.metricConfig === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Histogram StartTimer: metricConfig is required');
+      }
+
       const endCallback = this.prometheusManager
         .histogram()
         .startTimer(histogram.startTimer.metricConfig, histogram.startTimer.params);
@@ -176,12 +194,16 @@ export class PrometheusEventService implements OnApplicationShutdown {
         throw new Error('Invalid configuration Prometheus Handle Histogram Observe!!!');
       }
 
+      if (histogram.observe.metricConfig === undefined || histogram.observe.params === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Histogram Observe: metricConfig/params are required');
+      }
+
       this.prometheusManager.histogram().observe(histogram.observe.metricConfig, histogram.observe.params);
     }
 
     if (histogram.end) {
       if (PrometheusEventService.onEndCallback.has(options.ticketId)) {
-        PrometheusEventService.onEndCallback.get(options.ticketId).histogram(histogram.end?.labels);
+        PrometheusEventService.onEndCallback.get(options.ticketId)?.histogram?.(histogram.end?.labels);
       }
     }
   }
@@ -203,6 +225,10 @@ export class PrometheusEventService implements OnApplicationShutdown {
         throw new Error('Invalid configuration Prometheus Handle Summary StartTimer!!!');
       }
 
+      if (summary.startTimer.metricConfig === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Summary StartTimer: metricConfig is required');
+      }
+
       const endCallback = this.prometheusManager
         .summary()
         .startTimer(summary.startTimer.metricConfig, summary.startTimer.params);
@@ -215,12 +241,16 @@ export class PrometheusEventService implements OnApplicationShutdown {
         throw new Error('Invalid configuration Prometheus Handle Summary Observe!!!');
       }
 
+      if (summary.observe.metricConfig === undefined || summary.observe.params === undefined) {
+        throw new Error('Invalid configuration Prometheus Handle Summary Observe: metricConfig/params are required');
+      }
+
       this.prometheusManager.summary().observe(summary.observe.metricConfig, summary.observe.params);
     }
 
     if (summary.end) {
       if (PrometheusEventService.onEndCallback.has(options.ticketId)) {
-        PrometheusEventService.onEndCallback.get(options.ticketId).summary(summary.end?.labels);
+        PrometheusEventService.onEndCallback.get(options.ticketId)?.summary?.(summary.end?.labels);
       }
     }
   }
@@ -255,9 +285,9 @@ export class PrometheusEventService implements OnApplicationShutdown {
     type: keyof IPrometheusEndCallback,
     endCallback: (labels?: PrometheusLabels) => number,
   ) {
-    if (PrometheusEventService.onEndCallback.has(ticketId)) {
-      const callbacks = PrometheusEventService.onEndCallback.get(ticketId);
+    const callbacks = PrometheusEventService.onEndCallback.get(ticketId);
 
+    if (callbacks !== undefined) {
       callbacks[type] = endCallback;
 
       PrometheusEventService.onEndCallback.set(ticketId, callbacks);

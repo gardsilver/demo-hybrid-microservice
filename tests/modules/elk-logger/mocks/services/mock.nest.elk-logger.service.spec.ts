@@ -1,7 +1,7 @@
 import { MockNestElkLoggerService } from './mock.nest.elk-logger.service';
 
 describe(MockNestElkLoggerService.name, () => {
-  let spyLogWriter;
+  let spyLogWriter: jest.SpyInstance;
 
   let logger: MockNestElkLoggerService;
 

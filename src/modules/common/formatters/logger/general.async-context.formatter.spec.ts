@@ -25,7 +25,7 @@ describe(GeneralAsyncContextFormatter.name, () => {
       payload: {
         details: ['start process'],
       },
-    } as undefined as ILogRecord;
+    } as unknown as ILogRecord;
   });
 
   afterEach(async () => {

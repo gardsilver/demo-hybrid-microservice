@@ -92,12 +92,14 @@ describe(ProducerSerializer.name, () => {
     });
 
     it('number', async () => {
+      const numberValue = faker.number.int(4);
+
       packet.data.key = undefined;
-      packet.data.value = faker.number.int(4);
+      packet.data.value = numberValue;
 
       expect(serializer.serialize(packet, options)).toEqual({
         key: null,
-        value: packet.data.value.toString(),
+        value: numberValue.toString(),
         headers: packet.data.headers,
       });
     });

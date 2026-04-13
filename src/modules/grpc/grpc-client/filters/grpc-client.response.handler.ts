@@ -70,7 +70,7 @@ export class GrpcClientResponseHandler {
       skipLog?: boolean;
     },
   ): IGrpcClientError | null {
-    let logLevel: LogLevel;
+    let logLevel: LogLevel | undefined;
     let resolvedError: IGrpcClientError | null;
 
     if (exception instanceof TimeoutError || exception instanceof TimeoutErrorRxjs) {
@@ -93,7 +93,7 @@ export class GrpcClientResponseHandler {
       }
     } else if (typeof exception === 'string') {
       resolvedError = new GrpcClientExternalError(exception, undefined, undefined);
-    } else if (typeof exception === 'object') {
+    } else if (typeof exception === 'object' && exception !== null) {
       resolvedError = new GrpcClientExternalError(
         'message' in exception && typeof exception['message'] === 'string' ? exception['message'] : undefined,
         undefined,

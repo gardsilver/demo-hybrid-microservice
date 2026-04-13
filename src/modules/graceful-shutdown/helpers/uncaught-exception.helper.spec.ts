@@ -28,7 +28,8 @@ describe(UncaughtExceptionHelper.name, () => {
     return error;
   };
 
-  let error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let error: any;
 
   beforeEach(async () => {
     error = new Error('Test error');
@@ -154,6 +155,22 @@ describe(UncaughtExceptionHelper.name, () => {
       const labels = UncaughtExceptionHelper.getRejectionLabels(null);
 
       expect(labels).toEqual({});
+    });
+  });
+
+  describe('extractType & extractSourceInfo edge cases', () => {
+    it('extractType returns undefined for non-matching input', () => {
+      expect(UncaughtExceptionHelper.extractType('no colon here')).toBeUndefined();
+      expect(UncaughtExceptionHelper.extractType('')).toBeUndefined();
+    });
+
+    it('extractSourceInfo returns undefined for non-matching input', () => {
+      expect(UncaughtExceptionHelper.extractSourceInfo('garbage')).toBeUndefined();
+    });
+
+    it('extractSourceInfo parses anonymous frame (search[3] undefined branch)', () => {
+      const info = UncaughtExceptionHelper.extractSourceInfo('at Foo.bar (/app/foo.ts:10:5)');
+      expect(info).toEqual({ module: 'Foo.bar', file: '/app/foo.ts' });
     });
   });
 });

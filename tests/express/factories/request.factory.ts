@@ -30,6 +30,6 @@ export const requestFactory = {
       params: params?.params,
       headers: params?.headers,
       body: params?.body,
-    }) as undefined as Request;
+    }) as unknown as Request;
   },
 };

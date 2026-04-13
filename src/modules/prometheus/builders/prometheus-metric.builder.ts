@@ -17,9 +17,9 @@ export class PrometheusMetricBuilder {
       collectDefaultMetrics({ register: PrometheusMetricBuilder.registry });
 
       PrometheusMetricBuilder.registry.setDefaultLabels({
-        application: prometheusConfig.getApplicationName(),
-        microservice: prometheusConfig.getMicroserviceName(),
-        version: prometheusConfig.getMicroserviceVersion(),
+        application: prometheusConfig.getApplicationName() ?? '',
+        microservice: prometheusConfig.getMicroserviceName() ?? '',
+        version: prometheusConfig.getMicroserviceVersion() ?? '',
       });
     }
   }
@@ -43,15 +43,16 @@ export class PrometheusMetricBuilder {
   }
 
   public build(metricConfig: IMetricConfig, usedType: MetricType): PromMetricTypes {
-    if (PrometheusMetricBuilder.historyTypes.has(metricConfig.name)) {
-      const registerType: MetricType = PrometheusMetricBuilder.historyTypes.get(metricConfig.name);
+    const registerType = PrometheusMetricBuilder.historyTypes.get(metricConfig.name);
+    if (registerType !== undefined) {
       this.checkMetric(metricConfig, registerType, usedType);
     } else {
       PrometheusMetricBuilder.historyTypes.set(metricConfig.name, usedType);
     }
 
-    if (PrometheusMetricBuilder.historyMetrics.has(metricConfig.name)) {
-      return PrometheusMetricBuilder.historyMetrics.get(metricConfig.name);
+    const existingMetric = PrometheusMetricBuilder.historyMetrics.get(metricConfig.name);
+    if (existingMetric !== undefined) {
+      return existingMetric;
     }
 
     let metric: PromMetricTypes;

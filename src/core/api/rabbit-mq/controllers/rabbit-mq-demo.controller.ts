@@ -55,7 +55,7 @@ export class RabbitMqDemoController {
           return this.apiService.sendResponse(request);
         },
         {
-          ...this.messagePropertiesAdapter.adapt(request.properties ?? ({} as undefined as IRabbitMqMessageProperties)),
+          ...this.messagePropertiesAdapter.adapt(request.properties ?? ({} as IRabbitMqMessageProperties)),
         },
       )
     ) {

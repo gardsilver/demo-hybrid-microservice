@@ -114,7 +114,7 @@ export class KafkaJsMessagesObjectFormatter extends BaseObjectFormatter<
         timestamp: from.timestamp,
         attributes: from.attributes,
         offset: from.offset,
-        headers: KafkaHeadersHelper.normalize(from.headers ?? from.headers),
+        headers: KafkaHeadersHelper.normalize(from.headers ?? {}),
         size: from.size,
       };
     }
@@ -141,5 +141,7 @@ export class KafkaJsMessagesObjectFormatter extends BaseObjectFormatter<
         batch: this.transform(from.batch),
       };
     }
+
+    return {};
   }
 }

@@ -37,7 +37,9 @@ export class RabbitMqApiService {
     return false;
   }
 
-  async search(request: IRabbitMqConsumeMessage<MainRequest>): Promise<IRabbitMqProducerMessage<MainResponse>> {
+  async search(
+    request: IRabbitMqConsumeMessage<MainRequest>,
+  ): Promise<IRabbitMqProducerMessage<MainResponse> | undefined> {
     const context = RabbitMqAsyncContext.instance.extend();
 
     if (!context.replyTo) {
@@ -45,6 +47,14 @@ export class RabbitMqApiService {
         payload: {
           request,
         },
+      });
+
+      return undefined;
+    }
+
+    if (!request.content) {
+      this.logger.error('Not find request content', {
+        payload: { request },
       });
 
       return undefined;

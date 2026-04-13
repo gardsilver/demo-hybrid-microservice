@@ -22,7 +22,7 @@ class TestRequestBuilder extends GrpcMetadataRequestBuilder {
 }
 
 describe(GrpcClientModule.name, () => {
-  let spy;
+  let spy: jest.SpyInstance;
   let logger: IElkLoggerService;
 
   let clientProxy: ClientGrpcProxy;
@@ -35,7 +35,7 @@ describe(GrpcClientModule.name, () => {
 
     spy = jest
       .spyOn(GrpcClientBuilder, 'buildClientGrpcProxy')
-      .mockImplementation(() => ({}) as undefined as ClientGrpcProxy);
+      .mockImplementation(() => ({}) as unknown as ClientGrpcProxy);
 
     logger = new MockElkLoggerService();
   });

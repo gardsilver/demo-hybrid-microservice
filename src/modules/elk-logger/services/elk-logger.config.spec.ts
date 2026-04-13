@@ -1,22 +1,16 @@
-import * as fs from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { MomentCheckObject } from 'src/modules/common';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
+import { FS_MOCK } from 'tests/fs';
 import { ElkLoggerConfig } from './elk-logger.config';
 import { ILogFields, LogFormat, LogLevel } from '../types/elk-logger.types';
 
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  appendFileSync: jest.fn(),
-  openSync: jest.fn(() => 1002),
-  writeSync: jest.fn(),
-  closeSync: jest.fn(),
-}));
+jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
 describe(ElkLoggerConfig.name, () => {
-  let configService: ConfigService;
-  let loggerConfig: ElkLoggerConfig;
+  let configService: ConfigService | undefined;
+  let loggerConfig: ElkLoggerConfig | undefined;
 
   beforeEach(async () => {
     configService = undefined;
@@ -28,7 +22,7 @@ describe(ElkLoggerConfig.name, () => {
   });
 
   it('default', async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
 
     expect({
@@ -53,7 +47,7 @@ describe(ElkLoggerConfig.name, () => {
   });
 
   it('custom', async () => {
-    const spyOnOpenSync = jest.spyOn(fs, 'openSync');
+    const spyOnOpenSync = FS_MOCK.openSync;
 
     configService = new MockConfigService({
       LOGGER_FORMAT_RECORD: 'SHORT',
@@ -61,7 +55,7 @@ describe(ElkLoggerConfig.name, () => {
       LOGGER_LEVELS: 'INFO,WARN',
       LOGGER_FORMAT_TIMESTAMP: 'DD.MM.YYYY HH:mm:ss.SSS',
       LOGGER_STORE_FILE: 'log.log',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     loggerConfig = new ElkLoggerConfig(configService, [], ['timestamp', 'traceId', 'message'], {
       index: 'TestApplication',
@@ -93,7 +87,7 @@ describe(ElkLoggerConfig.name, () => {
   });
 
   it('setLogLevels', async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
 
     loggerConfig.setLogLevels([LogLevel.INFO, LogLevel.WARN]);
@@ -102,7 +96,7 @@ describe(ElkLoggerConfig.name, () => {
   });
 
   it('isIgnoreObject', async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
 
     expect(loggerConfig.isIgnoreObject({})).toBeTruthy();

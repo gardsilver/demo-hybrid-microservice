@@ -61,22 +61,26 @@ describe(RabbitMqContext.name, () => {
       fields: messageFieldsFactory.build(
         {},
         { transient: { consumerTag: undefined } },
-      ) as undefined as CommonMessageFields,
-    } as undefined as ConsumeMessage;
+      ) as unknown as CommonMessageFields,
+    } as unknown as ConsumeMessage;
 
     mockDeserializeMessage = {
       pattern: faker.string.alpha(20),
       data: {
         content,
-      } as undefined as IRabbitMqConsumeMessage<string>,
+      } as unknown as IRabbitMqConsumeMessage<string>,
     };
 
-    channel = new MockChannel() as undefined as Channel;
+    channel = new MockChannel() as unknown as Channel;
 
     options = {
       serverName: faker.string.alpha(20),
       pattern: mockDeserializeMessage.pattern,
     };
+
+    if (mockDeserializeMessage.data === undefined) {
+      throw new Error('mockDeserializeMessage.data is not populated');
+    }
 
     rmqContext = new RabbitMqContext<string>([consumeMessage, mockDeserializeMessage.data, channel, options]);
   });

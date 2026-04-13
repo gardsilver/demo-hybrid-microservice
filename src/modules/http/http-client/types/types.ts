@@ -31,3 +31,14 @@ export interface IHttpRequestOptions {
     statusCodes?: Array<string | number>;
   };
 }
+
+export interface IHttpResolvedRequestOptions {
+  headersBuilderOptions: IHttpHeadersBuilderOptions;
+  retryOptions: {
+    retry?: boolean;
+    timeout: number;
+    delay: number;
+    retryMaxCount: number;
+    statusCodes?: Array<string | number>;
+  };
+}

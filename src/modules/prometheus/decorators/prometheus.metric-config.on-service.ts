@@ -55,14 +55,15 @@ export const PrometheusMetricConfigOnService = (option?: PrometheusMetricConfigB
 };
 
 export const getPrometheusMetricConfig = (target: object): PrometheusMetricConfig => {
-  const option: PrometheusMetricConfig = Reflect.getMetadata(PROMETHEUS_CONFIG_KEY, target.constructor);
+  const option: PrometheusMetricConfig | undefined = Reflect.getMetadata(PROMETHEUS_CONFIG_KEY, target.constructor);
 
-  return {
-    labels: false,
-    counter: false,
-    gauge: false,
-    histogram: false,
-    summary: false,
-    ...option,
-  };
+  return (
+    option ?? {
+      labels: false,
+      counter: false,
+      gauge: false,
+      histogram: false,
+      summary: false,
+    }
+  );
 };

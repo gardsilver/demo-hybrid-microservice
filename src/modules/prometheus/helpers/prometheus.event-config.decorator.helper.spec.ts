@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { PrometheusMetricConfig } from '../decorators/prometheus.metric-config.on-service';
 import { IPrometheusEventConfig } from '../types/decorators.type';
-import { PrometheusLabels } from '../types/types';
+import { IParamsPrometheusValue, PrometheusLabels } from '../types/types';
 import { PrometheusEventConfigDecoratorHelper } from './prometheus.event-config.decorator.helper';
 import { PrometheusCounterConfigDecoratorHelper } from './prometheus.counter-config.decorator.helper';
 import { PrometheusGaugeConfigDecoratorHelper } from './prometheus.gauge-config.decorator.helper';
@@ -9,15 +9,18 @@ import { PrometheusHistogramConfigDecoratorHelper } from './prometheus.histogram
 import { PrometheusSummaryConfigDecoratorHelper } from './prometheus.summary-config.decorator.helper';
 
 describe(PrometheusEventConfigDecoratorHelper.name, () => {
-  let spyCount;
-  let spyGauge;
-  let spyHistogram;
-  let spySummary;
-  let spyCustom;
+  let spyCount: jest.Mock;
+  let spyGauge: jest.Mock;
+  let spyHistogram: jest.Mock;
+  let spySummary: jest.Mock;
+  let spyCustom: jest.Mock;
   let config: IPrometheusEventConfig;
   let defaultPrometheusMetricConfig: PrometheusMetricConfig;
   let defaultLabels: PrometheusLabels;
-  let defaultPrams;
+  let defaultPrams: {
+    histogram: IParamsPrometheusValue & { end?: boolean };
+    summary: IParamsPrometheusValue & { end?: boolean };
+  };
 
   beforeEach(async () => {
     spyCount = jest.fn().mockImplementation(() => ({}));

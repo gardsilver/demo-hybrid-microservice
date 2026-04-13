@@ -5,12 +5,12 @@ import { CheckObjectsType, ConfigServiceHelper, MomentCheckObject, isObjectInsta
 import { LogFormat, LogLevel, ILogFields } from '../types/elk-logger.types';
 
 export class ElkLoggerConfig {
-  private formatLogRecord: LogFormat;
-  private ignoreModules: string[];
-  private logLevels: LogLevel[];
-  private timestampFormat: string;
-  private storeFilePath: string;
-  private fileDescriptor: number;
+  private formatLogRecord!: LogFormat;
+  private ignoreModules: string[] = [];
+  private logLevels: LogLevel[] = [];
+  private timestampFormat: string = '';
+  private storeFilePath: string | null = null;
+  private fileDescriptor: number | undefined;
   private readonly ignoreObjects: CheckObjectsType[];
   private readonly sortFields: string[];
 
@@ -22,9 +22,7 @@ export class ElkLoggerConfig {
   ) {
     this.initByEnvs(configService);
 
-    this.ignoreObjects = []
-      .concat(ignoreObjects.length > 0 ? ignoreObjects : [])
-      .concat([Error, DateTimestamp, new MomentCheckObject()]);
+    this.ignoreObjects = [...ignoreObjects, Error, DateTimestamp, new MomentCheckObject()];
 
     this.sortFields = sortFields.map((f) => f.trim()).filter((f) => f !== '' && f !== undefined);
   }
@@ -48,17 +46,17 @@ export class ElkLoggerConfig {
     this.logLevels = <LogLevel[]>configServiceHelper
       .parseArray('LEVELS')
       .map((level) => level?.toUpperCase())
-      .filter((level) => validLogLevels.includes(level as LogLevel as undefined));
+      .filter((level) => validLogLevels.includes(level as unknown as LogLevel));
 
     this.timestampFormat = configService
       .get<string>(configServiceHelper.getKeyName('FORMAT_TIMESTAMP'), DATE_BASE_FORMAT)
       .trim();
 
-    this.setStoreFile(configService.get<string>(configServiceHelper.getKeyName('STORE_FILE'), null)?.trim());
+    this.setStoreFile(configService.get<string>(configServiceHelper.getKeyName('STORE_FILE'))?.trim());
   }
 
   public setStoreFile(filePath?: string): void {
-    this.storeFilePath = filePath ?? null;
+    this.storeFilePath = filePath || null;
     if (this.storeFilePath !== null) {
       this.fileDescriptor = openSync(this.storeFilePath, 'a');
     } else {
@@ -70,7 +68,7 @@ export class ElkLoggerConfig {
     return Object.assign({}, this.defaultFields);
   }
 
-  getFileDescriptor(): number {
+  getFileDescriptor(): number | undefined {
     return this.fileDescriptor;
   }
 
@@ -79,7 +77,7 @@ export class ElkLoggerConfig {
   }
 
   getIgnoreModules(): string[] {
-    return [].concat(this.ignoreModules);
+    return [...this.ignoreModules];
   }
 
   setLogLevels(logLevels: LogLevel[]): ElkLoggerConfig {
@@ -89,7 +87,7 @@ export class ElkLoggerConfig {
   }
 
   getLogLevels(): LogLevel[] {
-    return [].concat(this.logLevels);
+    return [...this.logLevels];
   }
 
   getTimestampFormat(): string {
@@ -97,7 +95,7 @@ export class ElkLoggerConfig {
   }
 
   getIgnoreObjects(): Array<CheckObjectsType> {
-    return [].concat(this.ignoreObjects);
+    return [...this.ignoreObjects];
   }
 
   isIgnoreObject(obj: object): boolean {
@@ -105,6 +103,6 @@ export class ElkLoggerConfig {
   }
 
   getSortFields(): string[] {
-    return [].concat(this.sortFields);
+    return [...this.sortFields];
   }
 }

@@ -4,9 +4,9 @@ import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { PruneConfig } from './prune.config';
 
 describe(PruneConfig.name, () => {
-  let configService: ConfigService;
-  let loggerConfig: ElkLoggerConfig;
-  let pruneConfig: PruneConfig;
+  let configService: ConfigService | undefined;
+  let loggerConfig: ElkLoggerConfig | undefined;
+  let pruneConfig: PruneConfig | undefined;
 
   beforeEach(async () => {
     configService = undefined;
@@ -15,7 +15,7 @@ describe(PruneConfig.name, () => {
   });
 
   it('default', async () => {
-    configService = new MockConfigService() as undefined as ConfigService;
+    configService = new MockConfigService() as unknown as ConfigService;
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     pruneConfig = new PruneConfig(configService, loggerConfig);
 
@@ -60,7 +60,7 @@ describe(PruneConfig.name, () => {
       LOGGER_PRUNE_APPLY_FOR_FORMATS: 'FULL,SIMPLE',
       LOGGER_PRUNE_MAX_LENGTH_FIELDS: '--array--=3,--default--=4,fileBody=5',
       LOGGER_FORMAT_RECORD: 'SHORT',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     pruneConfig = new PruneConfig(configService, loggerConfig);
@@ -104,7 +104,7 @@ describe(PruneConfig.name, () => {
       LOGGER_PRUNE_APPLY_FOR_FORMATS: 'FULL,SIMPLE',
       LOGGER_PRUNE_MAX_LENGTH_FIELDS: '--array--=3,--default--=4,fileBody=5',
       LOGGER_FORMAT_RECORD: 'SHORT',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
 
     loggerConfig = new ElkLoggerConfig(configService, [], []);
     pruneConfig = new PruneConfig(configService, loggerConfig);

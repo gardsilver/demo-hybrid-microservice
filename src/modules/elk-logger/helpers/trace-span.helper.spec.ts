@@ -16,7 +16,7 @@ describe(TraceSpanHelper.name, () => {
         spanId: '6e247decff274ea8a530a16f3d1b4933',
         initialSpanId: '6e247decff274ea8a530a16f3d1b4933',
         parentSpanId: '6e247decff274ea8a530a16f3d1b4933',
-      } as ITraceSpan),
+      } as unknown as ITraceSpan),
     ).toEqual({
       traceId: '6e247dec-ff27-4ea8-a530-a16f3d1b4933',
       spanId: '6e247dec-ff27-4ea8-a530-a16f3d1b4933',
@@ -30,7 +30,7 @@ describe(TraceSpanHelper.name, () => {
         spanId: null,
         initialSpanId: null,
         parentSpanId: null,
-      } as ITraceSpan),
+      } as unknown as ITraceSpan),
     ).toEqual({
       traceId: null,
       spanId: null,
@@ -48,7 +48,7 @@ describe(TraceSpanHelper.name, () => {
         spanId: '6e247dec-ff27-4ea8-a530-a16f3d1b4933',
         initialSpanId: '6e247dec-ff27-4ea8-a530-a16f3d1b4933',
         parentSpanId: '6e247dec-ff27-4ea8-a530-a16f3d1b4933',
-      } as ITraceSpan),
+      } as unknown as ITraceSpan),
     ).toEqual({
       traceId: '6e247decff274ea8a530a16f3d1b4933',
       spanId: '6e247decff274ea8a530a16f3d1b4933',
@@ -62,7 +62,7 @@ describe(TraceSpanHelper.name, () => {
         spanId: null,
         initialSpanId: null,
         parentSpanId: null,
-      } as ITraceSpan),
+      } as unknown as ITraceSpan),
     ).toEqual({
       traceId: null,
       spanId: null,

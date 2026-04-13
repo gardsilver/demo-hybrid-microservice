@@ -21,7 +21,7 @@ export class KafkaApiService {
     this.logger = this.loggerBuilder.build({ module: KafkaApiService.name });
   }
 
-  async search(topic: string, request: IKafkaMessage<MainRequest>): Promise<IProducerPacket<MainResponse>> {
+  async search(topic: string, request: IKafkaMessage<MainRequest>): Promise<IProducerPacket<MainResponse> | undefined> {
     const context = KafkaAsyncContext.instance.extend();
 
     if (!context.replyTopic) {
@@ -32,10 +32,7 @@ export class KafkaApiService {
         },
       });
 
-      return {
-        topic: undefined,
-        data: undefined,
-      };
+      return undefined;
     }
 
     const model = await this.service.getUser(request.value.query);
@@ -53,6 +50,10 @@ export class KafkaApiService {
       };
     }
 
+    const headers = { ...request.headers };
+    delete headers[KafkaAsyncContextHeaderNames.REPLY_PARTITION];
+    delete headers[KafkaAsyncContextHeaderNames.REPLY_TOPIC];
+
     return {
       topic: context.replyTopic,
       data: {
@@ -64,11 +65,7 @@ export class KafkaApiService {
             replyPartition: undefined,
             replyTopic: undefined,
           },
-          headers: {
-            ...request.headers,
-            [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: undefined,
-            [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: undefined,
-          },
+          headers,
         }),
       },
     };

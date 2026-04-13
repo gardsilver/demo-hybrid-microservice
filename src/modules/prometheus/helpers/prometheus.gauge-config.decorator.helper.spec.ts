@@ -81,7 +81,7 @@ describe(PrometheusGaugeConfigDecoratorHelper.name, () => {
   });
 
   it('build as success', async () => {
-    let mockLabel = undefined;
+    let mockLabel: PrometheusLabels | undefined = undefined;
     const spyConfig = jest.fn().mockImplementation(() => mockConfig);
     const spyLabel = jest.fn().mockImplementation(() => mockLabel);
 

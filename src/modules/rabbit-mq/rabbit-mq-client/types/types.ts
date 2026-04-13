@@ -1,6 +1,6 @@
 import { Provider } from '@nestjs/common';
 import { Serializer } from '@nestjs/microservices';
-import { ImportsType, ServiceClassProvider, ServiceFactoryProvider, ServiceValueProvider } from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceFactoryProvider, IServiceValueProvider } from 'src/modules/common';
 import {
   IRabbitMqChannelOptions,
   IRabbitMqConnectionOptions,
@@ -10,17 +10,20 @@ import {
   IRabbitMqPublishOptionsBuilderOptions,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
 
-export type IProducerSerializerOptions = Record<string, unknown> & {
+export interface IProducerSerializerOptions {
+  [key: string]: unknown;
   serverName: string;
   pattern?: string;
-};
+}
 
-export interface IProducerSerializer<T = unknown>
-  extends Serializer<IRabbitMqProducerMessage<T>, IRabbitMqProducerMessage<Buffer | string>> {
+export interface IProducerSerializer<T = unknown> extends Serializer<
+  IRabbitMqProducerMessage<T>,
+  IRabbitMqProducerMessage<Buffer | string | null>
+> {
   serialize(
     value: IRabbitMqProducerMessage<T>,
     options: IProducerSerializerOptions,
-  ): IRabbitMqProducerMessage<Buffer | string>;
+  ): IRabbitMqProducerMessage<Buffer | string | null>;
 }
 
 export interface IRabbitMqClientOptions<T = unknown> {
@@ -45,15 +48,15 @@ export interface IRabbitMqClientModuleOptions {
   imports?: ImportsType;
   providers?: Provider[];
   clientProxyBuilderOptions:
-    | ServiceClassProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
-    | ServiceValueProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
-    | ServiceFactoryProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>;
+    | IServiceClassProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
+    | IServiceValueProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>
+    | IServiceFactoryProvider<Omit<IRabbitMqClientOptions, 'serializer' | 'publishOptionsBuilder'>>;
   serializer?:
-    | ServiceClassProvider<IProducerSerializer>
-    | ServiceValueProvider<IProducerSerializer>
-    | ServiceFactoryProvider<IProducerSerializer>;
+    | IServiceClassProvider<IProducerSerializer>
+    | IServiceValueProvider<IProducerSerializer>
+    | IServiceFactoryProvider<IProducerSerializer>;
   publishOptionsBuilder?:
-    | ServiceClassProvider<IRabbitMqPublishOptionsBuilder>
-    | ServiceValueProvider<IRabbitMqPublishOptionsBuilder>
-    | ServiceFactoryProvider<IRabbitMqPublishOptionsBuilder>;
+    | IServiceClassProvider<IRabbitMqPublishOptionsBuilder>
+    | IServiceValueProvider<IRabbitMqPublishOptionsBuilder>
+    | IServiceFactoryProvider<IRabbitMqPublishOptionsBuilder>;
 }

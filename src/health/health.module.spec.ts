@@ -14,14 +14,11 @@ import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
-import { mockSequelize } from 'tests/sequelize-typescript';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { HealthController } from './controllers/health.controller';
 import { HealthModule } from './health.module';
 
-jest.mock('sequelize-typescript', () => {
-  return { Sequelize: jest.fn(() => mockSequelize) };
-});
+jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 describe(HealthModule.name, () => {
   let logger: IElkLoggerService;

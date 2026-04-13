@@ -27,7 +27,7 @@ export class RabbitMqServerStatusService {
     event: GracefulShutdownEvents.BEFORE_DESTROY,
   })
   async beforeDestroy(): Promise<void> {
-    const tasks = [];
+    const tasks: Promise<unknown>[] = [];
 
     this.rabbitMqServices.forEach((service) => {
       tasks.push(service.server.close());

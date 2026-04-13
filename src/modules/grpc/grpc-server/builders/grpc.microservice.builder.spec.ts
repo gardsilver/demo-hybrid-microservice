@@ -9,9 +9,9 @@ import { GrpcMicroserviceBuilder } from './grpc.microservice.builder';
 import { GrpcServerStatusService } from '../services/grpc-server.status.service';
 
 describe(GrpcMicroserviceBuilder.name, () => {
-  let spyUrlHelper;
-  let spyExistPaths;
-  let spyExistJoinBase;
+  let spyUrlHelper: jest.SpyInstance;
+  let spyExistPaths: jest.SpyInstance;
+  let spyExistJoinBase: jest.SpyInstance;
   let statusService: GrpcServerStatusService;
 
   const app = {
@@ -27,7 +27,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
     });
     statusService = {
       addGrpcHealthImplementation: jest.fn(),
-    } as undefined as GrpcServerStatusService;
+    } as unknown as GrpcServerStatusService;
   });
 
   it('Должен подключить Микросервис', async () => {
@@ -98,6 +98,10 @@ describe(GrpcMicroserviceBuilder.name, () => {
 
     const onLoadPackageDefinition = (app.connectMicroservice.mock.calls[0][0] as GrpcOptions).options
       .onLoadPackageDefinition;
+
+    if (onLoadPackageDefinition === undefined) {
+      throw new Error('onLoadPackageDefinition is not defined');
+    }
 
     const mockServer = {
       addService: jest.fn(),

@@ -2,7 +2,7 @@
 
 ## Описание
 
-Содержит описания и реализации часто используемого общего функционала.
+Содержит описания и реализации часто используемого общего функционала уровня 1 (core). Не является глобальным `DynamicModule` — экспортирует набор классов, утилит и типов, которые используются напрямую через `import`.
 
 ### Common Formatters Module
 
@@ -13,7 +13,7 @@
 - `IHeaders` - нормализованный тип заголовков. К нему будут приведены все форматы заголовков (`http`, `gRPC` metadata, `Kafka` и др.).
 - `IKeyValue<T = unknown>` - общий тип объектов. К нему будут приведены все неизвестные экземпляры классов, объектов и др структур.
 - `LoggerMarkers` - enum часто используемых маркеров при формировании логов.
-- `IGeneralAsyncContext` и `GeneralAsyncContext` - Базовый асинхронный контекст.
+- `IGeneralAsyncContext` и `GeneralAsyncContext` - Базовый асинхронный контекст, расширяет `IAsyncContext` и `Partial<ITraceSpan>` полями `requestId`, `correlationId`, `traceId`, `spanId` и т.д.
 
 ### Базовые интерфейсы сервисов
 
@@ -23,10 +23,10 @@
 ### Динамические модули
 
 - `ImportsType` - синоним для `ModuleMetadata['imports']` (`@nestjs/common`).
-- `ServiceClassProvider<T>` - Упрощенный интерфейс `ClassProvider` (`@nestjs/common`).
-- `ServiceValueProvider<T>` - Упрощенный интерфейс `ValueProvider` (`@nestjs/common`).
-- `ServiceFactoryProvider<T>` - Упрощенный интерфейс `FactoryProvider` (`@nestjs/common`).
-- `ProviderBuilder.build` - возвращает `Provider` (`@nestjs/common`);
+- `IServiceClassProvider<T>` - Упрощенный интерфейс `ClassProvider` (`@nestjs/common`).
+- `IServiceValueProvider<T>` - Упрощенный интерфейс `ValueProvider` (`@nestjs/common`).
+- `IServiceFactoryProvider<T>` - Упрощенный интерфейс `FactoryProvider` (`@nestjs/common`).
+- `ProviderBuilder.build(token, options)` - возвращает `Provider` (`@nestjs/common`), автоматически выбирая между `useClass` / `useValue` / `useFactory`.
 - `MetadataExplorer` - Сервис реализующий поиск `providers` по всем зарегистрированным `providers` в `NestApplication`, у которых имеются привязанные метаданные к методу с заданным `metadataKey`. Может быть полезен, когда реализуется декоратор фиксирующий метод сервиса, который в последствии нужно будет вызвать третьему лицу. (**@see** `GracefulShutdownOnEvent` (`src/modules/graceful-shutdown`))
 
 ### ВАЖНО
@@ -61,7 +61,18 @@
 
 ### `SkipInterceptors`
 
-  Декоратор класса/метода, указывающий о необходимости отключения одного из глобального настроенного интерцептора/гуарда.
+  Декоратор класса/метода, указывающий о необходимости отключения одного или нескольких глобально настроенных интерцепторов/гуардов. Принимает объект с булевыми флагами из `SkipInterceptorsOption`:
+
+| Флаг | Что отключает |
+|---|---|
+| `All` | Все перечисленные ниже |
+| `HttpAuthGuard` | `HttpAuthGuard` (`src/modules/http/http-server`) |
+| `HttpLogging` | `HttpLoggingInterceptor` |
+| `HttpPrometheus` | `HttpPrometheusInterceptor` |
+| `HttpHeadersResponse` | `HttpHeadersResponseInterceptor` |
+| `GrpcAuthGuard` | `GrpcAuthGuard` (`src/modules/grpc/grpc-server`) |
+| `GrpcLogging` | `GrpcLoggingInterceptor` |
+| `GrpcPrometheus` | `GrpcPrometheusInterceptor` |
 
 ### `getSkipInterceptors`
 
@@ -71,7 +82,7 @@
 
 Данный набор функций призван удалять циклические ссылки в сложных объектах. Не приводит к мутации данных основного объекта - вы получите полную копию вашего объекта, но с удаленными циклическими ссылками.
 
-- `AbstractCheckObject`  Абстрактный класс, реализующий интерфейс `isInstanceOf(obj: object): boolean`, призван определить соответствует ли переданный объект вашему типу/интерфейсу/классу в том случае, если стандартные оператор **instanceof** не применим и необходимо реализовать свою логику.  
+- `AbstractCheckObject`  Абстрактный класс, реализующий интерфейс `isInstanceOf(obj: object): boolean`, призван определить соответствует ли переданный объект вашему типу/интерфейсу/классу в том случае, если стандартные оператор **instanceof** не применим и необходимо реализовать свою логику.
 
 - `isObjectInstanceOf` - функция, проверяющая на соответствие переданного объекта указанным типам/интерфейсам/классам.
 
@@ -86,3 +97,107 @@
 - `isStaticMethod` проверяет, является ли метод статическим.
 - `enumKeys` - возвращает имена ключей **enum**
 - `enumValues` - возвращает значения **enum**
+
+## Параметры окружения
+
+Модуль сам по себе не читает переменные окружения. `ConfigServiceHelper` — лишь утилита, которую используют другие модули при чтении собственных настроек через `@nestjs/config`.
+
+## Примеры использования
+
+### Регистрация провайдера через `ProviderBuilder`
+
+```ts
+import { Module } from '@nestjs/common';
+import { ProviderBuilder } from 'src/modules/common';
+
+export const MY_SERVICE_DI = Symbol('MY_SERVICE_DI');
+
+@Module({
+  providers: [
+    ProviderBuilder.build(MY_SERVICE_DI, { useClass: MyServiceImpl }),
+  ],
+  exports: [MY_SERVICE_DI],
+})
+export class MyModule {}
+```
+
+### Использование `GeneralAsyncContext` в сервисе
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { GeneralAsyncContext } from 'src/modules/common';
+
+@Injectable()
+export class OrderService {
+  public async handle(): Promise<void> {
+    const requestId = GeneralAsyncContext.instance.get('requestId');
+    const ctx = GeneralAsyncContext.instance.extend();
+    // ...
+  }
+}
+```
+
+### Чтение переменной окружения через `ConfigServiceHelper`
+
+```ts
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ConfigServiceHelper } from 'src/modules/common';
+
+@Injectable()
+export class MyConfig {
+  private readonly helper: ConfigServiceHelper;
+
+  constructor(configService: ConfigService) {
+    this.helper = new ConfigServiceHelper('MY_MODULE', configService);
+  }
+
+  public getTimeoutMs(): number {
+    return this.helper.parseInt('TIMEOUT_MS', { defaultValue: 5000, min: 1 });
+  }
+}
+```
+
+### Отключение глобального interceptor'а через `SkipInterceptors`
+
+```ts
+import { Controller, Get } from '@nestjs/common';
+import { SkipInterceptors } from 'src/modules/common';
+
+// Отключение только HttpAuthGuard для конкретного метода
+@Controller('public')
+export class PublicController {
+  @Get('ping')
+  @SkipInterceptors({ HttpAuthGuard: true })
+  public ping(): string {
+    return 'pong';
+  }
+}
+
+// Отключение всех перехватчиков на уровне класса
+@Controller('internal')
+@SkipInterceptors({ All: true })
+export class InternalController {}
+```
+
+Внутри своих `Guard` / `Interceptor` проверка выполняется через `getSkipInterceptors`:
+
+```ts
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { getSkipInterceptors } from 'src/modules/common';
+
+@Injectable()
+export class HttpAuthGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  public canActivate(context: ExecutionContext): boolean {
+    const skip = getSkipInterceptors(context, this.reflector);
+    if (skip.All || skip.HttpAuthGuard) {
+      return true;
+    }
+    // ...основная логика проверки авторизации
+    return true;
+  }
+}
+```

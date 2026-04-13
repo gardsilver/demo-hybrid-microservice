@@ -8,7 +8,7 @@ describe(GrpcClientConfigService.name, () => {
   let grpcConfig: GrpcClientConfigService;
 
   it('default', async () => {
-    config = new MockConfigService() as undefined as ConfigService;
+    config = new MockConfigService() as unknown as ConfigService;
     grpcConfig = new GrpcClientConfigService(config);
 
     expect(grpcConfig.getGrpcRequestOptions()).toEqual({
@@ -29,7 +29,7 @@ describe(GrpcClientConfigService.name, () => {
       GRPC_CLIENT_RETRY_TIMEOUT: '-10',
       GRPC_CLIENT_RETRY_MAX_COUNT: '-10',
       GRPC_CLIENT_RETRY_DELAY: '-10',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     grpcConfig = new GrpcClientConfigService(config);
 
     expect(grpcConfig.getGrpcRequestOptions()).toEqual({
@@ -54,7 +54,7 @@ describe(GrpcClientConfigService.name, () => {
       GRPC_CLIENT_RETRY_MAX_COUNT: '10000',
       GRPC_CLIENT_RETRY_DELAY: '10000',
       GRPC_CLIENT_RETRY_STATUS_CODES: '1,TIMEOUT,34',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     grpcConfig = new GrpcClientConfigService(config);
 
     expect(grpcConfig.getGrpcRequestOptions()).toEqual({

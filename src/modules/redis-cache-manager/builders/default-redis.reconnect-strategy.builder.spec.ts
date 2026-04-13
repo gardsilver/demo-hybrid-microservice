@@ -17,13 +17,13 @@ describe('defaultRedisReconnectStrategyBuilder', () => {
     logger = new MockElkLoggerService();
     counterService = {
       increment: jest.fn(),
-    } as undefined as ICounterService;
+    } as unknown as ICounterService;
 
     prometheusManager = {
       counter: () => counterService,
-    } as undefined as PrometheusManager;
+    } as unknown as PrometheusManager;
 
-    redisCacheManagerConfig = new RedisCacheManagerConfig(new MockConfigService() as undefined as ConfigService);
+    redisCacheManagerConfig = new RedisCacheManagerConfig(new MockConfigService() as unknown as ConfigService);
   });
 
   afterEach(async () => {

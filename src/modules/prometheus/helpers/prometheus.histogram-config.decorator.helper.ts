@@ -13,8 +13,8 @@ export abstract class PrometheusHistogramConfigDecoratorHelper {
       return false;
     }
 
-    let configObserve: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>>;
-    let configStartTimer: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>>;
+    let configObserve: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | undefined;
+    let configStartTimer: Partial<IPrometheusParams<IHistogramMetricConfig, IHistogramParams>> | undefined;
 
     if (config) {
       if (typeof config.observe === 'boolean') {
@@ -70,8 +70,8 @@ export abstract class PrometheusHistogramConfigDecoratorHelper {
     defaultLabels: PrometheusLabels | false,
     defaultPrams?: IParamsPrometheusValue,
     required?: string,
-  ): IHistogramParams {
-    let result: IHistogramParams;
+  ): IHistogramParams | undefined {
+    let result: IHistogramParams | undefined;
 
     if (params?.value !== undefined) {
       result = {
@@ -91,7 +91,7 @@ export abstract class PrometheusHistogramConfigDecoratorHelper {
 
     if (labels !== undefined) {
       result = {
-        ...result,
+        ...(result ?? ({} as IHistogramParams)),
         labels,
       };
     }

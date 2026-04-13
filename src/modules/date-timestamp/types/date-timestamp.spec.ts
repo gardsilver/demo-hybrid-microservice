@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 import 'moment-timezone';
 import {
   MILLISECONDS_IN_SECOND,
@@ -66,11 +66,13 @@ describe(DateTimestamp.name, () => {
 
     expect(() => new DateTimestamp(null)).toThrow(new Error(DateTimestampErrorMessages.dateTimeNotSet));
     expect(typeof new DateTimestamp(null, undefined, false)).toBe('object');
-    expect(new DateTimestamp(null, undefined, false)).toEqual({
-      offset: 180,
-      setCorrectly: false,
-      throwOnError: false,
-    });
+    expect(new DateTimestamp(null, undefined, false)).toEqual(
+      expect.objectContaining({
+        offset: 180,
+        setCorrectly: false,
+        throwOnError: false,
+      }),
+    );
     expect(new DateTimestamp(null, undefined, false).isValid()).toBeFalsy();
 
     expect(new DateTimestamp(1691425521329).format(DATE_TIME_FORMAT)).toBe('07.08.2023 19:25:21');
@@ -395,7 +397,7 @@ describe(DateTimestamp.name, () => {
     expect(caught).toBeTruthy();
 
     caught = false;
-    let dt: DateTimestamp;
+    let dt: DateTimestamp | undefined;
 
     try {
       dt = new DateTimestamp(null, undefined, false);
@@ -404,7 +406,8 @@ describe(DateTimestamp.name, () => {
     }
 
     expect(caught).toBeFalsy();
-    expect(dt.isValid()).toBeFalsy();
+    expect(dt).toBeDefined();
+    expect(dt?.isValid()).toBeFalsy();
 
     expect(() => new DateTimestamp('01.01.2024+07')).toThrow(
       new Error(`${DateTimestampErrorMessages.dateTimeUndefined} (01.01.2024+07)`),

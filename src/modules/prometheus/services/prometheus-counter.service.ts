@@ -41,7 +41,7 @@ export class PrometheusCounterService implements ICounterService {
     }
   }
 
-  public async get(metricConfig: ICounterMetricConfig): Promise<ICounterMetricValues> {
+  public async get(metricConfig: ICounterMetricConfig): Promise<ICounterMetricValues | undefined> {
     const logger = this.loggerBuilder.build({ module: `${PrometheusCounterService.name}.${this.get.name}` });
     const metric = this.metricBuilder.build(metricConfig, MetricType.COUNTER) as Counter;
 
@@ -55,6 +55,7 @@ export class PrometheusCounterService implements ICounterService {
         },
         markers: ['prometheus', LoggerMarkers.ERROR],
       });
+      return undefined;
     }
   }
 }

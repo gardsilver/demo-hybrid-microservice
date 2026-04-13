@@ -35,8 +35,8 @@ describe(KafkaClientErrorHandler.name, () => {
   let kafkaError: KafkaJSError;
   let error: KafkaClientError;
   let handler: KafkaClientErrorHandler;
-  let spyLogBuilder;
-  let spyLog;
+  let spyLogBuilder: jest.SpyInstance;
+  let spyLog: jest.SpyInstance;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -81,7 +81,7 @@ describe(KafkaClientErrorHandler.name, () => {
     kafkaError = new KafkaJSError('Server error', {
       ...baseParams,
       cause,
-    } as undefined as KafkaJSErrorMetadata);
+    } as unknown as KafkaJSErrorMetadata);
     kafkaError.stack = 'Error: message\n    at <anonymous>:1:2\n';
 
     error = new KafkaClientInternalError('Test Error', 'status', kafkaError);
@@ -195,15 +195,15 @@ describe(KafkaClientErrorHandler.name, () => {
 
       expect(handler.getCause(exception)).toBe(exception);
 
-      exception.cause = kafkaError;
+      (exception as unknown as { cause: unknown }).cause = kafkaError;
 
       expect(handler.getCause(exception)).toBe(kafkaError);
     });
   });
 
   describe('handleError', () => {
-    let spyLoggingStatus;
-    let mockCause;
+    let spyLoggingStatus: jest.SpyInstance;
+    let mockCause: unknown;
 
     beforeEach(async () => {
       spyLoggingStatus = jest.spyOn(handler, 'loggingStatus');

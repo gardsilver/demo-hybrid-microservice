@@ -32,7 +32,7 @@ import { ObjectFormatterBuilder } from './object-formatter.builder';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 describe(ElkLoggerServiceBuilder.name, () => {
-  let mockUuid;
+  let mockUuid: string;
   let loggerBuilder: ElkLoggerServiceBuilder;
 
   beforeAll(async () => {
@@ -85,7 +85,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
           ) => {
             return new ElkLoggerConfig(
               configService,
-              [].concat(ignoreObjects, objectFormatters),
+              ([] as CheckObjectsType[]).concat(ignoreObjects, objectFormatters),
               sortFields,
               defaultFields,
             );
@@ -136,7 +136,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
 
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
-    expect(logger['defaultLogFields']).toEqual({
+    expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
       traceId: mockUuid,
       index: 'MyApplications',
       markers: ['test'],
@@ -158,7 +158,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
 
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
-    expect(logger['defaultLogFields']).toEqual({
+    expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
       traceId: mockUuid,
       index: 'TestApplications',
       markers: ['test', 'request'],

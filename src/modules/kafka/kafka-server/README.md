@@ -13,7 +13,7 @@
 
 ### ВАЖНО
 
-Данный модуль не реализует логику **Request/Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`). Для всех запущенных консъюмеров будет отключен `requestTimeout` (**@see** [eachBatchAutoResolve: true](https://kafka.js.org/docs/configuration#request-timeout)).
+Данный модуль не реализует логику **Request/Response**. Вам будет доступен только функционал обработки полученного сообщения (сообщений) из указанных топиков (**@see** декоратор `EventKafkaMessage`). Для всех запущенных консьюмеров будет отключен `requestTimeout` (**@see** [eachBatchAutoResolve: true](https://kafka.js.org/docs/configuration#request-timeout)).
 
 Если не задан `deserializer`, то в полученных данных будут десериализованы только `headers` и `key` (**@see** `IKafkaMessage` `src/modules/kafka/kafka-common`).
 
@@ -23,8 +23,44 @@
 
 ### Подключение модуля **KafkaServerModule**
 
-- `KafkaServerModule` необходимо подключить глобально, он создаст сервисы, которые будут реагировать на общее состояние всего приложения (**@see** `src/modules/graceful-shutdown`) и на состояние активированных консъюмеров.
+- `KafkaServerModule` необходимо подключить глобально, он создаст сервисы, которые будут реагировать на общее состояние всего приложения (**@see** `src/modules/graceful-shutdown`) и на состояние активированных консьюмеров.
 - `KafkaServerStatusService` будет доступен после успешного подключения `KafkaServerModule`. Позволяет получить `KafkaServerHealthIndicator` и в случае завершения приложения остановит работу всех **Consumer**.
+
+```ts
+import { Module } from '@nestjs/common';
+import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
+
+@Module({
+  imports: [
+    KafkaServerModule.forRoot({
+      // опционально — переопределить адаптер заголовков в AsyncContext
+      // headersToAsyncContextAdapter: { useClass: MyKafkaHeadersToAsyncContextAdapter },
+    }),
+  ],
+})
+export class MainModule {}
+```
+
+`KafkaServerModule.forRoot()` принимает `IKafkaServerModuleOptions`:
+
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `imports` | `ImportsType` | Нет | `[]` | Дополнительные модули, необходимые для разрешения зависимостей пользовательских провайдеров. |
+| `providers` | `Provider[]` | Нет | `[]` | Дополнительные провайдеры, регистрируемые внутри `KafkaServerModule`. |
+| `headersToAsyncContextAdapter` | `IServiceClassProvider<IKafkaHeadersToAsyncContextAdapter>` \| `IServiceValueProvider<IKafkaHeadersToAsyncContextAdapter>` \| `IServiceFactoryProvider<IKafkaHeadersToAsyncContextAdapter>` | Нет | `KafkaHeadersToAsyncContextAdapter` из `kafka-common` | Переопределение адаптера преобразования заголовков **Kafka** в `GeneralAsyncContext`. |
+
+Вложенная форма `headersToAsyncContextAdapter` — один из трёх типов DI-провайдера:
+
+| Поле | Тип | Обязательный | По умолчанию | Описание |
+|---|---|---|---|---|
+| `useClass` | `Type<IKafkaHeadersToAsyncContextAdapter>` | Да (для class-провайдера) | — | Класс адаптера. Инстанцируется NestJS. |
+| `useValue` | `IKafkaHeadersToAsyncContextAdapter` | Да (для value-провайдера) | — | Готовый экземпляр адаптера. |
+| `useFactory` | `(...deps) => IKafkaHeadersToAsyncContextAdapter \| Promise<...>` | Да (для factory-провайдера) | — | Фабрика, создающая адаптер. |
+| `inject` | `Array<Token>` | Нет | `[]` | Зависимости, передаваемые в `useFactory`. |
+
+### Graceful Shutdown
+
+`KafkaServerStatusService` подписан на событие `GracefulShutdownEvents.BEFORE_DESTROY` (см. `src/modules/graceful-shutdown`): на первой фазе завершения приложения он останавливает все зарегистрированные `KafkaOptionsBuilder` и вызывает `server.close()` у каждого консьюмера — приём новых сообщений прекращается до того, как `DESTROY`-фаза начнёт ждать завершения уже запущенных обработчиков.
 
 ### Подключение **Kafka**-сервера
 
@@ -47,7 +83,7 @@ const { server, serverHealthIndicator } =  KafkaMicroserviceBuilder.setup(app, {
 
 2) Запуск консюмеров.
 
-Список необходимых консъюмеров определяется на основе установленных подписок на топики (**@see** декоратор `EventKafkaMessage` - описан ниже).
+Список необходимых консьюмеров определяется на основе установленных подписок на топики (**@see** декоратор `EventKafkaMessage` - описан ниже).
 При этом возможны исключительные ситуации (например указанные топики отсутствуют), и если они возникают будет выброшена соответствующая ошибка и остановлена работа приложения.
 
 При потере соединения с брокерами **Kafka** после успешного запуска **Kafka**-сервера, будут повторные попытки переподключения в рамках сценария автоматического восстановления соединения: [retry](https://kafka.js.org/docs/configuration#default-retry). В этом случае не будет остановлена работа приложения.
@@ -82,6 +118,25 @@ import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'sr
 ```
 
 Декоратор `EventKafkaMessage` полностью соответствует декоратору `EventPattern` (**@see** `@nestjs/microservices`) и в сочетании с ним можно дополнительно использовать стандартные декораторы `Payload` и `Ctx`, как на примере выше. Последний из них вернет объект класса `KafkaContext`, который поддерживает `eachBatch` в отличии от базового `KafkaContext` (**@see** `@nestjs/microservices`).
+
+#### Параметры `EventKafkaMessage(metadata, options)`
+
+| Параметр | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `metadata` | `string \| string[]` (обобщённый `T`) | Нет | Имя топика **Kafka** (или массив имён / pattern), на которое подписывается консьюмер. Передаётся в базовый `EventPattern`. |
+| `options` | `IEventKafkaMessageOptions<K>` либо функция, возвращающая такой объект | Нет | Настройки консьюмера для данного обработчика. Функция вычисляется во время применения декоратора. |
+
+Поля `options` (`IEventKafkaMessageOptions<K>`):
+
+| Поле | Тип | Обязательный | Описание |
+|---|---|---|---|
+| `serverName` | `string` | Да | Идентификатор **Kafka**-сервера. Должен совпадать со `serverName`, переданным в `KafkaMicroserviceBuilder.setup`. |
+| `mode` | `ConsumerMode` (`EACH_MESSAGE` / `EACH_BATCH`) | Нет | Режим работы консьюмера. По умолчанию `ConsumerMode.EACH_MESSAGE`. |
+| `replyTopic` | `string` | Нет | Имя топика для ответа (поле пробрасывается в `IKafkaMessageOptions`). |
+| `replyPartition` | `number` | Нет | Номер партиции для ответа. |
+| `headerAdapter` | `IKafkaHeadersToAsyncContextAdapter` | Нет | Пользовательский адаптер заголовков → `AsyncContext` для этого обработчика. По умолчанию используется адаптер из `KafkaServerModule`. |
+| `deserializer` | `IConsumerDeserializer<K>` | Нет | Пользовательский десериализатор сообщения. Если задан, универсальный `deserializer` из `KafkaMicroserviceBuilder.setup` игнорируется. |
+| `[key: string]` | `unknown` | Нет | Любые дополнительные поля — пробрасываются в метаданные `EventPattern` как `extras`. |
 
 ### Фильтрация сообщений
 

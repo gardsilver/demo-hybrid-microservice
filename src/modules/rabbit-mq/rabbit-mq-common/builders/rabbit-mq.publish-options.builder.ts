@@ -19,18 +19,24 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
 
     const tgt: IRabbitMqHeaders = {};
 
-    for (const key of ['traceId', 'spanId', 'requestId']) {
+    const asyncContextKeys = ['traceId', 'spanId', 'requestId'] as const;
+
+    for (const key of asyncContextKeys) {
       const useHeaderName = RabbitMqMessageHelper.nameAsHeaderName(key, useZipkin);
-      const asZipkin = useZipkin && ['traceId', 'spanId'].includes(key);
+      if (useHeaderName === undefined) {
+        continue;
+      }
 
-      let value: string;
+      const asZipkin = useZipkin && (key === 'traceId' || key === 'spanId');
 
-      if (params.asyncContext && key in params.asyncContext && params.asyncContext[key] !== undefined) {
-        value = params.asyncContext[key].toString();
+      let value: string | undefined;
+
+      const asyncContextValue = params.asyncContext?.[key];
+      if (asyncContextValue !== undefined) {
+        value = asyncContextValue.toString();
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
-        value = Array.isArray(headers[useHeaderName])
-          ? headers[useHeaderName].join('-')
-          : (headers[useHeaderName] as undefined as string);
+        const headerValue = headers[useHeaderName];
+        value = Array.isArray(headerValue) ? headerValue.join('-') : (headerValue as unknown as string);
 
         if (value !== '' && asZipkin) {
           value = TraceSpanHelper.formatToGuid(value);
@@ -47,7 +53,7 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
 
       [RabbitMqMessageHelper.nameAsHeaderName(key, false), RabbitMqMessageHelper.nameAsHeaderName(key, true)].forEach(
         (headerName) => {
-          if (headerName in headers) {
+          if (headerName !== undefined && headerName in headers) {
             delete headers[headerName];
           }
         },

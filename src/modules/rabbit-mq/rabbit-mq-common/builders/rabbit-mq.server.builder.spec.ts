@@ -2,20 +2,16 @@ import { faker } from '@faker-js/faker';
 import { MockAmqpConnectionManager } from 'tests/amqp-connection-manager';
 import { RabbitMqServerBuilder } from './rabbit-mq.server.builder';
 
-let mockConnect;
+import { AMQP_CONNECTION_MANAGER_MOCK } from 'tests/amqp-connection-manager';
 
-jest.mock('amqp-connection-manager', () => {
-  const actual = jest.requireActual('amqp-connection-manager');
-  const mock = Object.assign({}, actual);
-
-  mock.connect = jest.fn(() => mockConnect?.());
-
-  return mock;
-});
+jest.mock(
+  'amqp-connection-manager',
+  () => jest.requireActual('tests/amqp-connection-manager').AMQP_CONNECTION_MANAGER_MOCK,
+);
 
 describe(RabbitMqServerBuilder.name, () => {
   beforeEach(async () => {
-    mockConnect = () => new MockAmqpConnectionManager();
+    AMQP_CONNECTION_MANAGER_MOCK.connect.mockImplementation(() => new MockAmqpConnectionManager());
   });
 
   it('build', async () => {

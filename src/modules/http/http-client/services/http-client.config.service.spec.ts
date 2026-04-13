@@ -8,7 +8,7 @@ describe(HttpClientConfigService.name, () => {
   let httpConfig: HttpClientConfigService;
 
   it('default', async () => {
-    config = new MockConfigService() as undefined as ConfigService;
+    config = new MockConfigService() as unknown as ConfigService;
     httpConfig = new HttpClientConfigService(config);
 
     expect(httpConfig.getRequestTimeout()).toBe(HTTP_CLIENT_DEFAULT_OPTIONS.requestOptions.timeout);
@@ -27,7 +27,7 @@ describe(HttpClientConfigService.name, () => {
       HTTP_CLIENT_RETRY_TIMEOUT: '-10',
       HTTP_CLIENT_RETRY_MAX_COUNT: '-10',
       HTTP_CLIENT_RETRY_DELAY: '-10',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     httpConfig = new HttpClientConfigService(config);
 
     expect(httpConfig.getRequestTimeout()).toBe(HTTP_CLIENT_DEFAULT_OPTIONS.requestOptions.timeout);
@@ -50,7 +50,7 @@ describe(HttpClientConfigService.name, () => {
       HTTP_CLIENT_RETRY_MAX_COUNT: '10000',
       HTTP_CLIENT_RETRY_DELAY: '10000',
       HTTP_CLIENT_RETRY_STATUS_CODES: '1,TIMEOUT,34',
-    }) as undefined as ConfigService;
+    }) as unknown as ConfigService;
     httpConfig = new HttpClientConfigService(config);
 
     expect(httpConfig.getRequestTimeout()).toBe(10000);

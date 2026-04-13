@@ -1,10 +1,10 @@
 import { RabbitMqError } from '../../errors/rabbit-mq.error';
-import { RMQErrorInfo } from '../../types/types';
+import { IRMQErrorInfo } from '../../types/types';
 import { RabbitMqErrorObjectFormatter } from './rabbit-mq.error.object-formatter';
 
 describe(RabbitMqErrorObjectFormatter.name, () => {
   let error: Error;
-  let errorInfo: RMQErrorInfo;
+  let errorInfo: IRMQErrorInfo;
   let rabbitMqError: RabbitMqError;
   let formatter: RabbitMqErrorObjectFormatter;
 

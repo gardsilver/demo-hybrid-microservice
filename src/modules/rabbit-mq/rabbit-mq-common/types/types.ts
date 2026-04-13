@@ -8,7 +8,7 @@ import { MessageProperties, ConsumeMessage, Options } from 'amqplib';
 import { IHeadersToContextAdapter } from 'src/modules/common';
 import { IRabbitMqAsyncContext } from './rabbit-mq.async-context.type';
 
-export interface RMQErrorInfo {
+export interface IRMQErrorInfo {
   err?: Error;
   url?: string | Options.Connect;
 }
@@ -45,8 +45,8 @@ export interface IRabbitMqChannelOptions {
   queueOptions?: AmqplibQueueOptions;
   replyQueue: string;
   exchange?: string;
-  exchangeType?: RmqOptions['options']['exchangeType'];
-  exchangeArguments?: RmqOptions['options']['exchangeArguments'];
+  exchangeType?: NonNullable<RmqOptions['options']>['exchangeType'];
+  exchangeArguments?: NonNullable<RmqOptions['options']>['exchangeArguments'];
   routing?: string | string[];
 }
 
@@ -67,8 +67,10 @@ export declare const enum RmqStatus {
   CRASHED = 'crashed',
 }
 
-export interface IRabbitMqMessagePropertiesToAsyncContextAdapter
-  extends IHeadersToContextAdapter<IRabbitMqAsyncContext, IRabbitMqMessageProperties> {}
+export interface IRabbitMqMessagePropertiesToAsyncContextAdapter extends IHeadersToContextAdapter<
+  IRabbitMqAsyncContext,
+  IRabbitMqMessageProperties
+> {}
 
 export interface IRabbitMqPublishOptionsBuilderOptions {
   useZipkin?: boolean;

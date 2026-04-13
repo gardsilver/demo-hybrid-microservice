@@ -28,7 +28,7 @@ import {
   RabbitMqFormatterHelper,
   RabbitMqPublishOptionsBuilder,
   RabbitMqServerBuilder,
-  RMQErrorInfo,
+  IRMQErrorInfo,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
 import { MockAmqpConnectionManager, MockChannel, MockChannelWrapper } from 'tests/amqp-connection-manager';
 import { MockConfigService } from 'tests/nestjs';
@@ -44,7 +44,7 @@ const formatRabbitMqError = (error?: Error | unknown) => {
       isRabbitMqError: error && error instanceof RabbitMqError,
       name: error && 'name' in error ? error['name'] : undefined,
       message: error && 'message' in error ? error['message'] : undefined,
-      cause: error && 'cause' in error ? error['cause'].toString() : undefined,
+      cause: error && 'cause' in error ? (error['cause'] as { toString(): string })?.toString() : undefined,
       data: error && 'data' in error ? error['data'] : undefined,
     };
   }
@@ -54,17 +54,17 @@ const formatRabbitMqError = (error?: Error | unknown) => {
 
 describe(RabbitMqClientProxy.name, () => {
   let mockClient: AmqpConnectionManager;
-  let mockConnect;
+  let mockConnect: () => AmqpConnectionManager;
   let serverName: string;
   let error: Error;
-  let errorInfo: RMQErrorInfo;
+  let errorInfo: IRMQErrorInfo;
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let publishOptionsBuilder: IRabbitMqPublishOptionsBuilder;
   let serializer: IProducerSerializer;
   let clientProxy: RabbitMqClientProxy;
 
-  let spyLogBuilder;
+  let spyLogBuilder: jest.SpyInstance;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -356,8 +356,10 @@ describe(RabbitMqClientProxy.name, () => {
       expect(spyCreateChannel).toHaveBeenCalled();
       expect(clientProxy['channel']).toBeDefined();
 
-      const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
-      const mockChannel: MockChannel = mockChannelWrapper.channel as undefined as MockChannel;
+      const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+        'channelWrapper'
+      ] as MockChannelWrapper;
+      const mockChannel: MockChannel = mockChannelWrapper.channel as unknown as MockChannel;
 
       const spyAssertQueue = jest.spyOn(mockChannel, 'assertQueue');
       const spyAssertExchange = jest.spyOn(mockChannel, 'assertExchange');
@@ -434,6 +436,79 @@ describe(RabbitMqClientProxy.name, () => {
       expect(spyPrefetch).toHaveBeenCalledTimes(0);
       expect(spyConsume).toHaveBeenCalledTimes(0);
     });
+
+    it('connect returns cached promise when client already initialized', async () => {
+      clientProxy['client'] = mockClient;
+      const cached = Promise.resolve('cached');
+      clientProxy['connectionPromise'] = cached;
+      await expect(clientProxy.connect()).resolves.toBe('cached');
+    });
+
+    it('connect returns resolved promise when client initialized without connectionPromise', async () => {
+      clientProxy['client'] = mockClient;
+      clientProxy['connectionPromise'] = undefined;
+      await expect(clientProxy.connect()).resolves.toBeUndefined();
+    });
+
+    it('close without client/channel does nothing', async () => {
+      await expect(clientProxy.close()).resolves.toBeUndefined();
+      expect(clientProxy['client']).toBeNull();
+      expect(clientProxy['channel']).toBeNull();
+    });
+
+    it('close closes channel and client when both exist', async () => {
+      const channelClose = jest.fn().mockResolvedValue(undefined);
+      const clientClose = jest.fn().mockResolvedValue(undefined);
+      clientProxy['channel'] = { close: channelClose } as unknown as (typeof clientProxy)['channel'];
+      clientProxy['client'] = { close: clientClose } as unknown as AmqpConnectionManager;
+
+      await clientProxy.close();
+
+      expect(channelClose).toHaveBeenCalled();
+      expect(clientClose).toHaveBeenCalled();
+      expect(clientProxy['channel']).toBeNull();
+      expect(clientProxy['client']).toBeNull();
+    });
+
+    it('convertConnectionToPromise returns undefined if connection$ is undefined', async () => {
+      clientProxy['connection$'] = undefined;
+      await expect(
+        (clientProxy as unknown as { convertConnectionToPromise: () => Promise<unknown> }).convertConnectionToPromise(),
+      ).resolves.toBeUndefined();
+    });
+
+    it('connectFailed with undefined url throws error (propagates)', async () => {
+      let crashError;
+      clientProxy.connect().catch((err) => {
+        crashError = err;
+      });
+      await (mockClient as MockAmqpConnectionManager).testEvents('connectFailed', { ...errorInfo, url: undefined });
+      expect(formatRabbitMqError(crashError)).toEqual(
+        formatRabbitMqError(
+          RabbitMqError.buildFromRMQErrorInfo(serverName, 'connectFailed', { ...errorInfo, url: undefined }),
+        ),
+      );
+    });
+
+    it('reconnect path sets connectionPromise to resolved on subsequent CONNECT', async () => {
+      clientProxy['isInitialConnect'] = false;
+      clientProxy['channel'] = {} as unknown as (typeof clientProxy)['channel'];
+
+      const proxy = clientProxy as unknown as { registerConnectListener: (c: AmqpConnectionManager) => void };
+      proxy.registerConnectListener(mockClient);
+      await (mockClient as MockAmqpConnectionManager).testEvents(RmqEventsMap.CONNECT);
+      await expect(clientProxy['connectionPromise']).resolves.toBeUndefined();
+    });
+
+    it('initial CONNECT with existing channel skips createChannel', async () => {
+      clientProxy['isInitialConnect'] = true;
+      clientProxy['channel'] = {} as unknown as (typeof clientProxy)['channel'];
+
+      const proxy = clientProxy as unknown as { registerConnectListener: (c: AmqpConnectionManager) => void };
+      proxy.registerConnectListener(mockClient);
+      await (mockClient as MockAmqpConnectionManager).testEvents(RmqEventsMap.CONNECT);
+      expect(clientProxy['isInitialConnect']).toBe(false);
+    });
   });
 
   describe('send', () => {
@@ -488,7 +563,7 @@ describe(RabbitMqClientProxy.name, () => {
     it('invalid request', async () => {
       let error;
       try {
-        await firstValueFrom(clientProxy.send(undefined, options));
+        await firstValueFrom(clientProxy.send(undefined as unknown as IRabbitMqProducerMessage, options));
       } catch (err) {
         error = err;
       }
@@ -525,7 +600,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -574,7 +651,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -600,7 +677,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         const crashError = new Error('Send error');
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -664,7 +743,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -689,7 +768,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -738,7 +819,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -765,7 +846,9 @@ describe(RabbitMqClientProxy.name, () => {
         const crashError = new Error('Send error');
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => {
@@ -828,7 +911,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -860,7 +943,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.queue = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {
@@ -905,7 +990,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -930,7 +1015,9 @@ describe(RabbitMqClientProxy.name, () => {
 
         request.exchange = faker.string.alpha(8);
 
-        const mockChannelWrapper: MockChannelWrapper = mockClient['channelWrapper'] as undefined as MockChannelWrapper;
+        const mockChannelWrapper: MockChannelWrapper = (mockClient as unknown as Record<string, unknown>)[
+          'channelWrapper'
+        ] as MockChannelWrapper;
         const spyPublish = jest.spyOn(mockChannelWrapper, 'publish');
         const spySendToQueue = jest.spyOn(mockChannelWrapper, 'sendToQueue');
         const spySerialize = jest.spyOn(serializer, 'serialize').mockImplementation(() => {
@@ -975,7 +1062,7 @@ describe(RabbitMqClientProxy.name, () => {
               ...request.publishOptions,
               headers: {
                 ...clientProxy['options'].publishOptions.headers,
-                ...request.publishOptions.headers,
+                ...request.publishOptions?.headers,
               },
             },
           },
@@ -993,6 +1080,64 @@ describe(RabbitMqClientProxy.name, () => {
           'serialized',
           { correlationId: 'correlation-id' },
           spyPublish.mock.calls[0][4],
+        );
+      });
+    });
+
+    describe('channel not initialized', () => {
+      it('sendToQueue rejects with sendToQueueFailed when channel is null', async () => {
+        request.queue = faker.string.alpha(6);
+
+        jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => ({
+          ...request,
+          content: 'serialized',
+        }));
+
+        clientProxy['channel'] = null;
+        clientProxy['client'] = mockClient;
+        clientProxy['connectionPromise'] = Promise.resolve();
+
+        let err: unknown;
+        await RabbitMqAsyncContext.instance.runWithContextAsync(
+          () => firstValueFrom(clientProxy.send(request, options)).catch((e) => (err = e)),
+          asyncContext,
+        );
+
+        expect(formatRabbitMqError(err)).toEqual(
+          formatRabbitMqError(
+            new RabbitMqError('Channel is not initialized', {
+              serverName,
+              eventType: 'sendToQueueFailed',
+            }),
+          ),
+        );
+      });
+
+      it('publish rejects with publishFailed when channel is null', async () => {
+        request.exchange = faker.string.alpha(6);
+
+        jest.spyOn(clientProxy['serializer'], 'serialize').mockImplementation(() => ({
+          ...request,
+          content: 'serialized',
+        }));
+
+        clientProxy['channel'] = null;
+        clientProxy['client'] = mockClient;
+        clientProxy['connectionPromise'] = Promise.resolve();
+
+        let err: unknown;
+        await RabbitMqAsyncContext.instance.runWithContextAsync(
+          () => firstValueFrom(clientProxy.send(request, options)).catch((e) => (err = e)),
+          asyncContext,
+        );
+
+        expect(formatRabbitMqError(err)).toEqual(
+          formatRabbitMqError(
+            new RabbitMqError('Channel is not initialized', {
+              serverName,
+              eventType: 'publishFailed',
+            }),
+          ),
         );
       });
     });

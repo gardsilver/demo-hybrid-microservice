@@ -14,7 +14,11 @@ describe(HybridErrorResponseFilter.name, () => {
   let rabbitMqErrorFilter: RabbitMqErrorFilter;
   let filter: HybridErrorResponseFilter;
 
-  let error, spyHttp, spyGrpc, spyKafka, spyRabbitMq;
+  let error: Error;
+  let spyHttp: jest.SpyInstance;
+  let spyGrpc: jest.SpyInstance;
+  let spyKafka: jest.SpyInstance;
+  let spyRabbitMq: jest.SpyInstance;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -74,7 +78,7 @@ describe(HybridErrorResponseFilter.name, () => {
   it('ignore', async () => {
     const host = {
       getType: () => 'tcp',
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -87,7 +91,7 @@ describe(HybridErrorResponseFilter.name, () => {
   it('http', async () => {
     const host = {
       getType: () => 'http',
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -104,7 +108,7 @@ describe(HybridErrorResponseFilter.name, () => {
       switchToRpc: () => ({
         getContext: () => new Metadata(),
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -124,14 +128,14 @@ describe(HybridErrorResponseFilter.name, () => {
       undefined,
       undefined,
       undefined,
-    ]);
+    ] as unknown as ConstructorParameters<typeof KafkaContext>[0]);
 
     const host = {
       getType: () => 'rpc',
       switchToRpc: () => ({
         getContext: () => kafkaContext,
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 
@@ -143,14 +147,19 @@ describe(HybridErrorResponseFilter.name, () => {
   });
 
   it('RabbitMq', async () => {
-    const rabbitMqContext = new RabbitMqContext([undefined, undefined, undefined, undefined]);
+    const rabbitMqContext = new RabbitMqContext([
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    ] as unknown as ConstructorParameters<typeof RabbitMqContext>[0]);
 
     const host = {
       getType: () => 'rpc',
       switchToRpc: () => ({
         getContext: () => rabbitMqContext,
       }),
-    } as undefined as ExecutionContext;
+    } as unknown as ExecutionContext;
 
     await filter.catch(error, host);
 

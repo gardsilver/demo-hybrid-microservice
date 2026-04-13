@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Message, ConsumeMessage, Options, Replies } from 'amqplib';
 import { faker } from '@faker-js/faker';
 
 export class MockChannel {
-  queue: string;
-  messageCount: number;
-  consumerCount: number;
-  testOnMessage: (msg: ConsumeMessage | null) => void;
+  queue = '';
+  messageCount = 0;
+  consumerCount = 0;
+  testOnMessage!: (msg: ConsumeMessage | null) => void;
 
   constructor() {}
 
-  async assertQueue(queue: string, options?: Options.AssertQueue): Promise<Replies.AssertQueue> {
+  async assertQueue(queue: string, _options?: Options.AssertQueue): Promise<Replies.AssertQueue> {
     this.queue = queue === '' ? faker.string.alpha(10) : queue;
     this.messageCount = faker.number.int();
     this.consumerCount = faker.number.int();
@@ -23,43 +22,48 @@ export class MockChannel {
     };
   }
 
-  ack(message: Message, allUpTo?: boolean): void {}
+  ack(_message: Message, _allUpTo?: boolean): void {}
 
-  nack(message: Message, allUpTo?: boolean, requeue?: boolean): void {}
+  nack(_message: Message, _allUpTo?: boolean, _requeue?: boolean): void {}
 
   async assertExchange(
     exchange: string,
-    type: 'direct' | 'topic' | 'headers' | 'fanout' | 'match' | string,
-    options?: Options.AssertExchange,
+    _type: 'direct' | 'topic' | 'headers' | 'fanout' | 'match' | string,
+    _options?: Options.AssertExchange,
   ): Promise<Replies.AssertExchange> {
     return {
       exchange,
     };
   }
 
-  async bindQueue(queue: string, source: string, pattern: string, args?: any): Promise<Replies.Empty> {
+  async bindQueue(_queue: string, _source: string, _pattern: string, _args?: any): Promise<Replies.Empty> {
     return {};
   }
 
-  async prefetch(count: number, global?: boolean): Promise<Replies.Empty> {
+  async prefetch(_count: number, _global?: boolean): Promise<Replies.Empty> {
     return {};
   }
-  async publish(exchange: string, routingKey: string, content: Buffer, options?: Options.Publish): Promise<boolean> {
+  async publish(
+    _exchange: string,
+    _routingKey: string,
+    _content: Buffer,
+    _options?: Options.Publish,
+  ): Promise<boolean> {
     return true;
   }
-  async sendToQueue(queue: string, content: Buffer, options?: Options.Publish): Promise<boolean> {
+  async sendToQueue(_queue: string, _content: Buffer, _options?: Options.Publish): Promise<boolean> {
     return true;
   }
 
   async consume(
-    queue: string,
+    _queue: string,
     onMessage: (msg: ConsumeMessage | null) => void,
     options?: Options.Consume,
   ): Promise<Replies.Consume> {
     this.testOnMessage = onMessage;
 
     return {
-      consumerTag: options.consumerTag ?? '',
+      consumerTag: options?.consumerTag ?? '',
     };
   }
 }

@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { QueryTypes } from 'sequelize';
-import * as fs from 'fs';
-import * as path from 'path';
+import fs from 'fs';
+import path from 'path';
 import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { LoggerMarkers } from 'src/modules/common';
@@ -14,15 +13,13 @@ import { mockSequelize } from 'tests/sequelize-typescript';
 import { DatabaseConnectBuilder } from './database.connect.builder';
 import { DatabaseConfig } from '../services/database.config';
 
-jest.mock('sequelize-typescript', () => {
-  return { Sequelize: jest.fn(() => mockSequelize) };
-});
+jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 const mockMigrations = {
-  async up(queryInterface, sequelize) {
+  async up(_queryInterface: unknown, sequelize: { query: (sql: string) => void }) {
     sequelize.query('SELECT 1');
   },
-  async down(queryInterface, sequelize) {
+  async down(_queryInterface: unknown, _sequelize: unknown) {
     throw new Error('Откат миграции запрещен');
   },
 };
@@ -91,15 +88,15 @@ describe(DatabaseConnectBuilder.build.name, () => {
       .mockImplementation(() => ['test-migrations_001.js', 'test-migrations_002.js'] as any[]);
 
     const spyQuery = jest.spyOn(mockSequelize, 'query').mockImplementation(async (sql?: string) => {
-      return (
-        {
-          [sqlGetMigrationsCompleted]: [
-            {
-              name: 'test-migrations_001.js',
-            },
-          ],
-        }[sql] ?? []
-      );
+      const responses: Record<string, unknown[]> = {
+        [sqlGetMigrationsCompleted]: [
+          {
+            name: 'test-migrations_001.js',
+          },
+        ],
+      };
+
+      return sql ? (responses[sql] ?? []) : [];
     });
 
     let db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
@@ -107,7 +104,7 @@ describe(DatabaseConnectBuilder.build.name, () => {
     expect(db).toEqual(mockSequelize);
     expect(spyQuery).toHaveBeenCalledTimes(0);
 
-    DatabaseConnectBuilder['db'] = undefined;
+    DatabaseConnectBuilder['db'] = undefined as unknown as (typeof DatabaseConnectBuilder)['db'];
 
     db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
 
@@ -156,21 +153,21 @@ describe(DatabaseConnectBuilder.build.name, () => {
       .spyOn(fs, 'readdirSync')
       .mockImplementation(() => ['test-migrations_001.js', 'test-migrations_002.js'] as any[]);
 
-    const spyQuery = jest.spyOn(mockSequelize, 'query').mockImplementation(async (sql: string) => {
-      return (
-        {
-          [sqlGetMigrationsCompleted]: [
-            {
-              name: 'test-migrations_001.js',
-            },
-          ],
-          [sqlTables]: [
-            {
-              tablename: 'test_migrations',
-            },
-          ],
-        }[sql] ?? []
-      );
+    const spyQuery = jest.spyOn(mockSequelize, 'query').mockImplementation(async (sql?: string) => {
+      const responses: Record<string, unknown[]> = {
+        [sqlGetMigrationsCompleted]: [
+          {
+            name: 'test-migrations_001.js',
+          },
+        ],
+        [sqlTables]: [
+          {
+            tablename: 'test_migrations',
+          },
+        ],
+      };
+
+      return sql ? (responses[sql] ?? []) : [];
     });
 
     let db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
@@ -178,7 +175,7 @@ describe(DatabaseConnectBuilder.build.name, () => {
     expect(db).toEqual(mockSequelize);
     expect(spyQuery).toHaveBeenCalledTimes(0);
 
-    DatabaseConnectBuilder['db'] = undefined;
+    DatabaseConnectBuilder['db'] = undefined as unknown as (typeof DatabaseConnectBuilder)['db'];
 
     db = await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
 
@@ -217,7 +214,7 @@ describe(DatabaseConnectBuilder.build.name, () => {
       throw error;
     });
 
-    DatabaseConnectBuilder['db'] = undefined;
+    DatabaseConnectBuilder['db'] = undefined as unknown as (typeof DatabaseConnectBuilder)['db'];
 
     await DatabaseConnectBuilder.build(loggerBuilder, prometheusManager, databaseConfig);
 

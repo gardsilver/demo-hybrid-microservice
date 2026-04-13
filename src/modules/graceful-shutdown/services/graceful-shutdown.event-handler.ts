@@ -18,7 +18,7 @@ interface ITargetOnEvent extends ITargetInstanceMethod<GracefulShutdownEventMeta
 
 @Injectable()
 export class GracefulShutdownEventHandler implements OnModuleInit {
-  private onEventHandlers: ITargetOnEvent[];
+  private onEventHandlers!: ITargetOnEvent[];
   private logger: IElkLoggerService;
 
   constructor(
@@ -89,7 +89,7 @@ export class GracefulShutdownEventHandler implements OnModuleInit {
       },
       {
         failed: 0,
-        details: [],
+        details: [] as ResolveEventType[],
       },
     );
 
@@ -117,7 +117,7 @@ export class GracefulShutdownEventHandler implements OnModuleInit {
     });
 
     try {
-      await Promise.all([handler.method.apply(handler.instance)]);
+      await handler.method.apply(handler.instance);
 
       this.logger.debug(handleMessage + `. Success ${payload.event}`, {
         markers: [LoggerMarkers.SUCCESS],
@@ -142,7 +142,7 @@ export class GracefulShutdownEventHandler implements OnModuleInit {
         service: payload.service,
         method: payload.method,
         isSuccess: false,
-        message: exception.message,
+        message: exception instanceof Error ? exception.message : String(exception),
       };
     }
   }

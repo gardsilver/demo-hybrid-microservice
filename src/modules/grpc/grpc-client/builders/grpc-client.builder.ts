@@ -45,6 +45,6 @@ export abstract class GrpcClientBuilder {
   }
 
   private static createClientGrpcProxy(options: GrpcOptions): ClientGrpcProxy {
-    return ClientProxyFactory.create(options) as ClientGrpcProxy;
+    return ClientProxyFactory.create(options) as unknown as ClientGrpcProxy;
   }
 }

@@ -4,7 +4,7 @@ import { AppConfig } from './app.config';
 
 describe(AppConfig.name, () => {
   it('default', async () => {
-    const config = new MockConfigService() as ConfigService;
+    const config = new MockConfigService() as unknown as ConfigService;
     const appConfig = new AppConfig(config);
 
     expect({
@@ -26,7 +26,7 @@ describe(AppConfig.name, () => {
       GRPC_HOST: '127.0.0.1',
       GRPC_PORT: '1002',
       CORS_OPTIONS: '{}',
-    }) as ConfigService;
+    }) as unknown as ConfigService;
     const appConfig = new AppConfig(config);
 
     expect({
@@ -45,7 +45,7 @@ describe(AppConfig.name, () => {
   it('corsOptions as empty', async () => {
     const config = new MockConfigService({
       CORS_OPTIONS: ' ',
-    }) as ConfigService;
+    }) as unknown as ConfigService;
     const appConfig = new AppConfig(config);
 
     expect(appConfig.getCorsOptions()).toBeUndefined();

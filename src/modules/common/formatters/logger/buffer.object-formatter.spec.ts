@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import { BufferObjectFormatter } from './buffer.object-formatter';
 
 describe(BufferObjectFormatter.name, () => {
-  let context;
+  let context: string;
   let buffer: Buffer;
   let formatter: BufferObjectFormatter;
 

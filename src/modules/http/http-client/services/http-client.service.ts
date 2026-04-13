@@ -89,9 +89,11 @@ export class HttpClientService {
       markers: [LoggerMarkers.REQUEST, LoggerMarkers.EXTERNAL],
     });
 
-    let timerRetry: NodeJS.Timeout;
+    let timerRetry: NodeJS.Timeout | undefined;
 
-    let end = this.prometheusManager.histogram().startTimer(HTTP_EXTERNAL_REQUEST_DURATIONS, { labels });
+    let end: (() => void) | undefined = this.prometheusManager
+      .histogram()
+      .startTimer(HTTP_EXTERNAL_REQUEST_DURATIONS, { labels });
 
     const resp$ = this.httpService.request<Res>(axiosRequest).pipe(
       tap((response) => {
@@ -113,11 +115,13 @@ export class HttpClientService {
                   this.prometheusManager.counter().increment(HTTP_EXTERNAL_REQUEST_FAILED, {
                     labels: {
                       ...labels,
-                      statusCode: handleError.statusCode.toString(),
+                      statusCode: handleError.statusCode?.toString(),
                       type: handleError.loggerMarker,
                     },
                   });
-                  end();
+                  if (end !== undefined) {
+                    end();
+                  }
                   end = undefined;
 
                   this.responseHandler.loggingResponse(handleError, { fieldsLogs, retryCount: retryCount - 1 });
@@ -128,7 +132,7 @@ export class HttpClientService {
                         this.prometheusManager.counter().increment(HTTP_EXTERNAL_REQUEST_RETRY, {
                           labels: {
                             ...labels,
-                            statusCode: handleError.statusCode.toString(),
+                            statusCode: handleError.statusCode?.toString(),
                             type: handleError.loggerMarker,
                           },
                         });
@@ -173,7 +177,7 @@ export class HttpClientService {
           this.prometheusManager.counter().increment(HTTP_EXTERNAL_REQUEST_FAILED, {
             labels: {
               ...labels,
-              statusCode: handleError.statusCode.toString(),
+              statusCode: handleError.statusCode?.toString(),
               type: handleError.loggerMarker,
             },
           });

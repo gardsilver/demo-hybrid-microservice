@@ -10,7 +10,6 @@ import {
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { KafkaOptionsBuilder } from 'src/modules/kafka/kafka-common';
-import { MockKafka } from 'tests/kafkajs';
 import { MockConfigService } from 'tests/nestjs';
 import { MockElkLoggerService } from 'tests/modules/elk-logger';
 import { KafkaServerStatusService } from '../services/kafka-server.status.service';
@@ -18,9 +17,7 @@ import { KafkaMicroserviceBuilder } from './kafka.microservice.builder';
 import { KafkaServerHealthIndicator } from '../services/kafka-server.health-indicator';
 import { KafkaServerService } from '../services/kafka-server.service';
 
-jest.mock('kafkajs', () => {
-  return { Kafka: jest.fn((prams?) => new MockKafka(prams)) };
-});
+jest.mock('kafkajs', () => jest.requireActual('tests/kafkajs').KAFKAJS_MOCK);
 
 describe(KafkaMicroserviceBuilder.name, () => {
   let serverName: string;

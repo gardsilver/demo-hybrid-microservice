@@ -40,7 +40,7 @@ describe(HttpAuthGuard.name, () => {
   let authService: IAuthService;
   let headersAdapter: IHttpHeadersToAsyncContextAdapter;
   let guard: HttpAuthGuard;
-  let token;
+  let token: string | undefined;
 
   beforeEach(async () => {
     logger = new MockElkLoggerService();
@@ -106,8 +106,8 @@ describe(HttpAuthGuard.name, () => {
           getRequest: () => request,
           getResponse: jest.fn(),
           getNext: jest.fn(),
-        }) as undefined as HttpArgumentsHost,
-    } as undefined as ExecutionContext;
+        }) as unknown as HttpArgumentsHost,
+    } as unknown as ExecutionContext;
 
     jest.clearAllMocks();
   });

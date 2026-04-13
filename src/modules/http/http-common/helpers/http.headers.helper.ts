@@ -4,23 +4,23 @@ import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from '../types/general.async-context';
 
 export abstract class HttHeadersHelper {
-  public static normalize<H = IKeyValue>(headers: H): IHeaders {
+  public static normalize<H extends object = IKeyValue>(headers: H): IHeaders {
     return BaseHeadersHelper.normalize(headers);
   }
 
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string {
-    return (
-      {
-        traceId: useZipkin
-          ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID
-          : HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-        spanId: useZipkin
-          ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID
-          : HttpGeneralAsyncContextHeaderNames.SPAN_ID,
-        correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
-        requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
-      }[name] ?? undefined
-    );
+  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
+    const map: Record<string, HttpGeneralAsyncContextHeaderNames> = {
+      traceId: useZipkin
+        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID
+        : HttpGeneralAsyncContextHeaderNames.TRACE_ID,
+      spanId: useZipkin
+        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID
+        : HttpGeneralAsyncContextHeaderNames.SPAN_ID,
+      correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
+      requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
+    };
+
+    return map[name];
   }
 
   public static toAsyncContext<Ctx extends IAsyncContext>(headers: IHeaders): Ctx {
@@ -44,12 +44,12 @@ export abstract class HttHeadersHelper {
       initialSpanId: parentSpanId,
       requestId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
       correlationId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
-    } as undefined as Ctx;
+    } as unknown as Ctx;
 
     return ctx;
   }
 
-  protected static searchValue(headers: IHeaders, ...headerName: string[]): string {
+  protected static searchValue(headers: IHeaders, ...headerName: string[]): string | undefined {
     const result = BaseHeadersHelper.searchValue(headers, ...headerName);
 
     if (Array.isArray(result.value)) {
@@ -62,7 +62,7 @@ export abstract class HttHeadersHelper {
 
     if (
       [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID].includes(
-        result.header as undefined as HttpGeneralAsyncContextHeaderNames,
+        result.header as unknown as HttpGeneralAsyncContextHeaderNames,
       )
     ) {
       return TraceSpanHelper.formatToGuid(result.value);

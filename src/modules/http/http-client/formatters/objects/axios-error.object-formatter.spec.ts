@@ -62,7 +62,7 @@ describe(AxiosErrorFormatter.name, () => {
       },
     });
 
-    axiosResponse.headers = undefined;
+    axiosResponse.headers = undefined as unknown as AxiosResponse['headers'];
 
     expect(formatter.transform(error)).toEqual({
       code: 'ERR_BAD_REQUEST',

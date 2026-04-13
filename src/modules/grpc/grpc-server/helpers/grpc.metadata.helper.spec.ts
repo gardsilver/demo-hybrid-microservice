@@ -28,7 +28,9 @@ describe(GrpcMetadataHelper.name, () => {
 
     expect(copyAsyncContext).toEqual(asyncContext);
     expect(METADATA_ASYNC_CONTEXT_KEY in requestMetadata).toBeTruthy();
-    expect(requestMetadata[METADATA_ASYNC_CONTEXT_KEY]).toEqual(copyAsyncContext);
+    expect((requestMetadata as unknown as Record<string | symbol, unknown>)[METADATA_ASYNC_CONTEXT_KEY]).toEqual(
+      copyAsyncContext,
+    );
 
     const result = GrpcMetadataHelper.getAsyncContext(requestMetadata);
 
@@ -47,7 +49,9 @@ describe(GrpcMetadataHelper.name, () => {
 
     expect(copyAuthInfo).toEqual(authInfo);
     expect(METADATA_AUTH_INFO_KEY in requestMetadata).toBeTruthy();
-    expect(requestMetadata[METADATA_AUTH_INFO_KEY]).toEqual(copyAuthInfo);
+    expect((requestMetadata as unknown as Record<string | symbol, unknown>)[METADATA_AUTH_INFO_KEY]).toEqual(
+      copyAuthInfo,
+    );
 
     const result = GrpcMetadataHelper.getAuthInfo(requestMetadata);
 

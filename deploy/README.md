@@ -20,7 +20,6 @@
 
 | **make**-команда | Описание |
 |---|---|
-| `make init` | Создаёт необходимые Docker volumes (`postgres`, `redis`, `kafka`, `rabbitmq`). Достаточно выполнить один раз. |
 | `make dc-start` | Запускает все контейнеры окружения и микросервис **Demo Hybrid Microservice** (`docker compose ... up -d`). |
 | `make dc-down` | Останавливает работу всех контейнеров (`docker compose ... down`). |
 | `make dc-rm-all` | Останавливает контейнеры и полностью очищает Docker (`system prune` с volumes и images). |

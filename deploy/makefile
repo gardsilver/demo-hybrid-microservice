@@ -5,13 +5,6 @@ default: help
 help: ## Показать список доступных команд
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk -F ':.*?## ' '{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-.PHONY: docker-init
-init: ## Создать Docker volumes (postgres, redis, kafka, rabbitmq)
-	docker volume create --name=postgres
-	docker volume create --name=redis
-	docker volume create --name=kafka
-	docker volume create --name=rabbitmq
-
 .PHONY: logs docker-rm all
 dc-rm-all: ## Остановить все контейнеры и очистить Docker (volumes, images)
 	docker compose -f base-compose.yml -f demo-hybrid-microservice.yml down

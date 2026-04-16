@@ -6,7 +6,9 @@ services:
     restart: always
     volumes:
       - ../:/app
-    entrypoint: ["npm", "--prefix=/app", "run", "start:dev"]
+      - /app/node_modules
+      - /app/protos/compiled
+    entrypoint: ["sh", "-c", "[ -f /app/.env ] || cp /app/.example.env /app/.env; exec npm --prefix=/app run start:dev"]
     ports:
       - "3000:3000"
       - "3001:3001"

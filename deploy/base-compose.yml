@@ -4,13 +4,9 @@ networks:
 
 volumes:
   postgres:
-    external: true
   redis:
-    external: true
   kafka:
-    external: true
   rabbitmq:
-    external: true
 
 services: 
   redis: 
@@ -47,8 +43,8 @@ services:
       POSTGRES_USER: vagrant
       POSTGRES_PASSWORD: vagrant
       POSTGRES_DB: demo
-      TZ: "Europe/Moskow"
-      PGTZ: "Europe/Moskow"
+      TZ: "Europe/Moscow"
+      PGTZ: "Europe/Moscow"
     ports:
       - "5432:5432"
     volumes:

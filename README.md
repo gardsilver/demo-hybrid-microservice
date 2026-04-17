@@ -2,7 +2,7 @@
 
 Минимальное серверное приложение на [Node.js v24](https://nodejs.org) и [NestJS v11](https://nestjs.com), демонстрирующее **гибридную микросервисную архитектуру** с поддержкой нескольких транспортов: **REST (HTTP)**, **gRPC**, **Kafka**, **RabbitMq** и **WebSocket**.
 
-Стек: **TypeScript 5.9**, **Node.js >= 24**, **PostgreSQL** (Sequelize ORM), **Redis**, **Kafka** (kafkajs), **RabbitMq** (amqp-connection-manager), **gRPC** (`@grpc/grpc-js`, `ts-proto`), **Prometheus**, **Docker**.
+Стек: **TypeScript 5.9 with strict**, **Node.js >= 24**, **PostgreSQL** (Sequelize ORM), **Redis**, **Kafka** (kafkajs), **RabbitMq** (amqp-connection-manager), **gRPC** (`@grpc/grpc-js`, `ts-proto`), **Prometheus**, **Docker**.
 
 Реализован и настроен базовый системный функционал:
 
@@ -17,7 +17,7 @@
 Добавлен простой `WebSocket`-чат.
 
 
-## Быстрый старт
+## 1. Быстрый старт
 
 Минимальный путь от клонирования до работающего приложения со Swagger.
 
@@ -53,12 +53,12 @@ cd ..
 - **gRPC** на `127.0.0.1:3001` с включённым **Reflection-Service**.
 
 
-В данном случае приложение будет запущено с параметрами окружения заданными по умолчанию [`.example.env`](.example.env). Изменить параметры запуска всегда возможно указав нужные значения в [`.env`](.env).
+В данном случае приложение будет запущено с параметрами окружения заданными по умолчанию [`.example.env`](.example.env). Изменить параметры запуска всегда возможно указав нужные значения в `.env`.
 
 Полный набор docker-команд — в [`deploy/README.md`](./deploy/README.md).
 
 
-## Настрока приложения, сборка и запуск вне Docker-окружения
+## 2. Настрока приложения, сборка и запуск вне Docker-окружения
 
 
 ### 2.1. Конфигурация окружения
@@ -89,7 +89,7 @@ make start-dev          # nest start --watch
 ```
 
 
-### 6. Проверка качества
+### 2.4. Проверка качества
 
 Запускается **из корня проекта**:
 
@@ -98,7 +98,7 @@ make lint-all           # ESLint + Prettier
 make test-cov           # unit-тесты с покрытием (порог 90% по всем метрикам, зафиксирован в jest.coverageThreshold)
 ```
 
-## Порты и эндпоинты
+## 3. Порты и эндпоинты
 
 | Сервис | Порт | Параметр | Описание |
 |---|---|---|---|
@@ -172,7 +172,7 @@ TOKEN=$(curl -s http://127.0.0.1:3000/health/test-jwt-token)
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app
 ```
 
-## Команды
+## 4. Команды
 
 Все часто используемые команды указаны в `makefile`.
 
@@ -195,7 +195,7 @@ curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app
 | `make test-e2e` | `npm run test:e2e` | End-to-end тесты |
 | — | `npm run migrate:generate <имя>` | Генерация новой Sequelize-миграции |
 
-## Структура проекта
+## 5. Структура проекта
 
 ```
 src/
@@ -215,15 +215,12 @@ deploy/                        # Docker и Docker Compose
 tests/                         # Моки и фабрики для тестов (сами тесты лежат рядом с исходниками в src/)
 ```
 
-## Локальная среда разработки
 
-Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды, позволяющие быстро поднимать минимально-необходимое окружение и эмулировать различные аварийные ситуации (например, отказ **Postgres** или другой интеграции). Подробнее — в [`deploy/README.md`](./deploy/README.md).
-
-## Документация модулей
+## 6. Документация модулей
 
 Каждый модуль сопровождается собственным `README.md` с описанием назначения, зависимостей и переменных окружения.
 
-### Инфраструктурные модули
+### 6.1 Инфраструктурные модули
 
 - **Логирование и async-контекст**: [`src/modules/common`](./src/modules/common/README.md), [`src/modules/elk-logger`](./src/modules/elk-logger/README.md), [`src/modules/async-context`](./src/modules/async-context/README.md), [`src/modules/date-timestamp`](./src/modules/date-timestamp/README.md).
 - **Метрики и наблюдаемость**: [`src/modules/prometheus`](./src/modules/prometheus/README.md).
@@ -231,7 +228,7 @@ tests/                         # Моки и фабрики для тестов 
 - **Жизненный цикл**: [`src/modules/graceful-shutdown`](./src/modules/graceful-shutdown/README.md).
 - **Хранилища**: [`src/modules/database`](./src/modules/database/README.md), [`src/modules/redis-cache-manager`](./src/modules/redis-cache-manager/README.md).
 
-### Транспортные модули
+### 6.2 Транспортные модули
 
 Каждый транспорт разбит на слои `*-common / *-server / *-client`:
 
@@ -241,7 +238,12 @@ tests/                         # Моки и фабрики для тестов 
 - **RabbitMq**: [`src/modules/rabbit-mq`](./src/modules/rabbit-mq/README.md).
 - **Hybrid (агрегатор)**: [`src/modules/hybrid/hybrid-server`](./src/modules/hybrid/hybrid-server/README.md) — `HybridErrorResponseFilter`, общий error-filter, объединяющий все транспортные `*-server` модули.
 
-## Известные проблемы
+## 7. Локальная среда разработки
+
+Добавлены параметры конфигурации **docker-compose** и настроены часто используемые команды, позволяющие быстро поднимать минимально-необходимое окружение и эмулировать различные аварийные ситуации (например, отказ **Postgres** или другой интеграции). Подробнее — в [`deploy/README.md`](./deploy/README.md).
+
+
+## 8. Известные проблемы
 
 **kafkajs: TimeoutNegativeWarning** — при запуске в логах может появиться:
 

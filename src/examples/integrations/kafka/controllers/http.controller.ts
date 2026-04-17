@@ -11,7 +11,7 @@ import {
   TraceSpanHelper,
 } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { HttpGeneralAsyncContext } from 'src/modules/http/http-server';
+import { HttpAuthGuard, HttpGeneralAsyncContext, HttpLogging, HttpPrometheus } from 'src/modules/http/http-server';
 import { IKafkaAsyncContext, IKafkaMessage, KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, EventKafkaMessage, KafkaContext } from 'src/modules/kafka/kafka-server';
 import { KafkaServers } from 'src/core/app';
@@ -20,11 +20,7 @@ import { KafkaSearchRequest } from '../types/dto';
 import { DemoResponseDeserializer } from '../adapters/demo.response.deserializer';
 import { KafkaService } from '../services/kafka.service';
 
-@SkipInterceptors({
-  HttpAuthGuard: true,
-  HttpLogging: true,
-  HttpPrometheus: true,
-})
+@SkipInterceptors(HttpAuthGuard, HttpLogging, HttpPrometheus)
 @Controller('examples/kafka')
 @ApiTags('examples')
 @ApiBearerAuth()

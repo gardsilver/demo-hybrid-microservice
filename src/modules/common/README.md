@@ -61,22 +61,29 @@
 
 ### `SkipInterceptors`
 
-  Декоратор класса/метода, указывающий о необходимости отключения одного или нескольких глобально настроенных интерцепторов/гуардов. Принимает объект с булевыми флагами из `SkipInterceptorsOption`:
+Декоратор класса/метода, указывающий о необходимости отключения одного или нескольких глобально настроенных интерцепторов/гуардов. Принимает список ссылок на классы интерцепторов/гуардов либо sentinel-значение `SKIP_ALL`.
 
-| Флаг | Что отключает |
-|---|---|
-| `All` | Все перечисленные ниже |
-| `HttpAuthGuard` | `HttpAuthGuard` (`src/modules/http/http-server`) |
-| `HttpLogging` | `HttpLoggingInterceptor` |
-| `HttpPrometheus` | `HttpPrometheusInterceptor` |
-| `HttpHeadersResponse` | `HttpHeadersResponseInterceptor` |
-| `GrpcAuthGuard` | `GrpcAuthGuard` (`src/modules/grpc/grpc-server`) |
-| `GrpcLogging` | `GrpcLoggingInterceptor` |
-| `GrpcPrometheus` | `GrpcPrometheusInterceptor` |
+- `@SkipInterceptors(HttpAuthGuard, HttpLogging)` — отключить перечисленные.
+- `@SkipInterceptors(SKIP_ALL)` — отключить все глобальные guard'ы/interceptor'ы, использующие `isSkipped`.
+- Декоратор на методе **дополняет** список, заданный на уровне класса (метаданные сливаются).
 
-### `getSkipInterceptors`
+### `KeepInterceptors`
 
-  Функция извлекающая настройки, примененные к классу/методу декоратором `SkipInterceptors`.
+Обратный декоратор: убирает указанные классы из итогового списка skip'а (полезен, когда на классе стоит широкий skip, а для конкретного метода нужно вернуть отдельный guard/interceptor). Перевешивает `SKIP_ALL`.
+
+```ts
+@SkipInterceptors(SKIP_ALL)
+@Controller('internal')
+class InternalController {
+  @Get('me')
+  @KeepInterceptors(HttpAuthGuard) // для этого метода авторизация всё-таки выполняется
+  me() {}
+}
+```
+
+### `isSkipped`
+
+Функция, определяющая, нужно ли пропустить конкретный guard/interceptor для текущего `ExecutionContext`. Учитывает оба декоратора и `SKIP_ALL`. Используется внутри guard/interceptor-классов.
 
 ### `Circular normalizers`
 
@@ -162,38 +169,42 @@ export class MyConfig {
 
 ```ts
 import { Controller, Get } from '@nestjs/common';
-import { SkipInterceptors } from 'src/modules/common';
+import { SKIP_ALL, SkipInterceptors, KeepInterceptors } from 'src/modules/common';
+import { HttpAuthGuard, HttpLogging } from 'src/modules/http/http-server';
 
-// Отключение только HttpAuthGuard для конкретного метода
+// Отключить HttpAuthGuard для конкретного метода
 @Controller('public')
 export class PublicController {
   @Get('ping')
-  @SkipInterceptors({ HttpAuthGuard: true })
+  @SkipInterceptors(HttpAuthGuard)
   public ping(): string {
     return 'pong';
   }
 }
 
-// Отключение всех перехватчиков на уровне класса
+// Широкое отключение на классе + точечная отмена на методе
 @Controller('internal')
-@SkipInterceptors({ All: true })
-export class InternalController {}
+@SkipInterceptors(SKIP_ALL)
+export class InternalController {
+  @Get('me')
+  @KeepInterceptors(HttpAuthGuard) // для этого метода авторизация всё-таки нужна
+  public me() {}
+}
 ```
 
-Внутри своих `Guard` / `Interceptor` проверка выполняется через `getSkipInterceptors`:
+Внутри своих `Guard` / `Interceptor` проверка выполняется через `isSkipped`:
 
 ```ts
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { getSkipInterceptors } from 'src/modules/common';
+import { isSkipped } from 'src/modules/common';
 
 @Injectable()
 export class HttpAuthGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   public canActivate(context: ExecutionContext): boolean {
-    const skip = getSkipInterceptors(context, this.reflector);
-    if (skip.All || skip.HttpAuthGuard) {
+    if (isSkipped(context, this.reflector, HttpAuthGuard)) {
       return true;
     }
     // ...основная логика проверки авторизации

@@ -143,7 +143,7 @@ export class HttpController {
 }
 ```
 
-Опции `All` или `HttpAuthGuard` в декораторе `@SkipInterceptors` (**@see** `src/modules/common`) позволяют отключить `HttpAuthGuard` для контроллера/метода (при этом guard всё равно выполнит аутентификацию и заполнит `IAuthInfo`, но всегда вернёт `true`).
+Декоратор `@SkipInterceptors(HttpAuthGuard)` или `@SkipInterceptors(SKIP_ALL)` (**@see** `src/modules/common`) позволяет отключить `HttpAuthGuard` для контроллера/метода (при этом guard всё равно выполнит аутентификацию и заполнит `IAuthInfo`, но всегда вернёт `true`).
 
 ## `HttpLogging`
 
@@ -153,7 +153,7 @@ export class HttpController {
 app.useGlobalInterceptors(app.get(HttpLogging));
 ```
 
-Опция `HttpLogging` в `@SkipInterceptors` позволяет отключить интерцептор.
+Передача `HttpLogging` в `@SkipInterceptors(HttpLogging)` позволяет отключить интерцептор.
 
 ### ВАЖНО
 
@@ -161,11 +161,11 @@ app.useGlobalInterceptors(app.get(HttpLogging));
 
 ## `HttpPrometheus`
 
-Интерцептор метрик обработки серверных **HTTP**-запросов. Подключается глобально либо локально. Опция `HttpPrometheus` в `@SkipInterceptors` отключает интерцептор.
+Интерцептор метрик обработки серверных **HTTP**-запросов. Подключается глобально либо локально. Передача `HttpPrometheus` в `@SkipInterceptors(HttpPrometheus)` отключает интерцептор.
 
 ## `HttpHeadersResponse`
 
-Интерцептор формирования заголовков **HTTP**-ответа — дополняет ответ параметрами сквозного логирования из `IGeneralAsyncContext` через `IHttpHeadersResponseBuilder`. Подключается глобально либо локально. Опция `HttpHeadersResponse` в `@SkipInterceptors` отключает интерцептор.
+Интерцептор формирования заголовков **HTTP**-ответа — дополняет ответ параметрами сквозного логирования из `IGeneralAsyncContext` через `IHttpHeadersResponseBuilder`. Подключается глобально либо локально. Передача `HttpHeadersResponse` в `@SkipInterceptors(HttpHeadersResponse)` отключает интерцептор.
 
 ## `HttpErrorResponseFilter`
 

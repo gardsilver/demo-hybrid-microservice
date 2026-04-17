@@ -10,7 +10,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GeneralAsyncContext, IGeneralAsyncContext, getSkipInterceptors } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext, isSkipped } from 'src/modules/common';
 import { PrometheusLabels, PrometheusManager } from 'src/modules/prometheus';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
@@ -28,11 +28,7 @@ export class HttpPrometheus implements NestInterceptor {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> | Promise<Observable<any>> {
-    if (
-      context.getType() !== 'http' ||
-      getSkipInterceptors(context, this.reflector)['All'] ||
-      getSkipInterceptors(context, this.reflector)['HttpPrometheus']
-    ) {
+    if (context.getType() !== 'http' || isSkipped(context, this.reflector, HttpPrometheus)) {
       return next.handle();
     }
 

@@ -61,3 +61,19 @@ test-cov: ## Запустить unit-тесты с покрытием
 .PHONY: test-e2e
 test-e2e: ## Запустить e2e-тесты
 	npm run test:e2e
+
+.PHONY: dc-start
+dc-start: ## Запустить все контейнеры (инфраструктура + микросервис)
+	$(MAKE) -C deploy dc-start
+
+.PHONY: dc-watch
+dc-watch: ## Включить file-sync для запущенных контейнеров (требует предварительный `make dc-start`)
+	$(MAKE) -C deploy dc-watch
+
+.PHONY: dc-down
+dc-down: ## Остановить все контейнеры
+	$(MAKE) -C deploy dc-down
+
+.PHONY: dc-logs
+dc-logs: ## Показать логи приложения (последние 50 строк, follow)
+	$(MAKE) -C deploy dc-logs-dhms

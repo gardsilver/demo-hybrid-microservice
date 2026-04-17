@@ -8,7 +8,7 @@ import {
   GeneralAsyncContext,
   IGeneralAsyncContext,
   IHeadersToContextAdapter,
-  getSkipInterceptors,
+  isSkipped,
 } from 'src/modules/common';
 import { PrometheusLabels, PrometheusManager } from 'src/modules/prometheus';
 import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
@@ -28,11 +28,7 @@ export class GrpcPrometheus implements NestInterceptor {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> | Promise<Observable<any>> {
-    if (
-      !GrpcHelper.isGrpc(context) ||
-      getSkipInterceptors(context, this.reflector)['All'] ||
-      getSkipInterceptors(context, this.reflector)['GrpcPrometheus']
-    ) {
+    if (!GrpcHelper.isGrpc(context) || isSkipped(context, this.reflector, GrpcPrometheus)) {
       return next.handle();
     }
 

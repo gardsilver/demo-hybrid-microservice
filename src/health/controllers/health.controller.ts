@@ -11,7 +11,7 @@ import {
   ICertificateService,
   AuthHealthIndicatorService,
 } from 'src/modules/auth';
-import { SkipInterceptors } from 'src/modules/common';
+import { SKIP_ALL, SkipInterceptors } from 'src/modules/common';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
 import { DATABASE_DI } from 'src/modules/database';
@@ -19,9 +19,7 @@ import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common
 import { KafkaServerStatusService } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerStatusService } from 'src/modules/rabbit-mq/rabbit-mq-server';
 
-@SkipInterceptors({
-  All: true,
-})
+@SkipInterceptors(SKIP_ALL)
 @ApiTags('health')
 @ApiHeaders([
   { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },

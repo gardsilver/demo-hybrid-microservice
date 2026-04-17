@@ -5,7 +5,7 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, LoggerMarkers, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,
@@ -147,10 +147,8 @@ describe(HttpLogging.name, () => {
     expect(spyHandleError).toHaveBeenCalledTimes(0);
     expect(HttpRequestHelper.getAsyncContext(request)).toBeUndefined();
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        HttpLogging: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [HttpLogging] : [];
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
@@ -170,8 +168,8 @@ describe(HttpLogging.name, () => {
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     handler.handle = jest.fn().mockImplementation(() => {
@@ -233,8 +231,8 @@ describe(HttpLogging.name, () => {
 
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     HttpRequestHelper.setAsyncContext(asyncContext, request);

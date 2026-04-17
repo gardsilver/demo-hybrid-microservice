@@ -11,7 +11,7 @@ import {
   TraceSpanHelper,
 } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { HttpGeneralAsyncContext } from 'src/modules/http/http-server';
+import { HttpAuthGuard, HttpGeneralAsyncContext, HttpLogging, HttpPrometheus } from 'src/modules/http/http-server';
 import {
   IRabbitMqAsyncContext,
   IRabbitMqConsumeMessage,
@@ -24,11 +24,7 @@ import { RabbitMqSearchRequest } from '../types/dto';
 import { RabbitMqService } from '../services/rabbit-mq.service';
 import { DemoResponseDeserializer } from '../adapters/demo.response.deserializer';
 
-@SkipInterceptors({
-  HttpAuthGuard: true,
-  HttpLogging: true,
-  HttpPrometheus: true,
-})
+@SkipInterceptors(HttpAuthGuard, HttpLogging, HttpPrometheus)
 @Controller('examples/rabbit-mq')
 @ApiTags('examples')
 @ApiBearerAuth()

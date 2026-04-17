@@ -175,7 +175,7 @@ export class GrpcController {
 }
 ```
 
-Опция `GrpcAuthGuard` в декораторе `SkipInterceptors` (**@see** `src/modules/common`) позволяет отключать `GrpcAuthGuard` на уровне контроллера/метода.
+Передача `GrpcAuthGuard` в декоратор `@SkipInterceptors(GrpcAuthGuard)` (**@see** `src/modules/common`) позволяет отключать `GrpcAuthGuard` на уровне контроллера/метода.
 
 ## `GrpcLogging`
 
@@ -187,7 +187,7 @@ import { GrpcLogging } from 'src/modules/grpc/grpc-server';
 app.useGlobalInterceptors(app.get(GrpcLogging));
 ```
 
-Опция `GrpcLogging` в декораторе `SkipInterceptors` отключает интерцептор для отдельного контроллера/метода.
+Передача `GrpcLogging` в декоратор `@SkipInterceptors(GrpcLogging)` отключает интерцептор для отдельного контроллера/метода.
 
 ### ВАЖНО
 
@@ -195,7 +195,7 @@ app.useGlobalInterceptors(app.get(GrpcLogging));
 
 ## `GrpcPrometheus`
 
-Интерцептор метрик обработки серверных **gRPC**-запросов. Подключается как к контроллеру/методу, так и глобально. Опция `GrpcPrometheus` в декораторе `SkipInterceptors` отключает интерцептор.
+Интерцептор метрик обработки серверных **gRPC**-запросов. Подключается как к контроллеру/методу, так и глобально. Передача `GrpcPrometheus` в декоратор `@SkipInterceptors(GrpcPrometheus)` отключает интерцептор.
 
 ## `GrpcErrorResponseFilter`
 

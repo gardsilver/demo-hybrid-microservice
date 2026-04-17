@@ -162,10 +162,10 @@ export abstract class BaseElkLoggerService {
 
     if (record.traceId === undefined) {
       if (!newProcess) {
-        record.traceId = lastTS.traceId ?? TraceSpanHelper.generateRandomValue();
+        record.traceId = lastTS.traceId || TraceSpanHelper.generateRandomValue();
+      } else {
+        record.traceId = TraceSpanHelper.generateRandomValue();
       }
-
-      record.traceId = TraceSpanHelper.generateRandomValue();
     }
 
     return record;

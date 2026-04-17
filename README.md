@@ -21,7 +21,7 @@
 
 Минимальный путь от клонирования до работающего приложения со Swagger.
 
-> В проекте **два** `makefile`: корневой — для сборки/запуска/тестов приложения, и `deploy/makefile` — для управления Docker-инфраструктурой. Каждая команда ниже снабжена пометкой, **откуда она запускается**.
+> В проекте **два** `makefile`: корневой — для сборки/запуска/тестов приложения (в нём также есть shortcut'ы `make dc-*` для Docker), и `deploy/makefile` — полный набор команд для управления Docker-инфраструктурой. Каждая команда ниже снабжена пометкой, **откуда она запускается**.
 
 ### 1.1. Предварительные требования
 
@@ -32,14 +32,14 @@
 
 ### 1.2. Подъём локальной инфраструктуры и быстрый старт
 
-Можно не производить тонких настроек, а сразу развертуть инфраструктуру и запустить приложение  (**из каталога `deploy/`**):
+Можно не производить тонких настроек, а сразу развернуть инфраструктуру и запустить приложение (**из корня проекта**):
 
 ```bash
-cd deploy
-make dc-start           # Поднимает инфораструктуру и запускает микросервис **Demo Hybrid Microservice**
-make dc-logs-dhms       # Показывает последние 50 строк логов микросервиса **Demo Hybrid Microservice** с отслеживанием.
-cd ..
+make dc-start           # Поднимает инфраструктуру + микросервис + Docker Compose Watch в фоне
+make dc-logs            # Последние 50 строк логов микросервиса с отслеживанием
 ```
+
+`make dc-start` автоматически запускает **Docker Compose Watch** в фоновом процессе — правки в `src/**` подхватываются без рестарта контейнера (`nest start --watch` сам перезапускает Node-процесс), конфиги и `.env` — через `sync+restart`, `protos/` и `package.json` — через `rebuild`. Лог watch-процесса можно посмотреть через `make dc-watch-log`, перезапустить — через `make dc-watch`. `make dc-down` останавливает и контейнеры, и фоновый watch. Подробности — в [`deploy/README.md`](./deploy/README.md).
 
 После старта доступны:
 
@@ -194,6 +194,11 @@ curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app
 | `make test-cov` | `npm run test:cov` | Unit-тесты с покрытием (порог 90% по всем метрикам, зафиксирован в `jest.coverageThreshold`) |
 | `make test-e2e` | `npm run test:e2e` | End-to-end тесты |
 | — | `npm run migrate:generate <имя>` | Генерация новой Sequelize-миграции |
+| `make dc-start` | `docker compose ... up -d` + `docker compose ... watch &` | Запуск всех контейнеров (инфраструктура + микросервис) + **Docker Compose Watch в фоне** (hot-sync исходников) |
+| `make dc-watch` | `docker compose ... watch &` | Перезапустить фоновый file-sync (если watch-процесс упал) |
+| `make dc-down` | `docker compose ... down` | Остановка всех контейнеров **и фонового watch** |
+| `make dc-logs` | `docker logs --tail 50 -f demo-hybrid-microservice` | Логи микросервиса с follow |
+| `make dc-watch-log` | `tail -f /tmp/docker-compose-$UID/dhms-watch.log` | Лог фонового watch-процесса (сообщения о sync/rebuild) |
 
 ## 5. Структура проекта
 

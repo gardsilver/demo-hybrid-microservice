@@ -6,7 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExecutionContext } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import { AccessRoles, AUTH_SERVICE_DI, AuthModule, IAuthService } from 'src/modules/auth';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import {
@@ -128,10 +128,8 @@ describe(HttpAuthGuard.name, () => {
     jest.spyOn(headersAdapter, 'adapt').mockImplementation(() => {
       return asyncContext;
     });
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        HttpAuthGuard: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [HttpAuthGuard] : [];
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
@@ -148,8 +146,8 @@ describe(HttpAuthGuard.name, () => {
       return asyncContext;
     });
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
     headers[AUTHORIZATION_HEADER_NAME] = `${BEARER_NAME} token`;
@@ -174,8 +172,8 @@ describe(HttpAuthGuard.name, () => {
     const spyHeadersAdapt = jest.spyOn(headersAdapter, 'adapt');
 
     HttpRequestHelper.setAsyncContext(asyncContext, request);
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     host.getType = jest.fn().mockImplementation(() => 'http');

@@ -61,3 +61,23 @@ test-cov: ## Запустить unit-тесты с покрытием
 .PHONY: test-e2e
 test-e2e: ## Запустить e2e-тесты
 	npm run test:e2e
+
+.PHONY: dc-start
+dc-start: ## Поднять все контейнеры + запустить Docker Compose Watch в фоне
+	$(MAKE) -C deploy dc-start
+
+.PHONY: dc-watch
+dc-watch: ## Перезапустить фоновый Docker Compose Watch (если упал или нужно обновить)
+	$(MAKE) -C deploy dc-watch
+
+.PHONY: dc-down
+dc-down: ## Остановить все контейнеры и фоновый watch
+	$(MAKE) -C deploy dc-down
+
+.PHONY: dc-logs
+dc-logs: ## Показать логи приложения (последние 50 строк, follow)
+	$(MAKE) -C deploy dc-logs-dhms
+
+.PHONY: dc-watch-log
+dc-watch-log: ## Показать лог фонового file-sync (follow)
+	$(MAKE) -C deploy dc-watch-log

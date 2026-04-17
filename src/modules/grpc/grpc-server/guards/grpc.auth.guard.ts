@@ -4,7 +4,7 @@ import { Metadata } from '@grpc/grpc-js';
 import { AUTH_SERVICE_DI, AuthStatus, IAuthService } from 'src/modules/auth';
 import {
   GeneralAsyncContext,
-  getSkipInterceptors,
+  isSkipped,
   IGeneralAsyncContext,
   IHeadersToContextAdapter,
 } from 'src/modules/common';
@@ -46,10 +46,7 @@ export class GrpcAuthGuard implements CanActivate {
 
     GrpcMetadataHelper.setAuthInfo(auth, metadata);
 
-    if (
-      getSkipInterceptors(context, this.reflector).All ||
-      getSkipInterceptors(context, this.reflector).GrpcAuthGuard
-    ) {
+    if (isSkipped(context, this.reflector, GrpcAuthGuard)) {
       return true;
     }
 

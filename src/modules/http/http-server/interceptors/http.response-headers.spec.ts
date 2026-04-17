@@ -5,7 +5,7 @@ import { ExecutionContext, CallHandler, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import {
   HttHeadersHelper,
   HttpHeadersToAsyncContextAdapter,
@@ -127,10 +127,8 @@ describe(HttpHeadersResponse.name, () => {
     expect(spyHeadersResponseBuilder).toHaveBeenCalledTimes(0);
     expect(HttpRequestHelper.getAsyncContext(request)).toBeUndefined();
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        HttpHeadersResponse: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [HttpHeadersResponse] : [];
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
@@ -149,8 +147,8 @@ describe(HttpHeadersResponse.name, () => {
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     handler.handle = jest.fn().mockImplementation(() => {
@@ -185,8 +183,8 @@ describe(HttpHeadersResponse.name, () => {
     const spyHeadersAdapter = jest.spyOn(headersAdapter, 'adapt');
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     const error = new Error('Test error');

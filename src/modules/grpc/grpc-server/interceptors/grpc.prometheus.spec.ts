@@ -7,7 +7,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,
@@ -130,10 +130,8 @@ describe(GrpcPrometheus.name, () => {
 
     expect(spy).toHaveBeenCalledTimes(0);
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        GrpcPrometheus: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [GrpcPrometheus] : [];
     });
     jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => true);
 
@@ -151,8 +149,8 @@ describe(GrpcPrometheus.name, () => {
   it('response success', async () => {
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     jest.spyOn(reflector, 'get').mockImplementation(() => {
@@ -194,8 +192,8 @@ describe(GrpcPrometheus.name, () => {
 
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     jest.spyOn(reflector, 'get').mockImplementation(() => {
@@ -251,8 +249,8 @@ describe(GrpcPrometheus.name, () => {
 
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     jest.spyOn(reflector, 'get').mockImplementation(() => {

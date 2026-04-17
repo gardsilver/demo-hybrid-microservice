@@ -9,19 +9,21 @@
 ## Состав
 
 - `base-compose.yml` — описание контейнеров инфраструктуры (Postgres, Redis, Redis Insight, Kafka, Kafka UI, RabbitMq).
-- `demo-hybrid-microservice.yml` — overlay для запуска самого микросервиса в Docker (сборка из корня репозитория, entrypoint `npm run start:dev`, монтирование исходников `../:/app`, порты `3000:3000` и `3001:3001`).
+- `demo-hybrid-microservice.yml` — overlay для запуска самого микросервиса в Docker (сборка из корня репозитория, команда `npm run start:dev`, порты `3000:3000` и `3001:3001`; исходники синхронизируются в контейнер через Docker Compose Watch, см. ниже).
 - `makefile` — набор команд для управления инфраструктурой (см. ниже).
 
 Все команды `docker compose` применяют оба файла одновременно (`-f base-compose.yml -f demo-hybrid-microservice.yml`). Сеть `dev-local` (bridge).
 
 ## Установка и настройка
 
-Все часто используемые команды указаны в `makefile`. Запускаются **из каталога `deploy/`**.
+Все часто используемые команды указаны в `makefile`. Запускаются **из каталога `deploy/`**. Базовые команды (`dc-start`, `dc-watch`, `dc-down`, `dc-logs`) также проксированы в корневой `makefile` — их можно вызывать из корня проекта.
 
 | **make**-команда | Описание |
 |---|---|
-| `make dc-start` | Запускает все контейнеры окружения и микросервис **Demo Hybrid Microservice** (`docker compose ... up -d`). |
-| `make dc-down` | Останавливает работу всех контейнеров (`docker compose ... down`). |
+| `make dc-start` | Поднимает все контейнеры (`docker compose ... up -d`) **и запускает Docker Compose Watch в фоне**. Терминал не блокируется. |
+| `make dc-watch` | Перезапускает фоновый watch-процесс (если упал или нужно обновить). Не блокирует терминал. |
+| `make dc-watch-log` | Follow лога фонового watch (`tail -f $(WATCH_LOG)`). Блокирующий, `Ctrl+C` останавливает только просмотр. |
+| `make dc-down` | Останавливает **фоновый watch и все контейнеры** (`docker compose ... down`). |
 | `make dc-rm-all` | Останавливает контейнеры и полностью очищает Docker (`system prune` с volumes и images). |
 | `make dc-down-postgres` | Останавливает **Postgres**. |
 | `make dc-down-redis` | Останавливает **Redis**. |
@@ -91,4 +93,26 @@
 
 ## Микросервис в контейнере
 
-`demo-hybrid-microservice.yml` собирает образ из корня репозитория (`context: ../`), монтирует исходники как том (`../:/app`) и запускает `npm --prefix=/app run start:dev`. Проброшенные порты: `3000:3000` (HTTP/Swagger/WebSocket) и `3001:3001` (gRPC). При изменении исходников — `nest start --watch` автоматически перезапустит приложение внутри контейнера.
+`demo-hybrid-microservice.yml` собирает образ из корня репозитория (`context: ../`) и запускает `npm --prefix=/app run start:dev`. Проброшенные порты: `3000:3000` (HTTP/Swagger/WebSocket) и `3001:3001` (gRPC). Исходники **не** монтируются через bind-mount — это исключает конфликты прав между хостом и контейнером (node_modules/dist на хосте не перетираются владельцем `root` из контейнера).
+
+### Режим разработки через Docker Compose Watch
+
+Типичный dev-workflow — две команды из корня проекта:
+
+```bash
+make dc-start   # поднимает контейнеры detached + запускает Docker Compose Watch в фоне (PID в /tmp/docker-compose-$UID/dhms-watch.pid)
+make dc-logs    # follow логов микросервиса
+```
+
+Если watch-процесс по каким-то причинам упал или нужно его перезапустить — `make dc-watch` (безопасно вызывать многократно; убивает старый процесс и поднимает новый). Для наблюдения за самим watch-процессом — `make dc-watch-log`. Остановка всего — `make dc-down`.
+
+Compose следит за файлами на хосте и автоматически пробрасывает изменения в контейнер без bind-mount:
+
+| Что меняется | Действие watch | Что происходит |
+|---|---|---|
+| `src/**`, `front/**`, `migrations/**` | `sync` | Файлы копируются в контейнер; `nest start --watch` сам перезапускает Node-процесс (без рестарта контейнера). |
+| `tsconfig.json`, `tsconfig.build.json`, `nest-cli.json`, `.env` | `sync+restart` | Файл копируется + контейнер перезапускается (несколько секунд). |
+| `protos/**` | `rebuild` | Пересобирается образ (требуется повторный `npm run proto-compile`). |
+| `package.json`, `package-lock.json` | `rebuild` | Пересобирается образ с новым `npm i`. |
+
+Watch-блок описан в `develop.watch` в `demo-hybrid-microservice.yml`. Начальное состояние `src/`, `front/`, `migrations/`, `protos/`, `node_modules/` попадает в образ через `COPY` в `Dockerfile` — хосту эти директории **не нужны для запуска контейнера**, но нужны для IDE (автокомплит TypeScript, ESLint, Jest). Устанавливаются той же командой [`make i`](../README.md#4-команды) из корня проекта.

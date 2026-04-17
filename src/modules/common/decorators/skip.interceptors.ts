@@ -1,46 +1,35 @@
-import { ExecutionContext, SetMetadata } from '@nestjs/common';
+import { ExecutionContext, SetMetadata, Type } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-export type SkipInterceptorsOption = {
-  All?: boolean;
-  HttpAuthGuard?: boolean;
-  HttpLogging?: boolean;
-  HttpPrometheus?: boolean;
-  HttpHeadersResponse?: boolean;
-  GrpcAuthGuard?: boolean;
-  GrpcLogging?: boolean;
-  GrpcPrometheus?: boolean;
-};
+export const SKIP_ALL = Symbol('SKIP_ALL');
+
+export type SkipInterceptorTarget = Type | typeof SKIP_ALL;
 
 export const SKIP_INTERCEPTORS_KEY = 'skipInterceptors';
+export const KEEP_INTERCEPTORS_KEY = 'keepInterceptors';
 
-export const SkipInterceptors = (option?: SkipInterceptorsOption) =>
-  SetMetadata(SKIP_INTERCEPTORS_KEY, {
-    All: option?.All ?? false,
-    HttpAuthGuard: option?.HttpAuthGuard ?? false,
-    HttpLogging: option?.HttpLogging ?? false,
-    HttpPrometheus: option?.HttpPrometheus ?? false,
-    HttpHeadersResponse: option?.HttpHeadersResponse ?? false,
-    GrpcAuthGuard: option?.GrpcAuthGuard ?? false,
-    GrpcLogging: option?.GrpcLogging ?? false,
-    GrpcPrometheus: option?.GrpcPrometheus ?? false,
-  } as SkipInterceptorsOption);
+export const SkipInterceptors = (...targets: SkipInterceptorTarget[]) =>
+  SetMetadata(SKIP_INTERCEPTORS_KEY, targets);
 
-export const getSkipInterceptors = (context: ExecutionContext, reflector: Reflector): SkipInterceptorsOption => {
-  const option: SkipInterceptorsOption = reflector.getAllAndOverride<SkipInterceptorsOption, string>(
-    SKIP_INTERCEPTORS_KEY,
-    [context.getClass(), context.getHandler()],
-  );
+export const KeepInterceptors = (...targets: Type[]) => SetMetadata(KEEP_INTERCEPTORS_KEY, targets);
 
-  return {
-    All: false,
-    HttpAuthGuard: false,
-    HttpLogging: false,
-    HttpPrometheus: false,
-    HttpHeadersResponse: false,
-    GrpcAuthGuard: false,
-    GrpcLogging: false,
-    GrpcPrometheus: false,
-    ...option,
-  };
+export const isSkipped = (context: ExecutionContext, reflector: Reflector, target: Type): boolean => {
+  const skip =
+    reflector.getAllAndMerge<SkipInterceptorTarget[]>(SKIP_INTERCEPTORS_KEY, [
+      context.getClass(),
+      context.getHandler(),
+    ]) ?? [];
+
+  const keep =
+    reflector.getAllAndMerge<Type[]>(KEEP_INTERCEPTORS_KEY, [context.getClass(), context.getHandler()]) ?? [];
+
+  if (keep.includes(target)) {
+    return false;
+  }
+
+  if (skip.includes(SKIP_ALL)) {
+    return true;
+  }
+
+  return skip.includes(target);
 };

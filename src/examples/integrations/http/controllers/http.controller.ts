@@ -3,15 +3,17 @@ import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
 import { GeneralAsyncContext, IGeneralAsyncContext, SkipInterceptors } from 'src/modules/common';
 import { IAuthInfo } from 'src/modules/auth';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { HttpAuthInfo, HttpGeneralAsyncContext } from 'src/modules/http/http-server';
+import {
+  HttpAuthGuard,
+  HttpAuthInfo,
+  HttpGeneralAsyncContext,
+  HttpLogging,
+  HttpPrometheus,
+} from 'src/modules/http/http-server';
 import { BaseRequest, SearchResponse } from 'src/examples/integrations/common';
 import { HttpService } from '../services/http.service';
 
-@SkipInterceptors({
-  HttpAuthGuard: true,
-  HttpLogging: true,
-  HttpPrometheus: true,
-})
+@SkipInterceptors(HttpAuthGuard, HttpLogging, HttpPrometheus)
 @Controller('examples/http')
 @ApiTags('examples')
 @ApiBearerAuth()

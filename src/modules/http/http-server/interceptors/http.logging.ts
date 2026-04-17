@@ -8,7 +8,7 @@ import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   TraceSpanBuilder,
 } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, getSkipInterceptors, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext, isSkipped, LoggerMarkers } from 'src/modules/common';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 import { HttpLoggerHelper } from '../helpers/http.logger.helper';
@@ -28,11 +28,7 @@ export class HttpLogging implements NestInterceptor {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> | Promise<Observable<any>> {
-    if (
-      context.getType() !== 'http' ||
-      getSkipInterceptors(context, this.reflector)['All'] ||
-      getSkipInterceptors(context, this.reflector)['HttpLogging']
-    ) {
+    if (context.getType() !== 'http' || isSkipped(context, this.reflector, HttpLogging)) {
       return next.handle();
     }
 

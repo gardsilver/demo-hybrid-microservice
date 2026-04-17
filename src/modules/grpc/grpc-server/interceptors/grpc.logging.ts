@@ -3,7 +3,7 @@ import { Metadata, status as GrpcStatus } from '@grpc/grpc-js';
 import { CallHandler, ExecutionContext, Inject, NestInterceptor } from '@nestjs/common';
 import { PATTERN_METADATA } from '@nestjs/microservices/constants';
 import { Reflector } from '@nestjs/core';
-import { getSkipInterceptors, IGeneralAsyncContext, IHeadersToContextAdapter, LoggerMarkers } from 'src/modules/common';
+import { isSkipped, IGeneralAsyncContext, IHeadersToContextAdapter, LoggerMarkers } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   IElkLoggerServiceBuilder,
@@ -28,11 +28,7 @@ export class GrpcLogging implements NestInterceptor {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler<any>): Observable<any> | Promise<Observable<any>> {
-    if (
-      !GrpcHelper.isGrpc(context) ||
-      getSkipInterceptors(context, this.reflector)['All'] ||
-      getSkipInterceptors(context, this.reflector)['GrpcLogging']
-    ) {
+    if (!GrpcHelper.isGrpc(context) || isSkipped(context, this.reflector, GrpcLogging)) {
       return next.handle();
     }
     const rpc = context.switchToRpc();

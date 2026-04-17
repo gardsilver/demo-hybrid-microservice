@@ -5,7 +5,7 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import {
   ICounterService,
@@ -136,10 +136,8 @@ describe(HttpPrometheus.name, () => {
     expect(spyIncrement).toHaveBeenCalledTimes(0);
     expect(HttpRequestHelper.getAsyncContext(request)).toBeUndefined();
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        HttpPrometheus: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [HttpPrometheus] : [];
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
@@ -157,8 +155,8 @@ describe(HttpPrometheus.name, () => {
     });
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     handler.handle = jest.fn().mockImplementation(() => {
@@ -188,8 +186,8 @@ describe(HttpPrometheus.name, () => {
 
     host.getType = jest.fn().mockImplementation(() => 'http');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     HttpRequestHelper.setAsyncContext(asyncContext, request);

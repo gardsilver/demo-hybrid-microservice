@@ -2,7 +2,7 @@ import { Request } from 'express';
 import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AUTH_SERVICE_DI, AuthStatus, IAuthService } from 'src/modules/auth';
-import { GeneralAsyncContext, getSkipInterceptors, IGeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext, isSkipped, IGeneralAsyncContext } from 'src/modules/common';
 import { HttHeadersHelper, HttpAuthHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HTTP_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
@@ -43,10 +43,7 @@ export class HttpAuthGuard implements CanActivate {
 
     HttpRequestHelper.setAuthInfo(auth, request);
 
-    if (
-      getSkipInterceptors(context, this.reflector).All ||
-      getSkipInterceptors(context, this.reflector).HttpAuthGuard
-    ) {
+    if (isSkipped(context, this.reflector, HttpAuthGuard)) {
       return true;
     }
 

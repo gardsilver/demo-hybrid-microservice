@@ -3,16 +3,18 @@ import { ApiTags, ApiBearerAuth, ApiHeaders } from '@nestjs/swagger';
 import { IAuthInfo } from 'src/modules/auth';
 import { GeneralAsyncContext, IGeneralAsyncContext, SkipInterceptors } from 'src/modules/common';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { HttpAuthInfo, HttpGeneralAsyncContext } from 'src/modules/http/http-server';
+import {
+  HttpAuthGuard,
+  HttpAuthInfo,
+  HttpGeneralAsyncContext,
+  HttpLogging,
+  HttpPrometheus,
+} from 'src/modules/http/http-server';
 import { SearchResponse } from 'src/examples/integrations/common';
 import { GrpcSearchRequest } from '../types/dto';
 import { GrpcService } from '../services/grpc.service';
 
-@SkipInterceptors({
-  HttpAuthGuard: true,
-  HttpLogging: true,
-  HttpPrometheus: true,
-})
+@SkipInterceptors(HttpAuthGuard, HttpLogging, HttpPrometheus)
 @Controller('examples/grpc')
 @ApiTags('examples')
 @ApiBearerAuth()

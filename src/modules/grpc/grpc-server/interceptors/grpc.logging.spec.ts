@@ -6,7 +6,7 @@ import { CallHandler, RpcArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext, IHeaders, LoggerMarkers, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,
@@ -129,10 +129,8 @@ describe(GrpcLogging.name, () => {
 
     expect(spy).toHaveBeenCalledTimes(0);
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {
-        GrpcLogging: true,
-      };
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
+      return key === SKIP_INTERCEPTORS_KEY ? [GrpcLogging] : [];
     });
     jest.spyOn(GrpcHelper, 'isGrpc').mockImplementation(() => true);
 
@@ -150,8 +148,8 @@ describe(GrpcLogging.name, () => {
   it('logging success', async () => {
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     jest.spyOn(reflector, 'get').mockImplementation(() => {
@@ -230,8 +228,8 @@ describe(GrpcLogging.name, () => {
 
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
-    jest.spyOn(reflector, 'getAllAndOverride').mockImplementation(() => {
-      return {};
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
+      return [];
     });
 
     jest.spyOn(reflector, 'get').mockImplementation(() => {

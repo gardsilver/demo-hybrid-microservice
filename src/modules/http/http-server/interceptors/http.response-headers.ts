@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { catchError, Observable, tap, throwError } from 'rxjs';
 import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { IGeneralAsyncContext, getSkipInterceptors } from 'src/modules/common';
+import { IGeneralAsyncContext, isSkipped } from 'src/modules/common';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 import { HttpResponseHelper } from '../helpers/http.response.helper';
@@ -21,11 +21,7 @@ export class HttpHeadersResponse implements NestInterceptor {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> | Promise<Observable<any>> {
-    if (
-      context.getType() !== 'http' ||
-      getSkipInterceptors(context, this.reflector)['All'] ||
-      getSkipInterceptors(context, this.reflector)['HttpHeadersResponse']
-    ) {
+    if (context.getType() !== 'http' || isSkipped(context, this.reflector, HttpHeadersResponse)) {
       return next.handle();
     }
     const ctx = context.switchToHttp();

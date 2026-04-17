@@ -86,6 +86,6 @@ app.connectMicroservice<MicroserviceOptions>({
 Timeout duration was set to 1.
 ```
 
-Причина — баг `kafkajs` (`node_modules/kafkajs/src/consumer/index.js:300`): при `KafkaJSNumberOfRetriesExceeded` в `e.retryTime` попадает экспоненциально выросшее отрицательное значение, передаваемое в `setTimeout()`. В Node < 24 оно молча приводилось к `1 ms`, в Node 24 — печатается warning. `kafkajs` [фактически заброшен](https://github.com/tulios/kafkajs/issues/1572) с 2023 года (последняя версия — 2.2.4), фикс в upstream не ожидается.
+Причина — баг `kafkajs` (`node_modules/kafkajs/src/consumer/index.js:300`): при `KafkaJSNumberOfRetriesExceeded` в `e.retryTime` попадает экспоненциально выросшее отрицательное значение, передаваемое в `setTimeout()`. В Node < 24 оно молча приводилось к `1 ms`, в Node 24 — печатается warning. 
 
 На работу приложения это не влияет (таймаут корректно устанавливается в 1 мс). При необходимости warning подавляется опцией `NODE_OPTIONS=--disable-warning=TimeoutNegativeWarning`.

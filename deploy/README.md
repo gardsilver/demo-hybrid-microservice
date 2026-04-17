@@ -12,7 +12,7 @@
 - `demo-hybrid-microservice.yml` — overlay для запуска самого микросервиса в Docker (сборка из корня репозитория, entrypoint `npm run start:dev`, монтирование исходников `../:/app`, порты `3000:3000` и `3001:3001`).
 - `makefile` — набор команд для управления инфраструктурой (см. ниже).
 
-Все команды `docker compose` применяют оба файла одновременно (`-f base-compose.yml -f demo-hybrid-microservice.yml`). Сеть `dev-local` (bridge) и внешние volumes (`postgres`, `redis`, `kafka`, `rabbitmq`) создаются заранее командой `make init`.
+Все команды `docker compose` применяют оба файла одновременно (`-f base-compose.yml -f demo-hybrid-microservice.yml`). Сеть `dev-local` (bridge).
 
 ## Установка и настройка
 

@@ -9,7 +9,7 @@
 - `BufferObjectFormatter` — реализация `BaseObjectFormatter<Buffer>` (форматер объекта, подключается через `formattersOptions.objectFormatters`).
 - `GeneralAsyncContextFormatter` — реализация `ILogRecordFormatter`, обогащает запись лога данными из `GeneralAsyncContext` (подключается через `formatters`).
 
-Оба класса экспортируются из barrel `src/modules/common/formatters`.
+Оба класса экспортируются из `src/modules/common/formatters`.
 
 ## Параметры окружения
 

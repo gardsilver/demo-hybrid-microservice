@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CheckObjectsType } from 'src/modules/common';
@@ -27,19 +26,14 @@ import { PruneConfig } from '../formatters/prune.config';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
 import { ElkLoggerService } from '../services/elk-logger.service';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
-import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { ElkLoggerServiceBuilder } from './elk-logger.service.builder';
 import { ObjectFormatterBuilder } from './object-formatter.builder';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 describe(ElkLoggerServiceBuilder.name, () => {
-  let mockUuid: string;
   let loggerBuilder: ElkLoggerServiceBuilder;
 
   beforeAll(async () => {
-    mockUuid = randomUUID();
-    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
-
     const module = await Test.createTestingModule({
       providers: [
         {
@@ -139,13 +133,11 @@ describe(ElkLoggerServiceBuilder.name, () => {
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
     expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
-      traceId: mockUuid,
       index: 'MyApplications',
       markers: ['test'],
       businessData: {
         server: 'TestServer',
       },
-      payload: {},
     });
   });
 
@@ -161,7 +153,6 @@ describe(ElkLoggerServiceBuilder.name, () => {
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
     expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
-      traceId: mockUuid,
       index: 'TestApplications',
       markers: ['test', 'request'],
       businessData: {

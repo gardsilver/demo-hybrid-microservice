@@ -4,7 +4,6 @@ import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { ElkLoggerService } from '../services/elk-logger.service';
 import { RecordEncodeFormattersFactory } from '../formatters/record-encode.formatters.factory';
 import { FormattersFactory } from '../formatters/formatters.factory';
-import { TraceSpanHelper } from '../helpers/trace-span.helper';
 
 @Injectable()
 export class ElkLoggerServiceBuilder implements IElkLoggerServiceBuilder {
@@ -21,10 +20,9 @@ export class ElkLoggerServiceBuilder implements IElkLoggerServiceBuilder {
       this.formattersFactory,
     );
 
-    logger.addDefaultLogFields({
-      traceId: TraceSpanHelper.generateRandomValue(),
-      ...defaultFields,
-    });
+    if (defaultFields) {
+      logger.addDefaultLogFields(defaultFields);
+    }
 
     return logger;
   }

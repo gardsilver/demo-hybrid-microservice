@@ -1,5 +1,4 @@
 import { Test } from '@nestjs/testing';
-import { GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 import { FormattersFactory } from './formatters.factory';
 import { ElkLoggerConfig } from 'src/modules/elk-logger';
@@ -17,7 +16,6 @@ describe(FormattersFactory.name, () => {
             isIgnoreObject: () => false,
           },
         },
-        GeneralAsyncContextFormatter,
         HttpSecurityHeadersFormatter,
         FormattersFactory,
       ],
@@ -32,6 +30,6 @@ describe(FormattersFactory.name, () => {
 
   it('getFormatters', async () => {
     const formatters = service.getFormatters();
-    expect(formatters).toEqual([new GeneralAsyncContextFormatter(), new HttpSecurityHeadersFormatter(elkLoggerConfig)]);
+    expect(formatters).toEqual([new HttpSecurityHeadersFormatter(elkLoggerConfig)]);
   });
 });

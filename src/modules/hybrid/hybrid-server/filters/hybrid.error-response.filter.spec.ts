@@ -169,4 +169,28 @@ describe(HybridErrorResponseFilter.name, () => {
     expect(spyRabbitMq).toHaveBeenCalledTimes(1);
     expect(spyRabbitMq).toHaveBeenCalledWith(error, host);
   });
+
+  it('generic rpc falls back to BaseRpcExceptionFilter', async () => {
+    const host = {
+      getType: () => 'rpc',
+      switchToRpc: () => ({
+        getContext: () => ({}),
+      }),
+    } as unknown as ExecutionContext;
+
+    const { BaseRpcExceptionFilter } = await import('@nestjs/microservices');
+    const spyRpcHandle = jest
+      .spyOn(BaseRpcExceptionFilter.prototype as unknown as { handleUnknownError: () => void }, 'handleUnknownError')
+      .mockImplementation(() => undefined);
+
+    filter.catch(error, host);
+
+    expect(spyHttp).toHaveBeenCalledTimes(0);
+    expect(spyGrpc).toHaveBeenCalledTimes(0);
+    expect(spyKafka).toHaveBeenCalledTimes(0);
+    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
+    expect(spyRpcHandle).toHaveBeenCalledTimes(1);
+
+    spyRpcHandle.mockRestore();
+  });
 });

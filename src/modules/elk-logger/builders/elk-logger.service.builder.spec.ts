@@ -18,6 +18,7 @@ import { FullFormatter } from '../formatters/record-encodes/full.formatter';
 import { SimpleFormatter } from '../formatters/record-encodes/simple.formatter';
 import { ShortFormatter } from '../formatters/record-encodes/short.formatter';
 import { FormattersFactory } from '../formatters/formatters.factory';
+import { GeneralAsyncContextFormatter } from '../formatters/records/general.async-context.formatter';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/object.formatter';
@@ -107,6 +108,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
         },
         PruneFormatter,
         SortFieldsFormatter,
+        GeneralAsyncContextFormatter,
         {
           provide: ELK_FEATURE_FORMATTERS_DI,
           useValue: [new MockFormatter()],

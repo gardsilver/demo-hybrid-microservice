@@ -25,6 +25,7 @@ import { CircularFormatter } from './formatters/records/circular.formatter';
 import { ObjectFormatter as RecordObjectFormatter } from './formatters/records/object.formatter';
 import { PruneFormatter } from './formatters/records/prune.formatter';
 import { SortFieldsFormatter } from './formatters/records/sort-fields.formatter';
+import { GeneralAsyncContextFormatter } from './formatters/records/general.async-context.formatter';
 import { FormattersFactory } from './formatters/formatters.factory';
 import { RecordEncodeFormattersFactory } from './formatters/record-encode.formatters.factory';
 import { ElkLoggerService } from './services/elk-logger.service';
@@ -111,6 +112,7 @@ export class ElkLoggerModule {
           });
         },
       },
+      GeneralAsyncContextFormatter,
       PruneFormatter,
       SortFieldsFormatter,
       FormattersFactory,

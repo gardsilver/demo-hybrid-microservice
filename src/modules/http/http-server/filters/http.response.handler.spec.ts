@@ -161,6 +161,27 @@ describe(HttpResponseHandler.name, () => {
       });
     });
 
+    it('non-Error exception is stringified into description', async () => {
+      const exception = 'plain string failure';
+
+      jest.spyOn(headersAdapter, 'adapt').mockImplementation(() => asyncContext);
+      const spyLoggingResponse = jest.spyOn(responseHandler, 'loggingResponse');
+
+      const result = responseHandler.handleError(host, exception);
+
+      expect(result instanceof HttpException).toBeTruthy();
+      expect(result.getStatus()).toBe(500);
+      expect(spyLoggingResponse).toHaveBeenCalledWith(
+        500,
+        expect.objectContaining({
+          payload: expect.objectContaining({
+            exception,
+            error: result,
+          }),
+        }),
+      );
+    });
+
     it('HttpException', async () => {
       const error = new BadRequestException('Test error');
 

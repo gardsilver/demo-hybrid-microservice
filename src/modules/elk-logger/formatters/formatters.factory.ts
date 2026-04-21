@@ -5,6 +5,7 @@ import { CircularFormatter } from './records/circular.formatter';
 import { ObjectFormatter } from './records/object.formatter';
 import { PruneFormatter } from './records/prune.formatter';
 import { SortFieldsFormatter } from './records/sort-fields.formatter';
+import { GeneralAsyncContextFormatter } from './records/general.async-context.formatter';
 import { ELK_FEATURE_FORMATTERS_DI, ELK_FEATURE_ENCODERS_DI } from '../types/tokens';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class FormattersFactory {
   constructor(
     private readonly circularFormatter: CircularFormatter,
     private readonly objectFormatter: ObjectFormatter,
+    private readonly generalAsyncContextFormatter: GeneralAsyncContextFormatter,
     private readonly PruneFormatter: PruneFormatter,
     private readonly sortFieldsFormatter: SortFieldsFormatter,
     private readonly pruneEncoder: PruneEncoder,
@@ -20,7 +22,11 @@ export class FormattersFactory {
   ) {}
 
   getRecordFormatters(): ILogRecordFormatter[] {
-    let formatters: ILogRecordFormatter[] = [this.circularFormatter, this.objectFormatter];
+    let formatters: ILogRecordFormatter[] = [
+      this.circularFormatter,
+      this.objectFormatter,
+      this.generalAsyncContextFormatter,
+    ];
 
     formatters = formatters.concat(this.featureFormatters);
     formatters = formatters.concat([this.PruneFormatter, this.sortFieldsFormatter]);

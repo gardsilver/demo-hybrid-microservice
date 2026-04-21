@@ -1,4 +1,3 @@
-import { GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
 import { ElkLoggerConfig } from 'src/modules/elk-logger';
 import { HttpSecurityHeadersFormatter } from 'src/modules/http/http-common';
 import { FormattersFactoryBuilder } from './formatters.factory.builder';
@@ -18,9 +17,6 @@ describe(FormattersFactoryBuilder.name, () => {
 
     expect(service instanceof FormattersFactory).toBeTruthy();
 
-    expect(service.getFormatters()).toEqual([
-      new GeneralAsyncContextFormatter(),
-      new HttpSecurityHeadersFormatter(elkLoggerConfig),
-    ]);
+    expect(service.getFormatters()).toEqual([new HttpSecurityHeadersFormatter(elkLoggerConfig)]);
   });
 });

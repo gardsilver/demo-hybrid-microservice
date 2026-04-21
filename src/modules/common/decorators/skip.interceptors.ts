@@ -8,8 +8,7 @@ export type SkipInterceptorTarget = Type | typeof SKIP_ALL;
 export const SKIP_INTERCEPTORS_KEY = 'skipInterceptors';
 export const KEEP_INTERCEPTORS_KEY = 'keepInterceptors';
 
-export const SkipInterceptors = (...targets: SkipInterceptorTarget[]) =>
-  SetMetadata(SKIP_INTERCEPTORS_KEY, targets);
+export const SkipInterceptors = (...targets: SkipInterceptorTarget[]) => SetMetadata(SKIP_INTERCEPTORS_KEY, targets);
 
 export const KeepInterceptors = (...targets: Type[]) => SetMetadata(KEEP_INTERCEPTORS_KEY, targets);
 

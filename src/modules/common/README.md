@@ -6,7 +6,7 @@
 
 ### Common Formatters Module
 
-Лог-форматеры не вошедшие в `ElkLogger Module`  (**@see** `src/modules/common/formatters`)
+Лог-форматеры, не вошедшие в `ElkLogger Module` (**@see** `src/modules/common/formatters`). На текущий момент содержит только `BufferObjectFormatter`.
 
 ### Базовые типы
 

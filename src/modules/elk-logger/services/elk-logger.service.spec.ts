@@ -25,6 +25,7 @@ import {
 } from '../types/tokens';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
+import { ProcessTraceSpanStore } from './process-trace-span.store';
 
 describe(ElkLoggerService.name, () => {
   let mockUuid: string;
@@ -122,6 +123,7 @@ describe(ElkLoggerService.name, () => {
 
     mockUuid = faker.string.uuid();
 
+    ProcessTraceSpanStore.instance.reset();
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
     jest.spyOn(DateTimestamp.prototype, 'format').mockImplementation(() => 'timestamp');
 
@@ -410,6 +412,19 @@ describe(ElkLoggerService.name, () => {
       expect(logger['defaultLogFields']).toBeDefined();
     });
 
+    it('addDefaultLogFields falls back to filterMarkers when defaults are empty', async () => {
+      logger['defaultLogFields'] = undefined as unknown as ILogFields;
+      logger.addDefaultLogFields({
+        module: 'Fresh',
+        markers: [LoggerMarkers.INTERNAL],
+      } as ILogFields);
+
+      expect(logger['defaultLogFields']).toEqual({
+        module: 'Fresh',
+        markers: [LoggerMarkers.INTERNAL],
+      });
+    });
+
     it('addDefaultLogFields', async () => {
       const traceId = faker.string.uuid();
       const spanId = faker.string.uuid();
@@ -475,6 +490,48 @@ describe(ElkLoggerService.name, () => {
     logger.log(LogLevel.INFO, 'start process');
 
     expect(spyLogWriter).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps explicit trace ids and preserves parentSpanId distinct from spanId', async () => {
+    const traceId = faker.string.uuid();
+    const spanId = faker.string.uuid();
+    const parentSpanId = faker.string.uuid();
+
+    logger.info('start process', {
+      module: 'TestService',
+      traceId,
+      spanId,
+      parentSpanId,
+    });
+
+    expect(logger.getLastLogRecord()).toMatchObject({
+      traceId,
+      spanId,
+      parentSpanId,
+    });
+  });
+
+  it('falls back to ProcessTraceSpanStore for trace ids when nothing is provided', async () => {
+    const fallbackTraceId = faker.string.uuid();
+    const fallbackSpanId = faker.string.uuid();
+
+    const spyOnFallback = jest.spyOn(ProcessTraceSpanStore.instance, 'get').mockImplementation(() => ({
+      traceId: fallbackTraceId,
+      spanId: fallbackSpanId,
+      parentSpanId: fallbackSpanId,
+    }));
+
+    try {
+      logger.info('start process', { module: 'TestService' });
+
+      expect(logger.getLastLogRecord()).toMatchObject({
+        traceId: fallbackTraceId,
+        spanId: fallbackSpanId,
+        parentSpanId: '',
+      });
+    } finally {
+      spyOnFallback.mockRestore();
+    }
   });
 
   it('Filter by module', async () => {

@@ -20,7 +20,8 @@ export class DatabaseConfig {
     const configServiceHelper = new ConfigServiceHelper(config, 'DATABASE_');
 
     this.migrationsEnabled = configServiceHelper.parseBoolean('MIGRATIONS_ENABLED');
-    this.migrationsTable = config.get<string>(configServiceHelper.getKeyName('MIGRATIONS_TABLE'))?.trim() || 'migrations';
+    this.migrationsTable =
+      config.get<string>(configServiceHelper.getKeyName('MIGRATIONS_TABLE'))?.trim() || 'migrations';
     this.host = config.get<string>(configServiceHelper.getKeyName('HOST'))?.trim();
     this.port = configServiceHelper.parseInt('PORT', undefined);
     this.dialect = config.get<string>(configServiceHelper.getKeyName('DIALECT'))?.trim();

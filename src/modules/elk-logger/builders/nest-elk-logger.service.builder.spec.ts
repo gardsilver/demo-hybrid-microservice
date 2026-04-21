@@ -72,7 +72,7 @@ describe(NestElkLoggerServiceBuilder.name, () => {
 
       const formatters = services.formattersFactory.getRecordFormatters();
 
-      expect(formatters.length).toEqual(5);
+      expect(formatters.length).toEqual(6);
       expect(formatters[0] instanceof CircularFormatter).toBeTruthy();
       expect((formatters[0] as unknown as Record<string, unknown>)['elkLoggerConfig']).toEqual(elkLoggerConfig);
 

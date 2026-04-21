@@ -20,7 +20,8 @@ export class DatabaseConfig {
     const configServiceHelper = new ConfigServiceHelper(config, 'DATABASE_');
 
     this.migrationsEnabled = configServiceHelper.parseBoolean('MIGRATIONS_ENABLED');
-    this.migrationsTable = config.get<string>(configServiceHelper.getKeyName('MIGRATIONS_TABLE'), 'migrations')?.trim();
+    this.migrationsTable =
+      config.get<string>(configServiceHelper.getKeyName('MIGRATIONS_TABLE'))?.trim() || 'migrations';
     this.host = config.get<string>(configServiceHelper.getKeyName('HOST'))?.trim();
     this.port = configServiceHelper.parseInt('PORT', undefined);
     this.dialect = config.get<string>(configServiceHelper.getKeyName('DIALECT'))?.trim();
@@ -56,7 +57,7 @@ export class DatabaseConfig {
   }
 
   getPrefix(): string | undefined {
-    return this.prefix ?? undefined;
+    return this.prefix || undefined;
   }
 
   getDatabaseSchema(): string | undefined {
@@ -64,11 +65,11 @@ export class DatabaseConfig {
   }
 
   getUser(): string | undefined {
-    return this.user ?? undefined;
+    return this.user || undefined;
   }
 
   getPassword(): string | undefined {
-    return this.password ?? undefined;
+    return this.password || undefined;
   }
 
   getLoggingEnabled(): boolean {

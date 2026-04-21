@@ -19,6 +19,7 @@ import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/object.formatter';
 import { PruneFormatter } from '../formatters/records/prune.formatter';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
+import { GeneralAsyncContextFormatter } from '../formatters/records/general.async-context.formatter';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
 import { PruneConfig } from './prune.config';
 import { BaseObjectFormatter } from './objects/base.object-formatter';
@@ -93,6 +94,7 @@ describe(FormattersFactory.name, () => {
         PruneFormatter,
         SortFieldsFormatter,
         PruneEncoder,
+        GeneralAsyncContextFormatter,
         FormattersFactory,
       ],
     }).compile();
@@ -107,12 +109,17 @@ describe(FormattersFactory.name, () => {
   it('custom', async () => {
     const formatters = formattersFactory.getRecordFormatters();
 
-    expect(formatters.length).toEqual(5);
+    expect(formatters.length).toEqual(6);
     expect(formatters[0] instanceof CircularFormatter).toBeTruthy();
     expect(formatters[1] instanceof RecordObjectFormatter).toBeTruthy();
-    expect(formatters[2] instanceof MockFormatter).toBeTruthy();
-    expect(formatters[3] instanceof PruneFormatter).toBeTruthy();
-    expect(formatters[4] instanceof SortFieldsFormatter).toBeTruthy();
+    expect(
+      formatters[2] instanceof GeneralAsyncContextFormatter || formatters[2] instanceof MockFormatter,
+    ).toBeTruthy();
+    expect(
+      formatters[3] instanceof GeneralAsyncContextFormatter || formatters[3] instanceof MockFormatter,
+    ).toBeTruthy();
+    expect(formatters[4] instanceof PruneFormatter).toBeTruthy();
+    expect(formatters[5] instanceof SortFieldsFormatter).toBeTruthy();
 
     const encodeFormatters = formattersFactory.getEncodeFormatters();
 

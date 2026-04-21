@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { BufferObjectFormatter, GeneralAsyncContextFormatter } from 'src/modules/common/formatters';
+import { BufferObjectFormatter } from 'src/modules/common/formatters';
 import { DataBaseErrorFormatter, ValidationErrorItemObjectFormatter } from 'src/modules/database';
 import { AxiosErrorFormatter, HttpClientErrorFormatter } from 'src/modules/http/http-client';
 import { HttpExceptionFormatter } from 'src/modules/http/http-server';
@@ -47,7 +47,6 @@ import { ChatController } from './controller/chat.controller';
     RabbitMqClientErrorObjectFormatter,
     ValidationErrorItemObjectFormatter,
     ObjectFormattersFactory,
-    GeneralAsyncContextFormatter,
     HttpSecurityHeadersFormatter,
     FormattersFactory,
   ],

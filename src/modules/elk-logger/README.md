@@ -52,6 +52,8 @@ export interface ILogRecord {
 | `NestElkLoggerServiceBuilder` | `class` | Создание `INestElkLoggerService` до `NestFactory.create`. |
 | `TraceSpanHelper`, `TraceSpanBuilder` | утилиты | Работа с `traceId` / `spanId` (Zipkin / GUID). |
 | `BaseObjectFormatter`, `BaseErrorObjectFormatter` | абстрактные классы | Базовые классы для пользовательских `IObjectFormatter`. |
+| `GeneralAsyncContextFormatter` | `class` | Встроенный `ILogRecordFormatter`, подключается модулем по умолчанию и дополняет запись `traceId`/`spanId`/`initialSpanId`/`parentSpanId` из `GeneralAsyncContext`, а при их отсутствии — из `ProcessTraceSpanStore`. |
+| `ProcessTraceSpanStore` | `class` (singleton) | Стабильный fallback trace/span на весь процесс для логов, возникших вне async-контекста. |
 
 ## Подключение модуля
 
@@ -119,7 +121,8 @@ export class MainModule {}
 Порядок применения при каждом вызове логгера:
 
 ```
-CircularFormatter → ObjectFormatter → [пользовательские ILogRecordFormatter]
+CircularFormatter → ObjectFormatter → GeneralAsyncContextFormatter
+  → [пользовательские ILogRecordFormatter]
   → PruneFormatter → SortFieldsFormatter
   → Encoder (FULL/SIMPLE/SHORT/FILE)
   → [пользовательские IEncodeFormatter] → PruneEncoder → stdout / file
@@ -131,6 +134,7 @@ CircularFormatter → ObjectFormatter → [пользовательские ILog
 |---|---|
 | `CircularFormatter` | Удаляет циклические ссылки из `businessData`/`payload`, нормализует к `IKeyValue`. Выполняется первым. |
 | `ObjectFormatter` | Преобразует экземпляры объектов к читаемому виду. Всегда включает `ErrorObjectFormatter`. Принимает пользовательские `objectFormatters` / `exceptionFormatters`. |
+| `GeneralAsyncContextFormatter` | Встроенный форматер. Проставляет `traceId`/`spanId`/`initialSpanId`/`parentSpanId` из `GeneralAsyncContext`, либо из `ProcessTraceSpanStore` (стабильный fallback на процесс). Явная регистрация не требуется. |
 | Пользовательские `ILogRecordFormatter` | Регистрируются через опцию `formatters`. У каждого может быть `priority()` для управления порядком. |
 | `PruneFormatter` | Обрезает данные по `PruneConfig`. Выполняется предпоследним. |
 | `SortFieldsFormatter` | Сортирует поля `ILogRecord` согласно `formattersOptions.sortFields`. |

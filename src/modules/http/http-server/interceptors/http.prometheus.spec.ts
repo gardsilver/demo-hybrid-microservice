@@ -229,4 +229,35 @@ describe(HttpPrometheus.name, () => {
       },
     });
   });
+
+  it('response HttpException uses its own status code', async () => {
+    const { HttpException, HttpStatus } = await import('@nestjs/common');
+
+    host.getType = jest.fn().mockImplementation(() => 'http');
+    jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => []);
+
+    HttpRequestHelper.setAsyncContext(asyncContext, request);
+
+    const error = new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+
+    handler.handle = jest.fn().mockImplementation(() => {
+      return new Observable((subscriber) => subscriber.error(error));
+    });
+
+    const spyIncrement = jest.spyOn(counterService, 'increment');
+
+    (await interceptor.intercept(host, handler)).subscribe({
+      next: jest.fn(),
+      error: jest.fn(),
+    });
+
+    expect(spyIncrement).toHaveBeenCalledWith(HTTP_INTERNAL_REQUEST_FAILED, {
+      labels: {
+        method: 'GET',
+        service: 'TestHttpController',
+        pathname: 'api/test',
+        statusCode: '400',
+      },
+    });
+  });
 });

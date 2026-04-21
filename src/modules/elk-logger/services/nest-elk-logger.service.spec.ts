@@ -27,6 +27,7 @@ import {
 } from '../types/elk-logger.types';
 import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
+import { ProcessTraceSpanStore } from './process-trace-span.store';
 
 jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tests/fs').FS_MOCK }));
 
@@ -123,6 +124,7 @@ describe(NestElkLoggerService.name, () => {
 
     mockUuid = faker.string.uuid();
 
+    ProcessTraceSpanStore.instance.reset();
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
     jest.spyOn(DateTimestamp.prototype, 'format').mockImplementation(() => 'timestamp');
 

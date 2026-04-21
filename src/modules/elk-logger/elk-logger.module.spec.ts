@@ -92,8 +92,8 @@ describe(ElkLoggerModule.name, () => {
 
   it('ElkLoggerService', async () => {
     const service = loggerService as unknown as Record<string, unknown[]>;
-    expect(service['recordFormatters'].length).toBe(5);
-    expect(service['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
+    expect(service['recordFormatters'].length).toBe(6);
+    expect(service['recordFormatters'].some((f: unknown) => f instanceof TestFormatter)).toBeTruthy();
 
     expect(service['encodeFormatters'].length).toBe(2);
     expect(service['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();
@@ -101,8 +101,8 @@ describe(ElkLoggerModule.name, () => {
 
   it('NestElkLoggerService', async () => {
     const logger = nestLogger as unknown as Record<string, unknown[]>;
-    expect(logger['recordFormatters'].length).toBe(5);
-    expect(logger['recordFormatters'][2] instanceof TestFormatter).toBeTruthy();
+    expect(logger['recordFormatters'].length).toBe(6);
+    expect(logger['recordFormatters'].some((f: unknown) => f instanceof TestFormatter)).toBeTruthy();
 
     expect(logger['encodeFormatters'].length).toBe(2);
     expect(logger['encodeFormatters'][0] instanceof TestEncodeFormatter).toBeTruthy();

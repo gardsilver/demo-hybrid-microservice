@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CheckObjectsType } from 'src/modules/common';
@@ -18,6 +17,7 @@ import { FullFormatter } from '../formatters/record-encodes/full.formatter';
 import { SimpleFormatter } from '../formatters/record-encodes/simple.formatter';
 import { ShortFormatter } from '../formatters/record-encodes/short.formatter';
 import { FormattersFactory } from '../formatters/formatters.factory';
+import { GeneralAsyncContextFormatter } from '../formatters/records/general.async-context.formatter';
 import { ElkLoggerConfig } from '../services/elk-logger.config';
 import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { ObjectFormatter as RecordObjectFormatter } from '../formatters/records/object.formatter';
@@ -26,19 +26,14 @@ import { PruneConfig } from '../formatters/prune.config';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
 import { ElkLoggerService } from '../services/elk-logger.service';
 import { PruneEncoder } from '../formatters/encodes/prune.encoder';
-import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { ElkLoggerServiceBuilder } from './elk-logger.service.builder';
 import { ObjectFormatterBuilder } from './object-formatter.builder';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
 
 describe(ElkLoggerServiceBuilder.name, () => {
-  let mockUuid: string;
   let loggerBuilder: ElkLoggerServiceBuilder;
 
   beforeAll(async () => {
-    mockUuid = randomUUID();
-    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
-
     const module = await Test.createTestingModule({
       providers: [
         {
@@ -107,6 +102,7 @@ describe(ElkLoggerServiceBuilder.name, () => {
         },
         PruneFormatter,
         SortFieldsFormatter,
+        GeneralAsyncContextFormatter,
         {
           provide: ELK_FEATURE_FORMATTERS_DI,
           useValue: [new MockFormatter()],
@@ -137,13 +133,11 @@ describe(ElkLoggerServiceBuilder.name, () => {
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
     expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
-      traceId: mockUuid,
       index: 'MyApplications',
       markers: ['test'],
       businessData: {
         server: 'TestServer',
       },
-      payload: {},
     });
   });
 
@@ -159,7 +153,6 @@ describe(ElkLoggerServiceBuilder.name, () => {
     expect(logger).toBeDefined();
     expect(logger instanceof ElkLoggerService).toBeTruthy();
     expect((logger as unknown as Record<string, unknown>)['defaultLogFields']).toEqual({
-      traceId: mockUuid,
       index: 'TestApplications',
       markers: ['test', 'request'],
       businessData: {

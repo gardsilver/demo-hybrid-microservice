@@ -43,7 +43,7 @@ export class AppKafkaConfig {
   }
 
   getGroupId(): string {
-    return this.groupId ?? KafkaServers.DEFAULT_GROUP_ID;
+    return this.groupId || KafkaServers.DEFAULT_GROUP_ID;
   }
 
   getRetryStatusCodes(): Array<string | number> {

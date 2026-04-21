@@ -9,11 +9,11 @@ import {
   IEncodeFormatter,
   ILogRecordFormatter,
 } from '../types/elk-logger.types';
-import { TraceSpanHelper } from '../helpers/trace-span.helper';
 import { FormattersFactory } from '../formatters/formatters.factory';
 import { RecordEncodeFormattersFactory } from '../formatters/record-encode.formatters.factory';
 import { FileFormatter } from '../formatters/record-encodes/file.formatter';
 import { ElkLoggerConfig } from './elk-logger.config';
+import { ProcessTraceSpanStore } from './process-trace-span.store';
 import { LogFieldsHelper } from '../helpers/log-fields.helper';
 
 export abstract class BaseElkLoggerService {
@@ -59,7 +59,7 @@ export abstract class BaseElkLoggerService {
   }
 
   protected print(logFields: ILogFields): string | undefined {
-    let record: ILogRecord = LogFieldsHelper.merge(
+    const record: ILogRecord = LogFieldsHelper.merge(
       {
         ...this.defaultLogFields,
       },
@@ -72,8 +72,6 @@ export abstract class BaseElkLoggerService {
     if (record.module && !this.isLogModuleEnabled(record)) {
       return;
     }
-
-    record = this.actualizeTraceSpan(record);
 
     const normalizeRecord = this.actualizeTraceSpan(
       this.recordFormatters?.length
@@ -127,45 +125,17 @@ export abstract class BaseElkLoggerService {
     return true;
   }
 
-  private getRootModule(module?: string): string | undefined {
-    if (!module) {
-      return undefined;
-    }
-
-    return module.split('.')[0];
-  }
-
   private actualizeTraceSpan(record: ILogRecord): ILogRecord {
-    const lastModule = this.getRootModule(this.lastLogRecord?.module);
-    const lastTS = {
-      traceId: this.lastLogRecord?.traceId,
-      spanId: this.lastLogRecord?.spanId,
-    };
-    const currentSpanId = record.spanId;
+    const fallback = ProcessTraceSpanStore.instance.get();
 
-    let newProcess: boolean = true;
-
-    if (lastModule !== undefined && lastModule === this.getRootModule(record.module)) {
-      newProcess = false;
+    if (!record.traceId) {
+      record.traceId = fallback.traceId;
     }
-
-    if (lastTS.spanId !== undefined && !newProcess) {
-      record.parentSpanId = lastTS.spanId;
-      record.spanId = TraceSpanHelper.generateRandomValue();
+    if (!record.spanId) {
+      record.spanId = fallback.spanId;
     }
-    if (record.spanId === undefined) {
-      record.spanId = TraceSpanHelper.generateRandomValue();
-    }
-    if (record.parentSpanId === undefined || record.parentSpanId === null || record.parentSpanId === record.spanId) {
-      record.parentSpanId = record.spanId === currentSpanId ? '' : (currentSpanId ?? '');
-    }
-
-    if (record.traceId === undefined) {
-      if (!newProcess) {
-        record.traceId = lastTS.traceId ?? TraceSpanHelper.generateRandomValue();
-      }
-
-      record.traceId = TraceSpanHelper.generateRandomValue();
+    if (!record.parentSpanId || record.parentSpanId === record.spanId) {
+      record.parentSpanId = '';
     }
 
     return record;

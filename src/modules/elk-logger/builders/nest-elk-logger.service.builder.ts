@@ -14,6 +14,7 @@ import { PruneEncoder } from '../formatters/encodes/prune.encoder';
 import { CircularFormatter } from '../formatters/records/circular.formatter';
 import { PruneFormatter } from '../formatters/records/prune.formatter';
 import { SortFieldsFormatter } from '../formatters/records/sort-fields.formatter';
+import { GeneralAsyncContextFormatter } from '../formatters/records/general.async-context.formatter';
 import { ObjectFormatterBuilder } from './object-formatter.builder';
 import { BaseErrorObjectFormatter } from '../formatters/objects/base-error.object-formatter';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';
@@ -65,6 +66,7 @@ export abstract class NestElkLoggerServiceBuilder {
     const formattersFactory = new FormattersFactory(
       new CircularFormatter(elkLoggerConfig),
       ObjectFormatterBuilder.build(elkLoggerConfig, options?.formattersOptions),
+      new GeneralAsyncContextFormatter(),
       new PruneFormatter(pruneConfig),
       new SortFieldsFormatter(elkLoggerConfig),
       new PruneEncoder(pruneConfig),

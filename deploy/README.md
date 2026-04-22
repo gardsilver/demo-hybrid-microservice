@@ -48,7 +48,7 @@
 
 ## **Postgres**
 
-Образ `postgres:latest`. Переменные окружения заданы в `base-compose.yml`: `POSTGRES_USER=vagrant`, `POSTGRES_PASSWORD=vagrant`, `POSTGRES_DB=demo`, `TZ=Europe/Moskow`.
+Образ `postgres:latest`. Переменные окружения заданы в `base-compose.yml`: `POSTGRES_USER=vagrant`, `POSTGRES_PASSWORD=vagrant`, `POSTGRES_DB=demo`, `TZ=Europe/Moscow`, `PGTZ=Europe/Moscow`.
 
 | Параметр | Описание | `.env` микросервиса | localhost |
 |---|---|---|---|

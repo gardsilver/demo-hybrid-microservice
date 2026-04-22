@@ -3,3 +3,7 @@ export interface IRedisCacheAdapter<T extends object = object | any> {
   encode(data?: string): T | undefined;
   decode(data: T): string;
 }
+
+export interface IRedisHealthIndicatorOptions {
+  unavailableStatus?: 'up' | 'down';
+}

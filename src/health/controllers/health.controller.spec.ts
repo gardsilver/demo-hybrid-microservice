@@ -17,8 +17,9 @@ import {
   IAuthService,
   ICertificateService,
 } from 'src/modules/auth';
-import { DATABASE_DI } from 'src/modules/database';
+import { DatabaseHealthIndicator } from 'src/modules/database';
 import { GracefulShutdownHealthIndicatorService } from 'src/modules/graceful-shutdown';
+import { RedisCacheManagerHealthIndicator } from 'src/modules/redis-cache-manager';
 import {
   KafkaServerHealthIndicator,
   KafkaServerModule,
@@ -31,10 +32,7 @@ import {
 } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
 import { MockConfigService } from 'tests/nestjs';
-import { mockSequelize } from 'tests/sequelize-typescript';
 import { HealthController } from './health.controller';
-
-jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 describe(HealthController.name, () => {
   let logger: IElkLoggerService;
@@ -63,8 +61,16 @@ describe(HealthController.name, () => {
       ],
       providers: [
         {
-          provide: DATABASE_DI,
-          useValue: mockSequelize,
+          provide: DatabaseHealthIndicator,
+          useValue: {
+            isHealthy: jest.fn(async () => ({
+              DataBase: {
+                status: 'up',
+                ping: 'ok',
+                migration: 'ok',
+              },
+            })),
+          },
         },
         {
           provide: AUTH_SERVICE_DI,
@@ -96,6 +102,19 @@ describe(HealthController.name, () => {
               GracefulShutdown: {
                 status: 'up',
                 isActive: false,
+              },
+            }),
+          },
+        },
+        {
+          provide: RedisCacheManagerHealthIndicator,
+          useValue: {
+            isHealthy: async () => ({
+              Redis: {
+                status: 'up',
+                isOpen: true,
+                isReady: true,
+                ping: 'PONG',
               },
             }),
           },
@@ -163,19 +182,30 @@ describe(HealthController.name, () => {
   });
 
   it('liveness', async () => {
-    jest.spyOn(mockSequelize, 'query').mockImplementation(async () => [1]);
+    const dbHealth = controller['dbHealth'] as unknown as { isHealthy: jest.Mock };
+    const spyDbHealth = jest.spyOn(dbHealth, 'isHealthy');
 
     const result = await controller.liveness();
 
+    // Liveness передаёт migrationFailedStatus='up', чтобы падение миграций не рестартило pod.
+    expect(spyDbHealth).toHaveBeenCalledWith({ migrationFailedStatus: 'up' });
     expect(result).toEqual({
       status: 'ok',
       info: {
         DataBase: {
           status: 'up',
+          ping: 'ok',
+          migration: 'ok',
         },
         GracefulShutdown: {
           status: 'up',
           isActive: false,
+        },
+        Redis: {
+          status: 'up',
+          isOpen: true,
+          isReady: true,
+          ping: 'PONG',
         },
         Kafka: {
           status: 'up',
@@ -188,10 +218,18 @@ describe(HealthController.name, () => {
       details: {
         DataBase: {
           status: 'up',
+          ping: 'ok',
+          migration: 'ok',
         },
         GracefulShutdown: {
           status: 'up',
           isActive: false,
+        },
+        Redis: {
+          status: 'up',
+          isOpen: true,
+          isReady: true,
+          ping: 'PONG',
         },
         Kafka: {
           status: 'up',
@@ -204,8 +242,13 @@ describe(HealthController.name, () => {
   });
 
   it('readiness', async () => {
+    const dbHealth = controller['dbHealth'] as unknown as { isHealthy: jest.Mock };
+    const spyDbHealth = jest.spyOn(dbHealth, 'isHealthy');
+
     const result = await controller.readiness();
 
+    // Readiness использует дефолт (migrationFailedStatus='down'): без опций.
+    expect(spyDbHealth).toHaveBeenCalledWith();
     expect(result).toEqual({
       status: 'ok',
       info: {
@@ -216,6 +259,17 @@ describe(HealthController.name, () => {
         GracefulShutdown: {
           status: 'up',
           isActive: false,
+        },
+        DataBase: {
+          status: 'up',
+          ping: 'ok',
+          migration: 'ok',
+        },
+        Redis: {
+          status: 'up',
+          isOpen: true,
+          isReady: true,
+          ping: 'PONG',
         },
         Kafka: {
           status: 'up',
@@ -233,6 +287,17 @@ describe(HealthController.name, () => {
         GracefulShutdown: {
           status: 'up',
           isActive: false,
+        },
+        DataBase: {
+          status: 'up',
+          ping: 'ok',
+          migration: 'ok',
+        },
+        Redis: {
+          status: 'up',
+          isOpen: true,
+          isReady: true,
+          ping: 'PONG',
         },
         Kafka: {
           status: 'up',

@@ -54,7 +54,7 @@ export class DemoKafkaIntegrationModule {}
 | `imports` | `ImportsType` | Нет | `[]` | Дополнительные модули для разрешения зависимостей пользовательских провайдеров. |
 | `providers` | `Provider[]` | Нет | `[]` | Дополнительные провайдеры, регистрируемые внутри модуля. |
 | `kafkaClientProxyBuilderOptions` | `IServiceClassProvider<IKafkaClientServiceOptions>` \| `IServiceValueProvider<IKafkaClientServiceOptions>` \| `IServiceFactoryProvider<IKafkaClientServiceOptions>` | Да | — | Настройки подключения и продьюсера (`serverName`, `client`, `producer`, `logTitle`). |
-| `serializer` | `IServiceClassProvider<IProducerSerializer>` \| `IServiceValueProvider<IProducerSerializer>` \| `IServiceFactoryProvider<IProducerSerializer>` | Нет | `ProducerSerializer` (массивы → JSON-строка, объекты → `toString()`) | Универсальный сериализатор исходящих сообщений. |
+| `serializer` | `IServiceClassProvider<IProducerSerializer>` \| `IServiceValueProvider<IProducerSerializer>` \| `IServiceFactoryProvider<IProducerSerializer>` | Нет | `ProducerSerializer` (plain-объекты и массивы → JSON-строка, прочие объекты → `toString()`) | Универсальный сериализатор исходящих сообщений. |
 | `headerBuilder` | `IServiceClassProvider<IKafkaHeadersRequestBuilder>` \| `IServiceValueProvider<...>` \| `IServiceFactoryProvider<...>` | Нет | `KafkaHeadersRequestBuilder` | Построитель заголовков **Kafka** на базе `IKafkaAsyncContext`. |
 | `requestOptions` | `IServiceClassProvider<Omit<IKafkaRequestOptions, 'serializer' \| 'headerBuilder'>>` \| value/factory-аналоги | Нет | `{}` | Дефолтные опции запроса, мёржатся с переданными в `request()`. |
 
@@ -100,7 +100,7 @@ export class DemoKafkaIntegrationModule {}
 
 ## `IProducerSerializer`
 
-Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: массивы сериализует в `json`-строку, объекты приводит к строке (`obj.toString()`).
+Кодирует данные для отправки **Kafka**-запроса. По умолчанию используется `ProducerSerializer`: plain-объекты и массивы сериализует в `json`-строку, прочие объекты приводит к строке (`obj.toString()`).
 
 ## `KafkaClientErrorHandler`
 

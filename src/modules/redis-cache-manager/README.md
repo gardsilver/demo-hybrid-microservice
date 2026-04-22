@@ -63,6 +63,37 @@
 
 Лог-форматер `ReconnectStrategyError` и `MultiErrorReply` (**@see** `@redis/client`): `IObjectFormatter<ReconnectStrategyError | MultiErrorReply>`.
 
+## `RedisCacheManagerHealthIndicator`
+
+Health-индикатор (`@nestjs/terminus`), экспортируемый модулем. Публичный токен redis-клиента — `REDIS_CACHE_MANAGER_REDIS_CLIENT_DI` (инжектится индикатором из `cacheManager.stores[0]`).
+
+```ts
+isHealthy(options?: { unavailableStatus?: 'up' | 'down' }): Promise<HealthIndicatorResult>
+```
+
+- Проверяет `RedisClient.isReady`; если клиент готов — отправляет `PING` и ожидает `PONG`.
+- В `details` **всегда** отражает фактическое состояние: `isOpen`, `isReady` и результат `ping` (`PONG`, текст ошибки, фактический ответ не-`PONG` или `skipped`, если клиент не готов).
+- Поведение статуса в зависимости от `unavailableStatus`:
+  - `up` (по умолчанию): индикатор возвращает `up`. Соответствует архитектурному правилу «Redis не блокирует выполнение приложения»: probe остаётся зелёным, фактическое состояние видно в `details`.
+  - `down`: индикатор возвращает `down`. Используется, когда недоступность Redis должна ронять probe.
+- Warning-лог `"Redis is unavailable — probe reports up due to unavailableStatus option"` с `payload` из `details` и полем `exception` пишется **только** при одновременном выполнении двух условий:
+  1. `PING` был фактически выполнен (клиент `isReady`), но вернул не `PONG` или упал с ошибкой;
+  2. `unavailableStatus === 'up'` — т. е. probe искусственно возвращает зелёный статус, и оператор должен видеть, что он скрывает реальную проблему.
+- Для `unavailableStatus === 'down'` доп. лог не пишется: probe красный и так виден, а оригинальные ошибки redis-клиента пишутся reconnect-стратегией (`defaultRedisReconnectStrategyBuilder`).
+- Если клиент не готов (`isReady === false`, `ping === 'skipped'`) — индикатор **никогда** не пишет лог, чтобы не дублировать сообщения reconnect-стратегии. Статус (`up`/`down`) всё равно подчиняется `unavailableStatus`, а фактическое состояние отражено в `details`.
+
+Пример:
+
+```ts
+@Get('liveness-probe')
+async liveness() {
+  return this.health.check([
+    () => this.redisHealth.isHealthy(),                           // default: unavailableStatus='up'
+    () => this.redisHealth.isHealthy({ unavailableStatus: 'down' }), // строгий режим
+  ]);
+}
+```
+
 ## `defaultRedisReconnectStrategyBuilder`
 
 Конструктор метода стратегии восстановления соединения с **Redis**: [**see**](https://www.npmjs.com/package/@keyv/redis) Gracefully Handling Errors and Timeouts.
@@ -71,20 +102,30 @@
 
 ## Пример использования
 
-Регистрация модуля:
+Регистрация модуля (без аргументов — параметры подключения берутся из env `REDIS_CACHE_MANAGER_*`):
 
 ```ts
 import { Module } from '@nestjs/common';
 import { RedisCacheManagerModule } from 'src/modules/redis-cache-manager';
 
 @Module({
-  imports: [
-    RedisCacheManagerModule.forRoot({
-      imports: [PostgresModule],
-    }),
-  ],
+  imports: [RedisCacheManagerModule.forRoot()],
 })
 export class MainModule {}
+```
+
+Если пользовательские `redisClientOptions` / `keyvRedisOptions` зависят от провайдеров из других модулей, их нужно явно подключить через `imports`:
+
+```ts
+RedisCacheManagerModule.forRoot({
+  imports: [MyAuthModule],
+  redisClientOptions: {
+    inject: [MyAuthService],
+    useFactory: (auth: MyAuthService) => ({
+      url: auth.getRedisUrl(),
+    }),
+  },
+});
 ```
 
 Чтение/запись через `RedisCacheService`:

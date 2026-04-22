@@ -14,6 +14,7 @@ import { DatabaseModule } from './database.module';
 import { DatabaseConnectBuilder } from './builders/database.connect.builder';
 import { DATABASE_DI } from './types/tokens';
 import { DatabaseConfig } from './services/database.config';
+import { DatabaseMigrationStatusService } from './services/database-migration-status.service';
 
 describe(DatabaseModule.name, () => {
   let spy: jest.SpyInstance;
@@ -21,6 +22,7 @@ describe(DatabaseModule.name, () => {
   let logger: IElkLoggerService;
   let loggerBuilder: IElkLoggerServiceBuilder;
   let prometheusManager: PrometheusManager;
+  let migrationStatus: DatabaseMigrationStatusService;
   let db: unknown;
 
   beforeEach(async () => {
@@ -51,14 +53,19 @@ describe(DatabaseModule.name, () => {
     configService = module.get(ConfigService);
     loggerBuilder = module.get(ELK_LOGGER_SERVICE_BUILDER_DI);
     prometheusManager = module.get(PrometheusManager);
+    migrationStatus = module.get(DatabaseMigrationStatusService);
     db = module.get(DATABASE_DI);
   });
 
   it('init', async () => {
     expect(db).toBeDefined();
     expect(db).toEqual({});
-    expect(spy).toHaveBeenCalledWith(loggerBuilder, prometheusManager, new DatabaseConfig(configService), {
-      models: [],
-    });
+    expect(spy).toHaveBeenCalledWith(
+      loggerBuilder,
+      prometheusManager,
+      migrationStatus,
+      new DatabaseConfig(configService),
+      { models: [] },
+    );
   });
 });

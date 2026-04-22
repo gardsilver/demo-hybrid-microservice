@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import KeyvRedis, { createKeyv, KeyvRedisOptions, RedisClientOptions, RedisClientType } from '@keyv/redis';
+import { Cache } from 'cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { DynamicModule, Module, Provider } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
+import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
+import { TerminusModule } from '@nestjs/terminus';
 import { ImportsType, ProviderBuilder } from 'src/modules/common';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
@@ -12,17 +14,22 @@ import {
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { IRedisCacheManagerModuleOptions } from './types/module.options';
-import { REDIS_CACHE_MANAGER_KEYV_REDIS_OPTIONS_DI, REDIS_CACHE_MANAGER_REDIS_CLIENT_OPTIONS_DI } from './types/tokens';
+import {
+  REDIS_CACHE_MANAGER_KEYV_REDIS_OPTIONS_DI,
+  REDIS_CACHE_MANAGER_REDIS_CLIENT_DI,
+  REDIS_CACHE_MANAGER_REDIS_CLIENT_OPTIONS_DI,
+} from './types/tokens';
 import { RedisCacheManagerConfig } from './services/redis-cache-manager.config';
 import { defaultRedisReconnectStrategyBuilder } from './builders/default-redis.reconnect-strategy.builder';
 import { RedisCacheService } from './services/redis-cache.service';
 import { JsonRedisCacheAdapter } from './adapters/json-redis.cache-adapter';
 import { RedisCacheInstanceService } from './services/redis-cache.instance-service';
+import { RedisCacheManagerHealthIndicator } from './services/redis-cache-manager.health-indicator';
 
 @Module({})
 export class RedisCacheManagerModule {
   public static forRoot(options?: IRedisCacheManagerModuleOptions): DynamicModule {
-    let imports: ImportsType = [ConfigModule, ElkLoggerModule, PrometheusModule];
+    let imports: ImportsType = [ConfigModule, ElkLoggerModule, PrometheusModule, TerminusModule];
 
     if (options?.imports?.length) {
       imports = imports.concat(options?.imports);
@@ -33,6 +40,17 @@ export class RedisCacheManagerModule {
       JsonRedisCacheAdapter,
       RedisCacheService,
       RedisCacheInstanceService,
+      {
+        provide: REDIS_CACHE_MANAGER_REDIS_CLIENT_DI,
+        inject: [CACHE_MANAGER],
+        useFactory: (cacheManager: Cache): RedisClientType => {
+          const keyv = cacheManager.stores[0];
+          const keyvStore = keyv.store as KeyvRedis<any>;
+
+          return keyvStore.client as RedisClientType;
+        },
+      },
+      RedisCacheManagerHealthIndicator,
     ];
 
     if (options?.providers?.length) {
@@ -142,7 +160,7 @@ export class RedisCacheManagerModule {
       module: RedisCacheManagerModule,
       imports,
       providers,
-      exports: [RedisCacheService],
+      exports: [RedisCacheService, RedisCacheManagerHealthIndicator],
     };
   }
 }

@@ -158,6 +158,10 @@ export class OrderConsumer {
 }
 ```
 
+### `GracefulShutdownHealthIndicatorService`
+
+Health-индикатор (`@nestjs/terminus`), экспортируемый модулем. Метод `isHealthy()` возвращает `down`, пока `GracefulShutdownService.isActive()` — то есть процесс плавного завершения уже запущен; во всех остальных случаях — `up`. Используется в health-контроллере readiness-пробы, чтобы оркестратор перестал направлять трафик на экземпляр, входящий в `BEFORE_DESTROY` / `DESTROY` / `AFTER_DESTROY`.
+
 ### Метрики
 
 | Метрика| Метки |Описание|

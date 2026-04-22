@@ -30,12 +30,16 @@ import { ElkLoggerModule } from 'src/modules/elk-logger';
 import { PrometheusModule } from 'src/modules/prometheus';
 import { MockConfigService } from 'tests/nestjs';
 import { TestModule, TestService } from 'tests/src/test-module';
-import { RedisCacheManagerModule, RedisCacheService } from './';
+import { RedisCacheManagerHealthIndicator, RedisCacheManagerModule, RedisCacheService } from './';
+import { REDIS_CACHE_MANAGER_REDIS_CLIENT_DI } from './types/tokens';
 
 describe(RedisCacheManagerModule.name, () => {
   let redisCacheService: RedisCacheService;
 
   describe('default', () => {
+    let healthIndicator: RedisCacheManagerHealthIndicator;
+    let redisClientProvider: RedisClientType;
+
     beforeEach(async () => {
       const module = await Test.createTestingModule({
         imports: [ConfigModule, ElkLoggerModule.forRoot(), PrometheusModule, RedisCacheManagerModule.forRoot()],
@@ -45,10 +49,14 @@ describe(RedisCacheManagerModule.name, () => {
         .compile();
 
       redisCacheService = module.get(RedisCacheService);
+      healthIndicator = module.get(RedisCacheManagerHealthIndicator);
+      redisClientProvider = module.get(REDIS_CACHE_MANAGER_REDIS_CLIENT_DI);
     });
 
     it('init', async () => {
       expect(redisCacheService).toBeDefined();
+      expect(healthIndicator).toBeDefined();
+      expect(redisClientProvider).toBeDefined();
     });
   });
 

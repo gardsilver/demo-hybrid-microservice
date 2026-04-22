@@ -58,9 +58,7 @@ import { ExampleRabbitMqModule } from 'src/examples/integrations/rabbit-mq';
       },
     }),
     PrometheusModule,
-    RedisCacheManagerModule.forRoot({
-      imports: [PostgresModule],
-    }),
+    RedisCacheManagerModule.forRoot(),
     AuthModule.forRoot({
       useCertificate: '801c29c6-ed2f-4ae4-92fb-fafe914893c0',
     }),

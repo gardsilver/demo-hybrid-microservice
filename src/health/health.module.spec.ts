@@ -1,3 +1,25 @@
+const redisClient = {
+  on: jest.fn(),
+} as unknown as RedisClientType;
+
+const mockKeyv = {
+  store: {
+    client: redisClient,
+  },
+} as Keyv;
+
+jest.mock('@keyv/redis', () => {
+  const actualKeyvRedis = jest.requireActual('@keyv/redis');
+
+  return Object.assign(
+    {
+      createKeyv: jest.fn().mockImplementation(() => mockKeyv),
+    },
+    actualKeyvRedis,
+  );
+});
+
+import { Keyv, RedisClientType } from '@keyv/redis';
 import { Test } from '@nestjs/testing';
 import { ConfigModule } from '@nestjs/config';
 import {
@@ -12,6 +34,7 @@ import { PrometheusModule } from 'src/modules/prometheus';
 import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { DatabaseModule } from 'src/modules/database';
+import { RedisCacheManagerModule } from 'src/modules/redis-cache-manager';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
@@ -37,6 +60,7 @@ describe(HealthModule.name, () => {
         PrometheusModule,
         AuthModule.forRoot(),
         DatabaseModule.forRoot(),
+        RedisCacheManagerModule.forRoot(),
         GracefulShutdownModule.forRoot(),
         KafkaServerModule.forRoot(),
         RabbitMqServerModule.forRoot(),

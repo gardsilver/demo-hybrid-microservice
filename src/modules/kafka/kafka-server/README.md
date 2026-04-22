@@ -93,7 +93,8 @@ const { server, serverHealthIndicator } =  KafkaMicroserviceBuilder.setup(app, {
 ```typescript
 
 import { Ctx, Payload } from '@nestjs/microservices';
-import { ConsumerMode, EventKafkaMessage, KafkaContext, IKafkaMessage } from 'src/modules/kafka/kafka-server';
+import { IKafkaMessage } from 'src/modules/kafka/kafka-common';
+import { ConsumerMode, EventKafkaMessage, KafkaContext } from 'src/modules/kafka/kafka-server';
 ...
 
   @EventKafkaMessage('DemoRequest', { // Имя топика на который подписываемся или pattern ему соответствующий.

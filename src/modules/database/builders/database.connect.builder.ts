@@ -7,9 +7,11 @@ import { LoggerMarkers } from 'src/modules/common';
 import { IElkLoggerService, IElkLoggerServiceBuilder, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { DatabaseConfig } from '../services/database.config';
+import { DatabaseMigrationStatusService } from '../services/database-migration-status.service';
 import { IMigration, IModelConfig } from '../types/types';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED } from '../types/metrics';
 import { DatabaseConnectOptionsBuilder } from './database.connect-options.builder';
+import { IMigrationSqlBuilder, MigrationSqlBuilder } from './migration-sql.builder';
 
 export abstract class DatabaseConnectBuilder {
   private static db: Sequelize;
@@ -17,6 +19,7 @@ export abstract class DatabaseConnectBuilder {
   public static async build(
     loggerBuilder: IElkLoggerServiceBuilder,
     prometheusManager: PrometheusManager,
+    migrationStatus: DatabaseMigrationStatusService,
     config: DatabaseConfig,
     modelConfig?: IModelConfig,
   ): Promise<Sequelize> {
@@ -60,7 +63,7 @@ export abstract class DatabaseConnectBuilder {
     }
 
     if (config.getMigrationsEnabled()) {
-      await DatabaseConnectBuilder.migrateUp(config, logger, prometheusManager);
+      await DatabaseConnectBuilder.migrateUp(config, logger, prometheusManager, migrationStatus);
     }
 
     return DatabaseConnectBuilder.db;
@@ -70,6 +73,7 @@ export abstract class DatabaseConnectBuilder {
     config: DatabaseConfig,
     logger: IElkLoggerService,
     prometheusManager: PrometheusManager,
+    migrationStatus: DatabaseMigrationStatusService,
   ) {
     const labels = {
       service: 'DatabaseModule',
@@ -81,29 +85,52 @@ export abstract class DatabaseConnectBuilder {
 
     const end = prometheusManager.histogram().startTimer(DB_QUERY_DURATIONS, { labels });
 
+    let sqlBuilder: IMigrationSqlBuilder;
     try {
-      const sql = `CREATE TABLE IF NOT EXISTS ${databaseSchema}.${migrationsTable} (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);`;
+      sqlBuilder = MigrationSqlBuilder.build(DatabaseConnectBuilder.db.getDialect(), databaseSchema, migrationsTable);
+    } catch (error) {
+      logger.error('Error applying migrations', {
+        markers: [LoggerMarkers.FAILED],
+        module: 'migrateUp',
+        payload: { error },
+      });
+      migrationStatus.markFailure(error as Error);
+      prometheusManager.counter().increment(DB_QUERY_FAILED, { labels });
+      end();
 
-      await DatabaseConnectBuilder.db.query(sql);
+      return;
+    }
 
-      await DatabaseConnectBuilder.db.query('BEGIN;');
+    let lockAcquired = false;
+    let transactionStarted = false;
+    let failingMigration: string | undefined;
 
-      await DatabaseConnectBuilder.db.query(
-        `LOCK TABLE ${databaseSchema}.${migrationsTable} IN ACCESS EXCLUSIVE MODE;`,
-      );
+    try {
+      await DatabaseConnectBuilder.db.query(sqlBuilder.createIfNotExistsSql());
 
-      const sqlTables = `SELECT tablename FROM pg_tables WHERE schemaname = '${databaseSchema}';`;
-
-      const tables: any = await DatabaseConnectBuilder.db.query(sqlTables, { type: QueryTypes.SELECT });
-
-      if (!tables.some((table: { tablename: string }) => table.tablename === migrationsTable)) {
-        await DatabaseConnectBuilder.db.query(
-          `CREATE TABLE ${databaseSchema}.${migrationsTable} (apply_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), name varchar(255) NOT NULL);`,
-        );
+      const acquireLockSql = sqlBuilder.acquireLockSql();
+      if (acquireLockSql !== undefined) {
+        await DatabaseConnectBuilder.db.query(acquireLockSql);
+        lockAcquired = true;
       }
 
-      const sqlGetMigrationsCompleted = `SELECT migrateTable.name FROM ${databaseSchema}.${migrationsTable} as migrateTable;`;
-      const migrationsCompleted: any = await DatabaseConnectBuilder.db.query(sqlGetMigrationsCompleted, {
+      await DatabaseConnectBuilder.db.query(sqlBuilder.beginSql());
+      transactionStarted = true;
+
+      const inTransactionLockSql = sqlBuilder.inTransactionLockSql();
+      if (inTransactionLockSql !== undefined) {
+        await DatabaseConnectBuilder.db.query(inTransactionLockSql);
+      }
+
+      const tables: any = await DatabaseConnectBuilder.db.query(sqlBuilder.listTablesSql(), {
+        type: QueryTypes.SELECT,
+      });
+
+      if (!tables.some((table: { name: string }) => table.name === migrationsTable)) {
+        await DatabaseConnectBuilder.db.query(sqlBuilder.createTableSql());
+      }
+
+      const migrationsCompleted: any = await DatabaseConnectBuilder.db.query(sqlBuilder.listCompletedMigrationsSql(), {
         type: QueryTypes.SELECT,
       });
 
@@ -121,17 +148,17 @@ export abstract class DatabaseConnectBuilder {
 
       for (const migration of tasks) {
         logger.info(`Ran migration ${migration}`, { module: 'migrateUp' });
+        failingMigration = migration;
 
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const instance: IMigration = require(path.resolve(process.cwd(), 'migrations', migration));
         try {
           await instance.up(DatabaseConnectBuilder.db.getQueryInterface(), DatabaseConnectBuilder.db);
 
-          const sql = `INSERT INTO ${databaseSchema}.${migrationsTable} (name) VALUES ('${migration}');`;
-
-          await DatabaseConnectBuilder.db.query(sql);
+          await DatabaseConnectBuilder.db.query(sqlBuilder.insertMigrationSql(migration));
 
           logger.info(`Migration ${migration} applied`, { module: 'migrateUp' });
+          failingMigration = undefined;
         } catch (error) {
           logger.error(`Error applying migration ${migration}`, {
             module: 'migrateUp',
@@ -141,13 +168,16 @@ export abstract class DatabaseConnectBuilder {
             },
           });
 
-          await DatabaseConnectBuilder.db.query('ROLLBACK;');
+          await DatabaseConnectBuilder.db.query(sqlBuilder.rollbackSql());
+          transactionStarted = false;
 
           throw error;
         }
       }
 
-      await DatabaseConnectBuilder.db.query('COMMIT;');
+      await DatabaseConnectBuilder.db.query(sqlBuilder.commitSql());
+      transactionStarted = false;
+      migrationStatus.markSuccess();
     } catch (error) {
       logger.error(`Error applying migrations`, {
         markers: [LoggerMarkers.FAILED],
@@ -157,8 +187,27 @@ export abstract class DatabaseConnectBuilder {
         },
       });
 
+      if (transactionStarted) {
+        try {
+          await DatabaseConnectBuilder.db.query(sqlBuilder.rollbackSql());
+        } catch {
+          /** Nothing */
+        }
+      }
+
+      migrationStatus.markFailure(error as Error, failingMigration);
       prometheusManager.counter().increment(DB_QUERY_FAILED, { labels });
     } finally {
+      if (lockAcquired) {
+        const releaseLockSql = sqlBuilder!.releaseLockSql();
+        if (releaseLockSql !== undefined) {
+          try {
+            await DatabaseConnectBuilder.db.query(releaseLockSql);
+          } catch {
+            /** Nothing */
+          }
+        }
+      }
       end();
     }
   }

@@ -110,8 +110,8 @@ make test-cov           # unit-тесты с покрытием (порог 90% 
 Эндпоинты, доступные из корня (без `/api`):
 
 - `GET /` — **Swagger UI**.
-- `GET /health/liveness-probe` — проверка жизнеспособности.
-- `GET /health/readiness-probe` — проверка готовности (Postgres, Redis, Kafka, RabbitMq).
+- `GET /health/liveness-probe` — проверка жизнеспособности (DataBase, graceful-shutdown, Redis, Kafka, RabbitMq). `DatabaseHealthIndicator` идёт с `migrationFailedStatus='up'` — неудача миграций не рестартит pod, но ping БД всё ещё валит probe при реальной потере соединения. `RedisCacheManagerHealthIndicator` — дефолтный `unavailableStatus='up'` (недоступность Redis не роняет probe, отражается в `details` + warning-логах).
+- `GET /health/readiness-probe` — проверка готовности (Auth, graceful-shutdown, DataBase, Redis, Kafka, RabbitMq). `DatabaseHealthIndicator` — дефолтный `migrationFailedStatus='down'`: pod не принимает трафик, пока миграции не применены. Redis — аналогично liveness.
 - `GET /health/our-metrics` — метрики **Prometheus**.
 - `GET /health/test-jwt-token` — тестовый JWT-токен для Swagger.
 - `GET /chat` — EJS-вьюха WebSocket-чата (`ChatController`).
@@ -165,8 +165,9 @@ export class HttpApiController {
 Проверить работу эндпоинта можно так:
 
 ```bash
-# Получить тестовый JWT-токен (маршрут /health исключён из глобального префикса /api)
-TOKEN=$(curl -s http://127.0.0.1:3000/health/test-jwt-token)
+# Получить тестовый JWT-токен (маршрут /health исключён из глобального префикса /api).
+# Эндпоинт возвращает JSON { accessToken, certificate }, поэтому извлекаем accessToken через jq.
+TOKEN=$(curl -s http://127.0.0.1:3000/health/test-jwt-token | jq -r .accessToken)
 
 # Вызвать защищённый эндпоинт (глобальный префикс /api + маршрут контроллера /app)
 curl -H "Authorization: Bearer $TOKEN" http://127.0.0.1:3000/api/app

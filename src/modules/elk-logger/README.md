@@ -103,7 +103,7 @@ export class MainModule {}
 | `LOGGER_FORMAT_RECORD` | string | `FULL` | `FULL` / `SIMPLE` / `SHORT` / `NULL` | Формат конечной записи лога. `FULL` — валидный JSON (для production / ElasticSearch). `SIMPLE` и `SHORT` — человекочитаемые варианты с цветами, `NULL` — отключает вывод. |
 | `LOGGER_IGNORE_MODULES` | string (CSV) | — | Имена модулей с учётом регистра | Список `ILogRecord.module`, для которых лог полностью подавляется. |
 | `LOGGER_LEVELS` | string (CSV) | — | `TRACE`, `DEBUG`, `INFO`, `WARN` (регистр не важен) | Уровни, которые следует писать. Если пусто — пишутся все. |
-| `LOGGER_FORMAT_TIMESTAMP` | string | `YYYY-MM-DDTHH:mm:ssZ` | Шаблон moment.js | Формат `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp`). |
+| `LOGGER_FORMAT_TIMESTAMP` | string | `DATE_BASE_FORMAT` (`YYYY-MM-DD[T]HH:mm:ssZ`) | Шаблон moment.js | Формат `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp`). |
 | `LOGGER_STORE_FILE` | string | — | Путь к файлу | Путь записи лога в файл. Применяется только при `LOGGER_FORMAT_RECORD=SHORT`. |
 
 ### Сжатие — `PruneConfig` (**@see** `PruneFormatter`)
@@ -165,7 +165,7 @@ CircularFormatter → ObjectFormatter → GeneralAsyncContextFormatter
 import { BaseObjectFormatter } from 'src/modules/elk-logger';
 
 class BufferObjectFormatter extends BaseObjectFormatter<Buffer> {
-  isInstance(obj: unknown): obj is Buffer {
+  isInstanceOf(obj: unknown): obj is Buffer {
     return Buffer.isBuffer(obj);
   }
 

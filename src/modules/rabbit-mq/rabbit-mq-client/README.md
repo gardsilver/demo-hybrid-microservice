@@ -88,7 +88,7 @@ export class MyModule {}
 |**DI-токен**|**Интерфейс**|**Описание**|
 |---|---|---|
 |`RABBIT_MQ_CLIENT_PUBLISH_OPTIONS_BUILDER_DI`| `IRabbitMqPublishOptionsBuilder` (**@see** `src/modules/rabbit-mq/rabbit-mq-common`) | Строит параметры отправки на основе `IRabbitMqAsyncContext` для отправки сообщения |
-|`RABBIT_MQ_CLIENT_PRODUCER_REQUEST_SERIALIZER_DI`| `IProducerSerializer`| Реализует кодирование данных пред отправкой |
+|`RABBIT_MQ_CLIENT_PRODUCER_REQUEST_SERIALIZER_DI`| `IProducerSerializer`| Реализует кодирование данных перед отправкой |
 |`RABBIT_MQ_CLIENT_PROXY_DI`| `RabbitMqClientProxy`| Аналог `ClientRMQ` (**@see** `@nestjs/microservices`). Реализует метод отправки сообщения `send` позволяющий оправить сообщение с использованием `publish` или `sendToQueue`, который возвращают `Observable` и требуют явно подписаться на него, что бы сообщение было отправлено |
 |`RabbitMqClientService`| `RabbitMqClientService`| Клиент оболочка на `RabbitMqClientProxy`. Предоставляет один универсальный метод отправки отправки запроса `request`, фиксирует логи и метрики |
 |`RabbitMqClientErrorHandler`| `RabbitMqClientErrorHandler`| Обработчик ошибок, пишет соответствующие логи |

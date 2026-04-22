@@ -156,11 +156,11 @@ export class MyConfig {
   private readonly helper: ConfigServiceHelper;
 
   constructor(configService: ConfigService) {
-    this.helper = new ConfigServiceHelper('MY_MODULE', configService);
+    this.helper = new ConfigServiceHelper(configService, 'MY_MODULE_');
   }
 
   public getTimeoutMs(): number {
-    return this.helper.parseInt('TIMEOUT_MS', { defaultValue: 5000, min: 1 });
+    return this.helper.parseInt('TIMEOUT_MS', 5000);
   }
 }
 ```

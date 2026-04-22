@@ -4,4 +4,6 @@ export * from './types/types';
 export * from './helpers/database.helper';
 export * from './formatters/logger/data-base-error.object-formatter';
 export * from './formatters/logger/validation-error-item.object-formatter';
+export * from './services/database-migration-status.service';
+export * from './services/database.health-indicator';
 export * from './database.module';

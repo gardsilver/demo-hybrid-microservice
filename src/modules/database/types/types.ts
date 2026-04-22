@@ -9,3 +9,8 @@ export interface IMigration {
   up(queryInterface: QueryInterface, sequelize?: Sequelize): Promise<void> | Promise<never>;
   down(queryInterface: QueryInterface, sequelize?: Sequelize): Promise<void> | Promise<never>;
 }
+
+export interface IDatabaseHealthIndicatorOptions {
+  timeout?: number;
+  migrationFailedStatus?: 'up' | 'down';
+}

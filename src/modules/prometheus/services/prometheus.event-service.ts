@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReplaySubject, Subscription } from 'rxjs';
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { GeneralAsyncContext } from 'src/modules/common';
 import { PrometheusLabels } from '../types/types';
 import {
+  PrometheusEventArgs,
   ICounterConfig,
   IGaugeConfig,
   IHistogramConfig,
@@ -12,14 +12,6 @@ import {
   ITargetPrometheusOnMethod,
 } from '../types/decorators.type';
 import { PrometheusManager } from './prometheus.manager';
-
-export type PrometheusEventArgs = {
-  error?: unknown;
-  result?: any;
-  duration?: number;
-  labels?: PrometheusLabels;
-  methodsArgs?: any[];
-};
 
 interface IPrometheusEndCallback {
   histogram?: (labels?: PrometheusLabels) => number;

@@ -102,7 +102,7 @@ async function bootstrap(): Promise<void> {
 
   const document = new DocumentBuilder()
     .setTitle('Demo Hybrid Microservice')
-    .setDescription('REST API/ gRPC API')
+    .setDescription('REST API')
     .addBearerAuth({
       type: 'http',
       scheme: BEARER_NAME.toLocaleLowerCase(),

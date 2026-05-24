@@ -2,9 +2,9 @@
 import { faker } from '@faker-js/faker';
 import { IGeneralAsyncContext } from 'src/modules/common';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { IPrometheusEventConfig, ITargetPrometheusOnMethod } from '../types/decorators.type';
+import { IPrometheusEventConfig, ITargetPrometheusOnMethod, PrometheusEventArgs } from '../types/decorators.type';
 import { ICounterService, IGaugeService, IHistogramService, ISummaryService } from '../types/types';
-import { PrometheusEventArgs, PrometheusEventService } from './prometheus.event-service';
+import { PrometheusEventService } from './prometheus.event-service';
 import { PrometheusManager } from './prometheus.manager';
 
 describe(PrometheusEventService.name, () => {

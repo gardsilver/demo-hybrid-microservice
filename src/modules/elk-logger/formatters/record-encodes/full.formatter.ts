@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { circularReplacerBuilder } from 'src/modules/common';
+import { circularReplacerBuilder } from 'src/modules/common/utils';
 import { ILogRecordEncodeFormatter, ILogRecord } from '../../types/elk-logger.types';
 
 @Injectable()

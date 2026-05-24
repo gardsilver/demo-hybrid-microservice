@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { EmptyAsyncContextError, GetAsyncContextValueType, IAsyncContext } from './types';
+import { copyMetadata } from 'src/modules/common/utils';
 
 const asyncLocalStorage = new AsyncLocalStorage();
 
@@ -17,26 +18,11 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
     return store as S;
   }
 
-  /**
-   * Декоратор для объявления контекста выполнения.
-   *
-   * Новый контекст автоматически создается при вызове декорирующего метода.
-   *
-   * ВНИМАНИЕ
-   *   Переопределяет метод.
-   *   Если вы применяет этот декоратор в сочетании с другими декораторами,
-   *   активно использующие метаданные, то могут быть скрытые ошибки из-за потери метаданных последними.
-   *
-   *   При возникновении подобной проблемы помогает:
-   *    - смена порядка применения декораторов
-   *    - или применение конфликтующих декораторов на разные методы.
-   *    - или использовать runWithContext()
-   */
   public static define<T = IAsyncContext>(initCallback?: (...methodsArgs: any[]) => T): MethodDecorator {
     return (_target: any, _propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
       const originalMethod = descriptor.value;
 
-      descriptor.value = function (this: any, ...args: any[]) {
+      const wrappedMethod = function (this: any, ...args: any[]) {
         return asyncLocalStorage.run(initCallback ? initCallback(...args) : {}, async () => {
           try {
             return originalMethod.apply(this, args);
@@ -45,6 +31,9 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
           }
         });
       };
+
+      copyMetadata(wrappedMethod, originalMethod);
+      descriptor.value = wrappedMethod;
 
       return descriptor;
     };

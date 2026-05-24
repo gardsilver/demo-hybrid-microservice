@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IKeyValue, circularRemove } from 'src/modules/common';
+import { IKeyValue } from 'src/modules/common';
+import { circularRemove } from 'src/modules/common/utils';
 import { ILogRecordFormatter, ILogRecord } from '../../types/elk-logger.types';
 import { ElkLoggerConfig } from '../../services/elk-logger.config';
 

@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
-import { CheckObjectsType } from 'src/modules/common';
+import { CheckObjectsType } from 'src/modules/common/utils';
 import { MockConfigService } from 'tests/nestjs';
 import { PruneEncoder } from './prune.encoder';
 import {

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GeneralAsyncContext } from 'src/modules/common';
+import { copyMetadata } from 'src/modules/common/utils';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { ILogFields } from '../types/elk-logger.types';
 import { IElkLoggerEvent, IElkLoggerOnMethod, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
@@ -46,7 +47,7 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
   return (target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = function (this: any, ...args: any[]) {
+    const wrappedMethod = function (this: any, ...args: any[]) {
       const defaultElkLoggerOptions: ElkLoggerOptions = getElkLoggerOptions(target);
 
       const params: ITargetLoggerOnMethod = {
@@ -256,6 +257,9 @@ export function ElkLoggerOnMethod(eventData: IElkLoggerOnMethod): MethodDecorato
         }
       });
     };
+
+    copyMetadata(wrappedMethod, originalMethod);
+    descriptor.value = wrappedMethod;
 
     return descriptor;
   };

@@ -11,7 +11,8 @@ import { DatabaseMigrationStatusService } from '../services/database-migration-s
 import { IMigration, IModelConfig } from '../types/types';
 import { DB_QUERY_DURATIONS, DB_QUERY_FAILED } from '../types/metrics';
 import { DatabaseConnectOptionsBuilder } from './database.connect-options.builder';
-import { IMigrationSqlBuilder, MigrationSqlBuilder } from './migration-sql.builder';
+import { IMigrationSqlBuilder } from './dialect/migration-sql.builder';
+import { MigrationSqlBuilder } from './migration-sql.builder';
 
 export abstract class DatabaseConnectBuilder {
   private static db: Sequelize;

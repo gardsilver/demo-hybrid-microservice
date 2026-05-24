@@ -1,6 +1,7 @@
 import { Model } from 'sequelize-typescript';
 import { Type } from '@nestjs/common';
-import { IKeyValue, isStaticMethod } from 'src/modules/common';
+import { IKeyValue } from 'src/modules/common';
+import { isStaticMethod } from 'src/modules/common/utils';
 
 export abstract class DatabaseHelper {
   public static modelToLogFormat(model: object | null | undefined) {

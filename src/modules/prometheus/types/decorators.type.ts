@@ -14,7 +14,14 @@ import {
   PrometheusLabels,
 } from './types';
 import { PrometheusManager } from '../services/prometheus.manager';
-import { PrometheusEventArgs } from '../services/prometheus.event-service';
+
+export type PrometheusEventArgs = {
+  error?: unknown;
+  result?: any;
+  duration?: number;
+  labels?: PrometheusLabels;
+  methodsArgs?: any[];
+};
 
 export interface IPrometheusParams<M extends IMetricConfig, P> {
   metricConfig: M;

@@ -1,11 +1,6 @@
 import { Provider } from '@nestjs/common';
-import {
-  ImportsType,
-  IServiceClassProvider,
-  IServiceFactoryProvider,
-  IServiceValueProvider,
-  CheckObjectsType,
-} from 'src/modules/common';
+import { ImportsType, IServiceClassProvider, IServiceFactoryProvider, IServiceValueProvider } from 'src/modules/common';
+import { CheckObjectsType } from 'src/modules/common/utils';
 import { ILogFields, ILogRecordFormatter, IEncodeFormatter } from './elk-logger.types';
 import { BaseErrorObjectFormatter } from '../formatters/objects/base-error.object-formatter';
 import { BaseObjectFormatter } from '../formatters/objects/base.object-formatter';

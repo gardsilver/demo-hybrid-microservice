@@ -1,6 +1,7 @@
 import { Module, DynamicModule, Provider } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { CheckObjectsType, ImportsType, ProviderBuilder } from 'src/modules/common';
+import { ImportsType, ProviderBuilder } from 'src/modules/common';
+import { CheckObjectsType } from 'src/modules/common/utils';
 import {
   ELK_IGNORE_FORMATTER_OBJECTS_DI,
   ELK_SORT_FIELDS_DI,

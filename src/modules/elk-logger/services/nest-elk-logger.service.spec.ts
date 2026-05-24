@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { faker } from '@faker-js/faker';
-import { CheckObjectsType } from 'src/modules/common';
+import { CheckObjectsType } from 'src/modules/common/utils';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
 import { FS_MOCK } from 'tests/fs';

@@ -3,6 +3,7 @@ import 'reflect-metadata';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { GRACEFUL_SHUTDOWN_ON_COUNT_KEY } from '../types/constants';
 import { GracefulShutdownCountMetadata, GracefulShutdownCountType } from '../types/types';
+import { copyMetadata } from 'src/modules/common/utils';
 
 /** Счетчик активных процессов, завершение которых необходимо дождаться. */
 export function GracefulShutdownOnCount(): MethodDecorator {
@@ -66,13 +67,7 @@ export function GracefulShutdownOnCount(): MethodDecorator {
       }
     };
 
-    // Копируем все метаданные с оригинального метода на обертку
-    const metadataKeys = Reflect.getMetadataKeys(originalMethod);
-    for (const key of metadataKeys) {
-      const metadataValue = Reflect.getMetadata(key, originalMethod);
-      Reflect.defineMetadata(key, metadataValue, wrappedMethod);
-    }
-
+    copyMetadata(wrappedMethod, originalMethod);
     descriptor.value = wrappedMethod;
 
     return descriptor;

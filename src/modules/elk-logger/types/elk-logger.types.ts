@@ -1,5 +1,6 @@
 import { LoggerService, LogLevel as NestLogLevel } from '@nestjs/common';
-import { IKeyValue, IFormatter, AbstractCheckObject } from 'src/modules/common';
+import { IKeyValue, IFormatter } from 'src/modules/common';
+import { AbstractCheckObject } from 'src/modules/common/utils';
 import { ITraceSpan } from './trace-span';
 
 export enum LogLevel {

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { randomUUID } from 'crypto';
 import { GeneralAsyncContext } from 'src/modules/common';
+import { copyMetadata } from 'src/modules/common/utils';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { PrometheusLabels } from '../types/types';
 import { IPrometheusEventConfig, IPrometheusOnMethod, ITargetPrometheusOnMethod } from '../types/decorators.type';
@@ -13,7 +14,7 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
   return (target: object, propertyKey: string | symbol, descriptor: PropertyDescriptor) => {
     const originalMethod = descriptor.value;
 
-    descriptor.value = function (this: any, ...args: any[]) {
+    const wrappedMethod = function (this: any, ...args: any[]) {
       const ticketId = randomUUID();
 
       const defaultPrometheusMetricConfig: PrometheusMetricConfig = getPrometheusMetricConfig(target);
@@ -275,6 +276,9 @@ export function PrometheusOnMethod(eventData: IPrometheusOnMethod): MethodDecora
         }
       });
     };
+
+    copyMetadata(wrappedMethod, originalMethod);
+    descriptor.value = wrappedMethod;
 
     return descriptor;
   };

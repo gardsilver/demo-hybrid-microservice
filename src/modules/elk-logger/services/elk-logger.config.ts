@@ -1,7 +1,8 @@
 import { openSync } from 'fs';
 import { ConfigService } from '@nestjs/config';
 import { DATE_BASE_FORMAT, DateTimestamp } from 'src/modules/date-timestamp';
-import { CheckObjectsType, ConfigServiceHelper, MomentCheckObject, isObjectInstanceOf } from 'src/modules/common';
+import { ConfigServiceHelper } from 'src/modules/common';
+import { CheckObjectsType, MomentCheckObject, isObjectInstanceOf } from 'src/modules/common/utils';
 import { LogFormat, LogLevel, ILogFields } from '../types/elk-logger.types';
 
 export class ElkLoggerConfig {

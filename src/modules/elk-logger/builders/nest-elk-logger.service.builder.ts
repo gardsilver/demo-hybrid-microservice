@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { CheckObjectsType } from 'src/modules/common';
+import { CheckObjectsType } from 'src/modules/common/utils';
 import { IEncodeFormatter, ILogRecordFormatter, INestElkLoggerService } from '../types/elk-logger.types';
 import { IElkLoggerModuleOptions } from '../types/elk-logger.module.options';
 import { ElkLoggerConfig } from '../services/elk-logger.config';

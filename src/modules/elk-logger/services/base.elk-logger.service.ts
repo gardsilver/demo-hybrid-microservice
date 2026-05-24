@@ -1,6 +1,6 @@
 import { appendFileSync } from 'fs';
 import { DateTimestamp } from 'src/modules/date-timestamp';
-import { circularRemove, circularReplacerBuilder } from 'src/modules/common';
+import { circularRemove, circularReplacerBuilder } from 'src/modules/common/utils';
 import {
   LogLevel,
   LogFormat,

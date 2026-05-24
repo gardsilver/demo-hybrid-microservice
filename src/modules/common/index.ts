@@ -10,5 +10,3 @@ export * from './helpers/url.helper';
 export * from './helpers/config-service.helper';
 export * from './decorators/skip.interceptors';
 export * from './services/metadata-explorer.service';
-export * from './utils/circular-normalizers';
-export * from './utils/normalizers';

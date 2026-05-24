@@ -1,4 +1,4 @@
-import { circularReplacerBuilder } from 'src/modules/common';
+import { circularReplacerBuilder } from 'src/modules/common/utils';
 import { ILogRecordEncodeFormatter, ILogRecord } from '../../types/elk-logger.types';
 
 export class FileFormatter implements ILogRecordEncodeFormatter {

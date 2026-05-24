@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { circularRemove, IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common';
+import { circularRemove } from 'src/modules/common/utils';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { AbstractAsyncContext } from './abstract.async-context';

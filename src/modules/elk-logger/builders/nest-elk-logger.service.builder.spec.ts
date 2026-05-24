@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { MomentCheckObject } from 'src/modules/common';
+import { MomentCheckObject } from 'src/modules/common/utils';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { MockConfigService } from 'tests/nestjs';
 import { MockEncodeFormatter, MockFormatter } from 'tests/modules/elk-logger';

@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { merge } from 'ts-deepmerge';
 import { HttpStatus } from '@nestjs/common';
-import { IHeaders, enumKeys } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { enumKeys } from 'src/modules/common/utils';
 import { LogLevel } from 'src/modules/elk-logger';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { requestFactory, responseFactory } from 'tests/express';

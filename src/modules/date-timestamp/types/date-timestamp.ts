@@ -15,6 +15,8 @@ import { DateTimestampHelper } from '../helpers/date-timestamp.helper';
 export class DateTimestamp {
   private moment!: moment.Moment;
   private offset: number | null = MOSCOW_OFFSET;
+  private timezone: string = 'Europe/Moscow';
+
   private setCorrectly = false;
   private readonly throwOnError: boolean = true;
 
@@ -121,6 +123,35 @@ export class DateTimestamp {
     return this;
   }
 
+  getTimezone(): string {
+    return this.timezone;
+  }
+
+  /**
+   * Examples:
+   *  - Europe/Moscow
+   *  - UTC
+   *  - Europe/Berlin
+   *
+   * keepLocalTime = true
+   * 2024-01-01T12:00:00+03:00 -> 2024-01-01T12:00:00+01:00
+   *
+   * keepLocalTime = false
+   * 2024-01-01T12:00:00+03:00 -> 2024-01-01T10:00:00+01:00
+   */
+  setTimezone(timezone: string, keepLocalTime = false): this {
+    if (!moment.tz.zone(timezone)) {
+      throw new Error(`Unknown timezone (${timezone})`);
+    }
+
+    this.moment = this.moment.clone().tz(timezone, keepLocalTime);
+
+    this.timezone = timezone;
+    this.offset = this.moment.utcOffset();
+
+    return this;
+  }
+
   set(dateTime?: null | string | number | Date | moment.Moment, offset?: null | string | number): this {
     this.setCorrectly = false;
 
@@ -130,6 +161,7 @@ export class DateTimestamp {
       }
 
       this.moment = moment();
+      this.timezone = this.moment.tz() || 'Europe/Moscow';
 
       return this;
     }
@@ -139,6 +171,7 @@ export class DateTimestamp {
         case 'number':
           this.moment = moment(dateTime);
           break;
+
         case 'string':
           this.moment = moment();
 
@@ -154,6 +187,7 @@ export class DateTimestamp {
             this.moment = moment(dateTime, format ?? undefined);
 
             const hasTimezone = REGEXP_WITH_TIMEZONE_OFFSET.test(dateTime);
+
             if (hasTimezone) {
               const parsedOffset = DateTimestampHelper.parseOffset(dateTime, format ?? undefined);
 
@@ -166,6 +200,7 @@ export class DateTimestamp {
           }
 
           break;
+
         default:
           if (dateTime instanceof Date) {
             this.moment = moment(dateTime);
@@ -174,8 +209,12 @@ export class DateTimestamp {
           } else {
             this.moment = moment();
           }
+
           break;
       }
+
+      this.timezone = this.moment.tz() || 'Europe/Moscow';
+      this.offset = this.moment.utcOffset();
 
       this.setCorrectly = true;
     } catch {

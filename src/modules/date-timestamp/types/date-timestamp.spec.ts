@@ -442,3 +442,66 @@ describe(DateTimestamp.name, () => {
     expect(tgt010324.format(DATE_TIME_WORLD_STANDARD_FORMAT)).toBe('2024-03-01 00:00:00');
   });
 });
+
+describe('DateTimestamp timezone', () => {
+  describe('getTimezone', () => {
+    it('should return default timezone', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      expect(date.getTimezone()).toBe('Europe/Moscow');
+    });
+
+    it('should return changed timezone', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      date.setTimezone('Europe/Berlin');
+
+      expect(date.getTimezone()).toBe('Europe/Berlin');
+    });
+  });
+
+  describe('setTimezone', () => {
+    it('should change timezone with time conversion', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      date.setTimezone('UTC');
+
+      expect(date.format('YYYY-MM-DD HH:mm:ss Z')).toBe('2024-01-01 09:00:00 +00:00');
+    });
+
+    it('should change timezone without time conversion', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      date.setTimezone('UTC', true);
+
+      expect(date.format('YYYY-MM-DD HH:mm:ss Z')).toBe('2024-01-01 12:00:00 +00:00');
+    });
+
+    it('should update utc offset after timezone change', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      date.setTimezone('Europe/Berlin');
+
+      expect(date.getUtcOffset()).toBe(60);
+    });
+
+    it('should throw on invalid timezone', () => {
+      const date = new DateTimestamp('2024-01-01 12:00:00');
+
+      expect(() => {
+        date.setTimezone('INVALID_TIMEZONE');
+      }).toThrow('Unknown timezone (INVALID_TIMEZONE)');
+    });
+
+    it('should support daylight saving timezone', () => {
+      const winter = new DateTimestamp('2024-01-01 12:00:00');
+      winter.setTimezone('Europe/Berlin');
+
+      const summer = new DateTimestamp('2024-07-01 12:00:00');
+      summer.setTimezone('Europe/Berlin');
+
+      expect(winter.getUtcOffset()).toBe(60);
+      expect(summer.getUtcOffset()).toBe(120);
+    });
+  });
+});

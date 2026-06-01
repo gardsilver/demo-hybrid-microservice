@@ -2,6 +2,7 @@ services:
   demo-hybrid-microservice:
     build:
       context: ../
+      dockerfile: deploy/Dockerfile
     container_name: 'demo-hybrid-microservice'
     restart: always
     command: ["npm", "--prefix=/app", "run", "start:dev"]

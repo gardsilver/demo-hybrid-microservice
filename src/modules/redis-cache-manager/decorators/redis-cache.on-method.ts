@@ -24,7 +24,7 @@ export function RedisCacheOnAsyncMethod(options: {
 
       result = await originalMethod.apply(this, args);
 
-      if (result && cacheService) {
+      if (result !== undefined && cacheService) {
         cacheService.set(cacheKey, result, { adapter: options.adapter, ttl: options.ttl });
       }
 

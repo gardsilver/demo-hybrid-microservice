@@ -90,7 +90,9 @@ export abstract class BaseElkLoggerService {
       : JSON.stringify(normalizeRecord, circularReplacerBuilder());
 
     if (!(stringLog === undefined || stringLog === '')) {
-      process['stdout'].write(stringLog + '\n');
+      const streamName = this.elkLoggerConfig.getOutputTarget().toLowerCase() as 'stdout' | 'stderr';
+
+      process[streamName].write(stringLog + '\n');
 
       const fileDescriptor = this.elkLoggerConfig.getFileDescriptor();
       if (this.fileFormatter && fileDescriptor !== undefined) {

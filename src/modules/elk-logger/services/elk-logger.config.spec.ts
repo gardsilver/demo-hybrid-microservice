@@ -32,6 +32,7 @@ describe(ElkLoggerConfig.name, () => {
       getIgnoreModules: loggerConfig.getIgnoreModules(),
       getLogLevels: loggerConfig.getLogLevels(),
       getTimestampFormat: loggerConfig.getTimestampFormat(),
+      getOutputTarget: loggerConfig.getOutputTarget(),
       getIgnoreObjects: loggerConfig.getIgnoreObjects(),
       getSortFields: loggerConfig.getSortFields(),
     }).toEqual({
@@ -40,7 +41,8 @@ describe(ElkLoggerConfig.name, () => {
       getFormatLogRecord: LogFormat.FULL,
       getIgnoreModules: [],
       getLogLevels: [],
-      getTimestampFormat: 'YYYY-MM-DD[T]HH:mm:ssZ',
+      getTimestampFormat: 'YYYY-MM-DD[T]HH:mm:ss.SSSZ',
+      getOutputTarget: 'STDOUT',
       getIgnoreObjects: [Error, DateTimestamp, new MomentCheckObject()],
       getSortFields: [],
     });
@@ -54,6 +56,7 @@ describe(ElkLoggerConfig.name, () => {
       LOGGER_IGNORE_MODULES: 'app,NestApplication',
       LOGGER_LEVELS: 'INFO,WARN',
       LOGGER_FORMAT_TIMESTAMP: 'DD.MM.YYYY HH:mm:ss.SSS',
+      LOGGER_OUTPUT_TARGET: ' stderr ',
       LOGGER_STORE_FILE: 'log.log',
     }) as unknown as ConfigService;
 
@@ -70,6 +73,7 @@ describe(ElkLoggerConfig.name, () => {
       getIgnoreModules: loggerConfig.getIgnoreModules(),
       getLogLevels: loggerConfig.getLogLevels(),
       getTimestampFormat: loggerConfig.getTimestampFormat(),
+      getOutputTarget: loggerConfig.getOutputTarget(),
       getIgnoreObjects: loggerConfig.getIgnoreObjects(),
       getSortFields: loggerConfig.getSortFields(),
     }).toEqual({
@@ -81,6 +85,7 @@ describe(ElkLoggerConfig.name, () => {
       getIgnoreModules: ['app', 'NestApplication'],
       getLogLevels: [LogLevel.INFO, LogLevel.WARN],
       getTimestampFormat: 'DD.MM.YYYY HH:mm:ss.SSS',
+      getOutputTarget: 'STDERR',
       getIgnoreObjects: [Error, DateTimestamp, new MomentCheckObject()],
       getSortFields: ['timestamp', 'traceId', 'message'],
     });

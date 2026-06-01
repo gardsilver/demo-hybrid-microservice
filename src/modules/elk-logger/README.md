@@ -9,6 +9,22 @@
 
 Реализован конвейер форматеров, позволяющий контролировать объём и представление конечной записи лога, а также гибко расширять обработку пользовательскими типами.
 
+## Важно
+
+Вывод в лог осуществляется посредством вызова `process.stdout`/`process.stderr`, которые являются потокобезопасным (`thread-safe`) при условии, что запись лога не превышает объем 4 КБ (**@see** `PIPE_BUF`). Обойти этот ограничение можно с использованием `stdbuf`:
+
+- Добавить `coreutils` в `Dockerfile`
+
+```Dockerfile
+RUN apk add --no-cache protoc coreutils
+```
+
+- Обновить команду запуска приложения в конфигурации `.yml` для `Docker Compose`:
+
+```yml
+   command: ["stdbuf", "-o64k", "npm", "--prefix=/app", "run", "start:dev"]
+```
+
 ## Структура лога
 
 ```ts
@@ -103,7 +119,8 @@ export class MainModule {}
 | `LOGGER_FORMAT_RECORD` | string | `FULL` | `FULL` / `SIMPLE` / `SHORT` / `NULL` | Формат конечной записи лога. `FULL` — валидный JSON (для production / ElasticSearch). `SIMPLE` и `SHORT` — человекочитаемые варианты с цветами, `NULL` — отключает вывод. |
 | `LOGGER_IGNORE_MODULES` | string (CSV) | — | Имена модулей с учётом регистра | Список `ILogRecord.module`, для которых лог полностью подавляется. |
 | `LOGGER_LEVELS` | string (CSV) | — | `TRACE`, `DEBUG`, `INFO`, `WARN` (регистр не важен) | Уровни, которые следует писать. Если пусто — пишутся все. |
-| `LOGGER_FORMAT_TIMESTAMP` | string | `DATE_BASE_FORMAT` (`YYYY-MM-DD[T]HH:mm:ssZ`) | Шаблон moment.js | Формат `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp`). |
+| `LOGGER_FORMAT_TIMESTAMP` | string | `DATE_BASE_FORMAT_WITH_MILLISECONDS` (`YYYY-MM-DD[T]HH:mm:ss.SSSZ`) | Шаблон moment.js | Формат `ILogRecord.timestamp` (**@see** `src/modules/date-timestamp`). |
+| `LOGGER_OUTPUT_TARGET` | string | `STDOUT`/ `STDERR` | Поток вывода логов | По умолчанию  `STDOUT` |
 | `LOGGER_STORE_FILE` | string | — | Путь к файлу | Путь записи лога в файл. Применяется только при `LOGGER_FORMAT_RECORD=SHORT`. |
 
 ### Сжатие — `PruneConfig` (**@see** `PruneFormatter`)

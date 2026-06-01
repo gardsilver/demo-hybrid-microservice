@@ -19,6 +19,11 @@ export enum LogFormat {
   NULL = 'NULL',
 }
 
+export enum LogOutputTarget {
+  STDOUT = 'STDOUT',
+  STDERR = 'STDERR',
+}
+
 export interface ILogBody {
   businessData?: IKeyValue;
   payload?: IKeyValue;

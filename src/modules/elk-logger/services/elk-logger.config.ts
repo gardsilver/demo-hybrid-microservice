@@ -1,15 +1,16 @@
 import { openSync } from 'fs';
 import { ConfigService } from '@nestjs/config';
-import { DATE_BASE_FORMAT, DateTimestamp } from 'src/modules/date-timestamp';
+import { DATE_BASE_FORMAT_WITH_MILLISECONDS, DateTimestamp } from 'src/modules/date-timestamp';
 import { ConfigServiceHelper } from 'src/modules/common';
 import { CheckObjectsType, MomentCheckObject, isObjectInstanceOf } from 'src/modules/common/utils';
-import { LogFormat, LogLevel, ILogFields } from '../types/elk-logger.types';
+import { LogFormat, LogLevel, ILogFields, LogOutputTarget } from '../types/elk-logger.types';
 
 export class ElkLoggerConfig {
   private formatLogRecord!: LogFormat;
   private ignoreModules: string[] = [];
   private logLevels: LogLevel[] = [];
-  private timestampFormat: string = '';
+  private timestampFormat: string = DATE_BASE_FORMAT_WITH_MILLISECONDS;
+  private outputTarget: LogOutputTarget = LogOutputTarget.STDOUT;
   private storeFilePath: string | null = null;
   private fileDescriptor: number | undefined;
   private readonly ignoreObjects: CheckObjectsType[];
@@ -49,9 +50,19 @@ export class ElkLoggerConfig {
       .map((level) => level?.toUpperCase())
       .filter((level) => validLogLevels.includes(level as unknown as LogLevel));
 
-    this.timestampFormat = configService
-      .get<string>(configServiceHelper.getKeyName('FORMAT_TIMESTAMP'), DATE_BASE_FORMAT)
+    const timestampFormat = configService
+      .get<string>(configServiceHelper.getKeyName('FORMAT_TIMESTAMP'), DATE_BASE_FORMAT_WITH_MILLISECONDS)
       .trim();
+    if (timestampFormat) {
+      this.timestampFormat = timestampFormat;
+    }
+
+    const targetEnv = configService.get<string>(configServiceHelper.getKeyName('OUTPUT_TARGET'))?.toUpperCase().trim();
+    if (targetEnv && Object.values(LogOutputTarget).includes(targetEnv as unknown as LogOutputTarget)) {
+      this.outputTarget = targetEnv as LogOutputTarget;
+    } else if (targetEnv) {
+      configServiceHelper.error(configServiceHelper.getKeyName('OUTPUT_TARGET'), targetEnv);
+    }
 
     this.setStoreFile(configService.get<string>(configServiceHelper.getKeyName('STORE_FILE'))?.trim());
   }
@@ -93,6 +104,10 @@ export class ElkLoggerConfig {
 
   getTimestampFormat(): string {
     return this.timestampFormat;
+  }
+
+  getOutputTarget(): LogOutputTarget {
+    return this.outputTarget;
   }
 
   getIgnoreObjects(): Array<CheckObjectsType> {

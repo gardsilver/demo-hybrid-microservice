@@ -8,6 +8,7 @@ import {
   ElkLoggerModule,
   IElkLoggerService,
   INestElkLoggerService,
+  TraceSpanHelper,
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import {
@@ -330,6 +331,25 @@ describe(HealthController.name, () => {
 
     expect(spy).toHaveBeenCalledWith({
       roles: ['user'],
+    });
+  });
+
+  it('generate-trace-span', async () => {
+    const mockTraceId = TraceSpanHelper.generateTraceId();
+    const mockSpanId = TraceSpanHelper.generateSpanId();
+    const mockUUID = TraceSpanHelper.generateRandomValue();
+
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => mockSpanId);
+    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUUID);
+
+    const result = await controller.generateTraceSpan();
+
+    expect(result).toEqual({
+      traceId: mockTraceId,
+      spanId: mockSpanId,
+      requestId: mockUUID,
+      correlationId: mockUUID,
     });
   });
 });

@@ -10,6 +10,7 @@ import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { HybridServerModule } from 'src/modules/hybrid/hybrid-server';
+import { OpentelemetryModule } from 'src/modules/opentelemetry';
 import { HealthModule } from 'src/health';
 import {
   AppModule,
@@ -17,6 +18,7 @@ import {
   IgnoreObjectsFactory,
   ObjectFormattersFactory,
   FormattersFactory,
+  ENV_FILES,
 } from 'src/core/app';
 import { HttpApiModule } from 'src/core/api/http';
 import { GrpcApiModule } from 'src/core/api/grpc';
@@ -31,7 +33,8 @@ import { ExampleRabbitMqModule } from 'src/examples/integrations/rabbit-mq';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: ['.env', '.default.env'], isGlobal: true, cache: true }),
+    ConfigModule.forRoot({ envFilePath: ENV_FILES, isGlobal: true, cache: true }),
+    OpentelemetryModule,
     AppModule,
     ElkLoggerModule.forRoot({
       imports: [AppModule],
@@ -81,4 +84,4 @@ import { ExampleRabbitMqModule } from 'src/examples/integrations/rabbit-mq';
     ExampleRabbitMqModule,
   ],
 })
-export class MainModule {}
+export class BootstrapModule {}

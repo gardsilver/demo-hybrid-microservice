@@ -149,8 +149,6 @@ export class ExternalApiModule {}
 | `httpModuleOptions.options.inject` | `FactoryProvider['inject']` | Нет | `[]` | Зависимости фабрики `options`. |
 | `requestOptions` | `IServiceClassProvider<IHttpRequestOptions>` \| `IServiceValueProvider<IHttpRequestOptions>` \| `IServiceFactoryProvider<IHttpRequestOptions>` | Нет | `{ useValue: {} }` | Provider значений `IHttpRequestOptions` по умолчанию для `HttpClientService.request()`; точечно переопределяются во втором аргументе вызова. |
 | `requestOptions.useValue.headersBuilderOptions` | `IHttpHeadersBuilderOptions` | Нет | — | Опции сборки заголовков для `IHttpHeadersRequestBuilder`. |
-| `requestOptions.useValue.headersBuilderOptions.useZipkin` | `boolean` | Нет | `false` | Проставлять ли Zipkin-заголовки. |
-| `requestOptions.useValue.headersBuilderOptions.asArray` | `boolean` | Нет | `false` | Передавать значения заголовков массивами. |
 | `requestOptions.useValue.headersBuilderOptions.authToken` | `string` | Нет | — | Значение заголовка `Authorization`. |
 | `requestOptions.useValue.retryOptions.retry` | `boolean` | Нет | Значение `HTTP_CLIENT_RETRY_ENABLED` | Включить/отключить retry для данного клиента. |
 | `requestOptions.useValue.retryOptions.timeout` | `number` (мс) | Нет | `HTTP_CLIENT_RETRY_TIMEOUT` | Общий таймаут процесса `request()` (включая все попытки). |

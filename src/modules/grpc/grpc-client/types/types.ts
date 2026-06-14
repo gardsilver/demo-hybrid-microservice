@@ -1,6 +1,6 @@
 import { Metadata } from '@grpc/grpc-js';
 import { IGeneralAsyncContext } from 'src/modules/common';
-import { IGrpcMetadataBuilder } from 'src/modules/grpc/grpc-common';
+import { IGrpcMetadataBuilder, IGrpcMetadataBuilderOptions as IBuilderOptions } from 'src/modules/grpc/grpc-common';
 
 export interface IGrpcClientProxyBuilderOptions {
   url: string;
@@ -11,9 +11,7 @@ export interface IGrpcClientProxyBuilderOptions {
   normalizeUrl?: boolean;
 }
 
-export interface IGrpcMetadataBuilderOptions {
-  useZipkin?: boolean;
-  asArray?: boolean;
+export interface IGrpcMetadataBuilderOptions extends IBuilderOptions {
   authToken?: string;
 }
 

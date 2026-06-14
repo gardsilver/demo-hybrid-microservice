@@ -1,8 +1,8 @@
 import { Metadata } from '@grpc/grpc-js';
-import { faker } from '@faker-js/faker';
-import { TraceSpanBuilder, TraceSpanHelper } from 'src/modules/elk-logger';
+import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { IGeneralAsyncContext } from 'src/modules/common';
 import { AUTHORIZATION_HEADER_NAME, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { GrpcMetadataBuilder } from './grpc.metadata.builder';
 import { IGrpcMetadataBuilder } from '../types/types';
@@ -14,12 +14,12 @@ describe(GrpcMetadataBuilder.name, () => {
   beforeEach(async () => {
     asyncContext = generalAsyncContextFactory.build(
       TraceSpanBuilder.build({
-        initialSpanId: faker.string.uuid(),
+        initialSpanId: CRYPTO_MOCK.randomBytes(8).toString('hex'),
       }) as unknown as IGeneralAsyncContext,
       {
         transient: {
-          requestId: faker.string.uuid(),
-          correlationId: faker.string.uuid(),
+          requestId: CRYPTO_MOCK.randomUUID(),
+          correlationId: CRYPTO_MOCK.randomUUID(),
         },
       },
     );
@@ -34,13 +34,6 @@ describe(GrpcMetadataBuilder.name, () => {
     expect(metadataResponseBuilder.build({ asyncContext }).getMap()).toEqual({
       [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId,
       [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId,
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
-    });
-
-    expect(metadataResponseBuilder.build({ asyncContext }, { useZipkin: true }).getMap()).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
       [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });
@@ -73,35 +66,6 @@ describe(GrpcMetadataBuilder.name, () => {
     ).toEqual({
       [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId,
       [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId,
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
-    });
-
-    const zipkinMetadata = new Metadata();
-    zipkinMetadata.set(
-      HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-      TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-    );
-    zipkinMetadata.set(
-      HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
-      TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-    );
-    zipkinMetadata.set(HttpGeneralAsyncContextHeaderNames.CORRELATION_ID, asyncContext.correlationId);
-    zipkinMetadata.set(HttpGeneralAsyncContextHeaderNames.REQUEST_ID, asyncContext.requestId);
-
-    expect(
-      metadataResponseBuilder
-        .build(
-          {
-            asyncContext: {} as IGeneralAsyncContext,
-            metadata: zipkinMetadata,
-          },
-          { useZipkin: true },
-        )
-        .getMap(),
-    ).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
       [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
       [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
     });

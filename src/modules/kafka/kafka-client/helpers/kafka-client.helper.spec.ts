@@ -23,10 +23,7 @@ describe(KafkaClientHelper.name, () => {
         message: faker.string.alpha(4),
         details: faker.string.alpha(4),
       },
-      headersBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
-      },
+      headersBuilderOptions: {},
     } satisfies Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>;
 
     const options = {
@@ -36,7 +33,6 @@ describe(KafkaClientHelper.name, () => {
         status: faker.string.alpha(4),
       },
       headersBuilderOptions: {
-        asArray: true,
         skip: false,
       },
     } satisfies Omit<IKafkaRequestOptions, 'serializer' | 'headerBuilder'>;
@@ -52,8 +48,6 @@ describe(KafkaClientHelper.name, () => {
         status: options.serializerOption['status'],
       },
       headersBuilderOptions: {
-        useZipkin: globalOptions.headersBuilderOptions.useZipkin,
-        asArray: options.headersBuilderOptions.asArray,
         skip: options.headersBuilderOptions.skip,
       },
     });

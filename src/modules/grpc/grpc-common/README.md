@@ -32,7 +32,7 @@ import { IGeneralAsyncContext } from 'src/modules/common';
 export interface IGrpcMetadataBuilder {
   build(
     params: { asyncContext: IGeneralAsyncContext; metadata?: Metadata },
-    options?: { useZipkin?: boolean; asArray?: boolean },
+    options?: {},
   ): Metadata;
 }
 ```

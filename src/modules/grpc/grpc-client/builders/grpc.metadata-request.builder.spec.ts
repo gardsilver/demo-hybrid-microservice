@@ -29,9 +29,11 @@ describe(GrpcMetadataRequestBuilder.name, () => {
   it('build', async () => {
     const spy = jest.spyOn(GrpcMetadataBuilder.prototype, 'build');
 
-    metadataRequestBuilder.build({ asyncContext }, { useZipkin: true });
+    metadataRequestBuilder.build({ asyncContext }, {});
+    metadataRequestBuilder.build({ asyncContext });
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, {});
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, undefined);
   });
 
   it('build with authToken', async () => {

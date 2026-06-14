@@ -51,8 +51,8 @@ describe(KafkaHeadersRequestBuilder.name, () => {
   it('build', async () => {
     const spy = jest.spyOn(KafkaHeadersBuilder.prototype, 'build');
 
-    builder.build({ asyncContext, headers }, { useZipkin: true });
+    builder.build({ asyncContext, headers }, {});
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext, headers }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext, headers }, {});
   });
 });

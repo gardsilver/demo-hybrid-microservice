@@ -1,3 +1,5 @@
+export const ENV_FILES = ['.env', '.default.env'];
+
 export const GLOBAL_ROUTE_PREFIX = 'api';
 
 export enum KafkaServers {

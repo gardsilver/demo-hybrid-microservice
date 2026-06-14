@@ -35,9 +35,9 @@ describe(HttpHeadersRequestBuilder.name, () => {
 
   it('default', async () => {
     const spy = jest.spyOn(HttpHeadersBuilder.prototype, 'build');
-    builder.build({ asyncContext }, { useZipkin: true });
+    builder.build({ asyncContext }, {});
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, {});
   });
 
   it('build with authToken', async () => {

@@ -11,10 +11,8 @@ import { RabbitMqMessageHelper } from '../helpers/rabbit-mq.message.helper';
 export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBuilder {
   build(
     params: { asyncContext: IRabbitMqAsyncContext; publishOptions?: IRabbitMqPublishOptions },
-    options?: IRabbitMqPublishOptionsBuilderOptions,
+    _options?: IRabbitMqPublishOptionsBuilderOptions,
   ): IRabbitMqPublishOptions {
-    const useZipkin: boolean = options?.useZipkin ?? false;
-
     const headers = { ...params.publishOptions?.headers };
 
     const tgt: IRabbitMqHeaders = {};
@@ -22,12 +20,10 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
     const asyncContextKeys = ['traceId', 'spanId', 'requestId'] as const;
 
     for (const key of asyncContextKeys) {
-      const useHeaderName = RabbitMqMessageHelper.nameAsHeaderName(key, useZipkin);
+      const useHeaderName = RabbitMqMessageHelper.nameAsHeaderName(key);
       if (useHeaderName === undefined) {
         continue;
       }
-
-      const asZipkin = useZipkin && (key === 'traceId' || key === 'spanId');
 
       let value: string | undefined;
 
@@ -36,28 +32,17 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
         value = asyncContextValue.toString();
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
         const headerValue = headers[useHeaderName];
-        value = Array.isArray(headerValue) ? headerValue.join('-') : (headerValue as unknown as string);
-
-        if (value !== '' && asZipkin) {
+        if (Array.isArray(headerValue)) {
+          value = headerValue.join('-');
           value = TraceSpanHelper.formatToGuid(value);
+        } else {
+          value = headerValue as unknown as string;
         }
       }
 
       if (value !== undefined && value !== '') {
-        if (options?.asArray) {
-          tgt[useHeaderName] = value.split('-');
-        } else {
-          tgt[useHeaderName] = asZipkin ? TraceSpanHelper.formatToZipkin(value) : value;
-        }
+        tgt[useHeaderName] = value;
       }
-
-      [RabbitMqMessageHelper.nameAsHeaderName(key, false), RabbitMqMessageHelper.nameAsHeaderName(key, true)].forEach(
-        (headerName) => {
-          if (headerName !== undefined && headerName in headers) {
-            delete headers[headerName];
-          }
-        },
-      );
     }
 
     return {

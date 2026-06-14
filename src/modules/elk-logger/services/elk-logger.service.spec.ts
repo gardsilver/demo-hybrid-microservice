@@ -1,9 +1,9 @@
-import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { LoggerMarkers } from 'src/modules/common';
 import { CheckObjectsType } from 'src/modules/common/utils';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { MockConfigService } from 'tests/nestjs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
 import { FormattersFactory } from '../formatters/formatters.factory';
@@ -30,6 +30,8 @@ import { ProcessTraceSpanStore } from './process-trace-span.store';
 
 describe(ElkLoggerService.name, () => {
   let mockUuid: string;
+  let mockTraceId: string;
+  let mockSpanId: string;
   let spyFormatter: jest.SpyInstance;
   let spyRecordEncodeFormatter: jest.SpyInstance;
   let spyEncodeFormatter: jest.SpyInstance;
@@ -122,10 +124,16 @@ describe(ElkLoggerService.name, () => {
     loggerConfig = module.get(ElkLoggerConfig);
     logger = module.get(ELK_LOGGER_SERVICE_DI);
 
-    mockUuid = faker.string.uuid();
+    mockUuid = CRYPTO_MOCK.randomUUID();
+    mockTraceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
+    mockSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
     ProcessTraceSpanStore.instance.reset();
+
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => mockSpanId);
+
     jest.spyOn(DateTimestamp.prototype, 'format').mockImplementation(() => 'timestamp');
 
     spyFormatter = jest.spyOn(formatter, 'transform');
@@ -145,7 +153,7 @@ describe(ElkLoggerService.name, () => {
 
   describe('base logger methods', () => {
     it('log', async () => {
-      const traceId = faker.string.uuid();
+      const traceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
 
       logger.log(LogLevel.DEBUG, 'start process', {
         markers: [LoggerMarkers.SUCCESS],
@@ -177,7 +185,7 @@ describe(ElkLoggerService.name, () => {
           status: 'run',
         },
         traceId: traceId,
-        spanId: mockUuid,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -213,8 +221,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -250,8 +258,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -287,8 +295,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -324,8 +332,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -361,8 +369,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -398,8 +406,8 @@ describe(ElkLoggerService.name, () => {
         payload: {
           status: 'run',
         },
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
         timestamp: 'timestamp',
       });
@@ -427,8 +435,8 @@ describe(ElkLoggerService.name, () => {
     });
 
     it('addDefaultLogFields', async () => {
-      const traceId = faker.string.uuid();
-      const spanId = faker.string.uuid();
+      const traceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
+      const spanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
       logger.addDefaultLogFields({
         module: 'TestService',
         index: 'Test Service',
@@ -494,9 +502,9 @@ describe(ElkLoggerService.name, () => {
   });
 
   it('keeps explicit trace ids and preserves parentSpanId distinct from spanId', async () => {
-    const traceId = faker.string.uuid();
-    const spanId = faker.string.uuid();
-    const parentSpanId = faker.string.uuid();
+    const traceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
+    const spanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
+    const parentSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
     logger.info('start process', {
       module: 'TestService',
@@ -513,8 +521,8 @@ describe(ElkLoggerService.name, () => {
   });
 
   it('falls back to ProcessTraceSpanStore for trace ids when nothing is provided', async () => {
-    const fallbackTraceId = faker.string.uuid();
-    const fallbackSpanId = faker.string.uuid();
+    const fallbackTraceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
+    const fallbackSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
     const spyOnFallback = jest.spyOn(ProcessTraceSpanStore.instance, 'get').mockImplementation(() => ({
       traceId: fallbackTraceId,
@@ -556,8 +564,8 @@ describe(ElkLoggerService.name, () => {
         user: 'User Name',
       },
       payload: {},
-      traceId: mockUuid,
-      spanId: mockUuid,
+      traceId: mockTraceId,
+      spanId: mockSpanId,
       parentSpanId: '',
       timestamp: 'timestamp',
     });

@@ -1,19 +1,16 @@
 import { Metadata } from '@grpc/grpc-js';
 import { Injectable } from '@nestjs/common';
 import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { AUTHORIZATION_HEADER_NAME, HttHeadersHelper } from 'src/modules/http/http-common';
 import { GrpcHeadersHelper } from '../helpers/grpc.headers.helper';
-import { IGrpcMetadataBuilder } from '../types/types';
+import { IGrpcMetadataBuilder, IGrpcMetadataBuilderOptions } from '../types/types';
 
 @Injectable()
 export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
   build(
     params: { asyncContext: IGeneralAsyncContext; metadata?: Metadata },
-    options?: { useZipkin?: boolean; asArray?: boolean },
+    _options?: IGrpcMetadataBuilderOptions,
   ): Metadata {
-    const useZipkin: boolean = options?.useZipkin ?? false;
-
     const headers: IHeaders = params.metadata ? GrpcHeadersHelper.normalize(params.metadata.getMap()) : {};
 
     if (AUTHORIZATION_HEADER_NAME in headers) {
@@ -25,12 +22,10 @@ export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
     const asyncContextKeys = ['traceId', 'spanId', 'correlationId', 'requestId'] as const;
 
     for (const key of asyncContextKeys) {
-      const useHeaderName = HttHeadersHelper.nameAsHeaderName(key, useZipkin);
+      const useHeaderName = HttHeadersHelper.nameAsHeaderName(key);
       if (useHeaderName === undefined) {
         continue;
       }
-
-      const asZipkin = useZipkin && (key === 'traceId' || key === 'spanId');
 
       let value: string | undefined;
 
@@ -40,27 +35,11 @@ export class GrpcMetadataBuilder implements IGrpcMetadataBuilder {
       } else if (useHeaderName in headers && headers[useHeaderName] !== undefined) {
         const headerValue = headers[useHeaderName];
         value = Array.isArray(headerValue) ? headerValue.join('-') : headerValue;
-
-        if (value !== '' && asZipkin) {
-          value = TraceSpanHelper.formatToGuid(value);
-        }
       }
 
       if (value !== undefined && value !== '') {
-        if (options?.asArray) {
-          tgt[useHeaderName] = value.split('-');
-        } else {
-          tgt[useHeaderName] = asZipkin ? TraceSpanHelper.formatToZipkin(value) : value;
-        }
+        tgt[useHeaderName] = value;
       }
-
-      [HttHeadersHelper.nameAsHeaderName(key, false), HttHeadersHelper.nameAsHeaderName(key, true)].forEach(
-        (headerName) => {
-          if (headerName !== undefined && headerName in headers) {
-            delete headers[headerName];
-          }
-        },
-      );
     }
 
     const metadata = new Metadata();

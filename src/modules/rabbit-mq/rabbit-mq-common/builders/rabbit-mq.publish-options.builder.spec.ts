@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker';
-import { TraceSpanBuilder, TraceSpanHelper } from 'src/modules/elk-logger';
+import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { messagePropertyHeadersFactory } from 'tests/amqplib';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { IRabbitMqAsyncContext } from '../types/rabbit-mq.async-context.type';
-import { IRabbitMqPublishOptions, RabbitMqHeadersValue } from '../types/types';
+import { IRabbitMqPublishOptions } from '../types/types';
 import { RabbitMqPublishOptionsBuilder } from './rabbit-mq.publish-options.builder';
 
 describe(RabbitMqPublishOptionsBuilder.name, () => {
@@ -67,74 +67,6 @@ describe(RabbitMqPublishOptionsBuilder.name, () => {
         ...publishOptions.headers,
         [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId,
         [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId,
-      },
-      correlationId: asyncContext.correlationId,
-      messageId: asyncContext.messageId,
-      replyTo: asyncContext.replyTo,
-    });
-  });
-
-  it('build with zipkin', async () => {
-    publishOptions.headers = {
-      ...publishOptions.headers,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
-      ...httpHeadersFactory.build(
-        {},
-        {
-          transient: {
-            traceId: undefined,
-            spanId: undefined,
-            requestId: undefined,
-            seZipkin: true,
-          },
-        },
-      ),
-    };
-
-    expect(builder.build({ asyncContext, publishOptions }, { useZipkin: true })).toEqual({
-      ...publishOptions,
-      headers: {
-        ...publishOptions.headers,
-        [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-        [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
-        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
-      },
-      correlationId: asyncContext.correlationId,
-      messageId: asyncContext.messageId,
-      replyTo: asyncContext.replyTo,
-    });
-  });
-
-  it('build as array', async () => {
-    publishOptions.headers = {
-      ...publishOptions.headers,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: undefined as unknown as RabbitMqHeadersValue,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: undefined as unknown as RabbitMqHeadersValue,
-      ...httpHeadersFactory.build(
-        {},
-        {
-          transient: {
-            traceId: undefined,
-            spanId: undefined,
-            requestId: undefined,
-            asArray: true,
-          },
-        },
-      ),
-    };
-
-    expect(builder.build({ asyncContext, publishOptions }, { asArray: true })).toEqual({
-      ...publishOptions,
-      headers: {
-        ...publishOptions.headers,
-        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId.split('-'),
-        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId.split('-'),
       },
       correlationId: asyncContext.correlationId,
       messageId: asyncContext.messageId,

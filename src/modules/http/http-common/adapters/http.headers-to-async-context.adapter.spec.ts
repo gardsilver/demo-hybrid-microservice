@@ -1,23 +1,40 @@
 import { IKeyValue } from 'src/modules/common';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
+import { OPENTELEMETRY_API_MOCK } from 'tests/opentelemetry';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpGeneralAsyncContextHeaderNames } from '../types/general.async-context';
 import { HttpHeadersToAsyncContextAdapter } from './http.headers-to-async-context.adapter';
 
+jest.mock('@opentelemetry/api', () => ({
+  ...jest.requireActual('@opentelemetry/api'),
+  ...jest.requireActual('tests/opentelemetry').OPENTELEMETRY_API_MOCK,
+}));
+
 describe(HttpHeadersToAsyncContextAdapter.name, () => {
   const adapter = new HttpHeadersToAsyncContextAdapter();
-  let mockId: string;
+  let mockTraceId: string | undefined;
+  let randTraceId: string;
+  let mockSpanId: string | undefined;
+  let randSpanId: string;
 
   beforeEach(async () => {
-    mockId = TraceSpanHelper.generateRandomValue();
-    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockId);
-  });
+    mockTraceId = TraceSpanHelper.generateTraceId();
+    randTraceId = TraceSpanHelper.generateTraceId();
+    mockSpanId = TraceSpanHelper.generateSpanId();
+    randSpanId = TraceSpanHelper.generateSpanId();
 
-  afterEach(async () => {
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => randTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => randSpanId);
+
+    OPENTELEMETRY_API_MOCK.trace.getSpanContext.mockImplementation(() => ({
+      traceId: mockTraceId,
+      spanId: mockSpanId,
+    }));
+
     jest.clearAllMocks();
   });
 
-  it('Должен вернуть в точности с заголовками', async () => {
+  it('Должен вернуть параметры трассировки соответствии с opentelemetry и в точности с заголовками остальные параметры', async () => {
     const headers = httpHeadersFactory.build(
       {
         programsIds: ['1', '30'],
@@ -35,8 +52,8 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
     const context = adapter.adapt(headers);
 
     expect(context).toEqual({
-      traceId: headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
-      spanId: mockId,
+      traceId: mockTraceId,
+      spanId: mockSpanId,
       parentSpanId: headers[HttpGeneralAsyncContextHeaderNames.SPAN_ID],
       initialSpanId: headers[HttpGeneralAsyncContextHeaderNames.SPAN_ID],
       requestId: headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID],
@@ -44,35 +61,7 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
     });
   });
 
-  it('Должен вернуть декодированные заголовки', async () => {
-    const headers = httpHeadersFactory.build(
-      {
-        programsIds: ['1', '30'],
-      },
-      {
-        transient: {
-          traceId: undefined,
-          spanId: undefined,
-          requestId: undefined,
-          correlationId: undefined,
-          useZipkin: true,
-        },
-      },
-    ) as unknown as IKeyValue<string>;
-
-    const context = adapter.adapt(headers);
-
-    expect(context).toEqual({
-      traceId: TraceSpanHelper.formatToGuid(headers[HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]),
-      spanId: mockId,
-      parentSpanId: TraceSpanHelper.formatToGuid(headers[HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]),
-      initialSpanId: TraceSpanHelper.formatToGuid(headers[HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]),
-      requestId: headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID],
-      correlationId: headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
-    });
-  });
-
-  it('Должен убрать requestId, parentSpanId и initialSpanId', async () => {
+  it('Должен убрать requestId, и при этом spanId, parentSpanId и initialSpanId должны быть сгенерированы.', async () => {
     const headers = httpHeadersFactory.build(
       {
         programsIds: ['1', '30'],
@@ -85,16 +74,20 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
       },
     ) as unknown as IKeyValue<string>;
 
+    mockSpanId = undefined;
+
     const context = adapter.adapt(headers);
 
     expect(context).toEqual({
-      traceId: headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
-      spanId: mockId,
+      traceId: mockTraceId,
+      spanId: randSpanId,
+      parentSpanId: randSpanId,
+      initialSpanId: randSpanId,
       correlationId: headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
     });
   });
 
-  it('Должен придумать traceId', async () => {
+  it('Должен придумать traceId и spanId', async () => {
     const headers = httpHeadersFactory.build(
       {
         programsIds: ['1', '30'],
@@ -107,34 +100,10 @@ describe(HttpHeadersToAsyncContextAdapter.name, () => {
     const context = adapter.adapt(headers);
 
     expect(context).toEqual({
-      traceId: mockId,
-      spanId: mockId,
-    });
-  });
-
-  it('Если traceId является массивом', async () => {
-    const headers = httpHeadersFactory.build(
-      {},
-      {
-        transient: {
-          traceId: undefined,
-          asArray: true,
-        },
-      },
-    ) as unknown as IKeyValue<string[]>;
-
-    const traceId = headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID].join('-');
-
-    expect(adapter.adapt(headers)).toEqual({
-      traceId,
-      spanId: mockId,
-    });
-
-    headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = [];
-
-    expect(adapter.adapt(headers)).toEqual({
-      traceId: mockId,
-      spanId: mockId,
+      traceId: randTraceId,
+      spanId: randSpanId,
+      parentSpanId: randSpanId,
+      initialSpanId: randSpanId,
     });
   });
 });

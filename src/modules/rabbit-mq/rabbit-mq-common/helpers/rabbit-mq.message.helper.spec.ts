@@ -3,6 +3,7 @@ import { MessagePropertyHeaders } from 'amqplib';
 import { IGeneralAsyncContext } from 'src/modules/common';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttHeadersHelper, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { messagePropertiesFactory, messagePropertyHeadersFactory } from 'tests/amqplib';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { IRabbitMqHeaders, IRabbitMqMessageProperties, IRabbitMqPublishOptionsBuilderOptions } from '../types/types';
@@ -42,21 +43,24 @@ const headersFactory = (
 };
 
 describe(RabbitMqMessageHelper.name, () => {
-  let mockId: string;
+  let mockTraceId: string;
+  let mockSpamId: string;
   let traceSpan: IRabbitMqAsyncContext & { traceId: string; spanId: string; requestId: string; correlationId: string };
   let correlationId: string;
   let headers: MessagePropertyHeaders;
 
   beforeEach(async () => {
-    mockId = TraceSpanHelper.generateRandomValue();
-    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockId);
+    mockTraceId = TraceSpanHelper.generateTraceId();
+    mockSpamId = TraceSpanHelper.generateSpanId();
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => mockSpamId);
     correlationId = faker.string.uuid();
 
     traceSpan = {
-      traceId: faker.string.uuid(),
-      spanId: faker.string.uuid(),
-      requestId: faker.string.uuid(),
-      correlationId: faker.string.uuid(),
+      traceId: CRYPTO_MOCK.randomBytes(16).toString('hex'),
+      spanId: CRYPTO_MOCK.randomBytes(8).toString('hex'),
+      requestId: CRYPTO_MOCK.randomUUID(),
+      correlationId: CRYPTO_MOCK.randomUUID(),
     };
 
     headers = headersFactory(traceSpan);
@@ -87,7 +91,7 @@ describe(RabbitMqMessageHelper.name, () => {
         headerNames[paramName] = RabbitMqMessageHelper.nameAsHeaderName(paramName);
 
         if (paramName !== 'correlationId') {
-          expect(spy).toHaveBeenCalledWith(paramName, undefined);
+          expect(spy).toHaveBeenCalledWith(paramName);
         }
       });
 
@@ -96,28 +100,6 @@ describe(RabbitMqMessageHelper.name, () => {
       expect(headerNames).toEqual({
         traceId: HttpGeneralAsyncContextHeaderNames.TRACE_ID,
         spanId: HttpGeneralAsyncContextHeaderNames.SPAN_ID,
-        correlationId: undefined,
-        requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
-      });
-    });
-
-    it('useZipkin', async () => {
-      const headerNames: Record<string, string | undefined> = {};
-      const spy = jest.spyOn(HttHeadersHelper, 'nameAsHeaderName');
-
-      ['traceId', 'spanId', 'correlationId', 'requestId', 'customParam'].forEach((paramName) => {
-        headerNames[paramName] = RabbitMqMessageHelper.nameAsHeaderName(paramName, true);
-
-        if (paramName !== 'correlationId') {
-          expect(spy).toHaveBeenCalledWith(paramName, true);
-        }
-      });
-
-      expect(spy).toHaveBeenCalledTimes(4);
-
-      expect(headerNames).toEqual({
-        traceId: HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        spanId: HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
         correlationId: undefined,
         requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
       });
@@ -157,19 +139,27 @@ describe(RabbitMqMessageHelper.name, () => {
 
       const normalize = RabbitMqMessageHelper.normalize(headers);
 
-      expect(RabbitMqMessageHelper.searchValue(normalize, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID)).toEqual(
-        {},
-      );
+      expect(RabbitMqMessageHelper.searchValue(normalize, 'x-other')).toEqual({});
       expect(
-        RabbitMqMessageHelper.searchValue(
-          normalize,
-          HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-          HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        ),
+        RabbitMqMessageHelper.searchValue(normalize, HttpGeneralAsyncContextHeaderNames.TRACE_ID, 'x-other'),
       ).toEqual({
         header: HttpGeneralAsyncContextHeaderNames.TRACE_ID,
         value: traceSpan.traceId,
       });
+
+      const normalizeWithOther = RabbitMqMessageHelper.normalize({
+        ...headers,
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
+        'x-other': normalize[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
+      });
+
+      expect(
+        RabbitMqMessageHelper.searchValue(normalizeWithOther, HttpGeneralAsyncContextHeaderNames.TRACE_ID, 'x-other'),
+      ).toEqual({
+        header: 'x-other',
+        value: traceSpan.traceId,
+      });
+
       expect(RabbitMqMessageHelper.searchValue(normalize, 'programsids')).toEqual({
         header: 'programsids',
         value: headers['programsIds'],
@@ -186,25 +176,6 @@ describe(RabbitMqMessageHelper.name, () => {
       expect(RabbitMqMessageHelper.searchValue(normalize, 'empty-string')).toEqual({
         header: 'empty-string',
         value: '',
-      });
-    });
-
-    it('useZipkin', async () => {
-      headers[HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID] = TraceSpanHelper.formatToZipkin(traceSpan.traceId);
-
-      delete headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID];
-
-      const normalize = RabbitMqMessageHelper.normalize(headers);
-
-      expect(
-        RabbitMqMessageHelper.searchValue(
-          normalize,
-          HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-          HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        ),
-      ).toEqual({
-        header: HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        value: traceSpan.traceId,
       });
     });
   });
@@ -231,7 +202,7 @@ describe(RabbitMqMessageHelper.name, () => {
     it('default', async () => {
       expect(RabbitMqMessageHelper.toAsyncContext(messageProperties)).toEqual({
         traceId: traceSpan.traceId,
-        spanId: mockId,
+        spanId: mockSpamId,
         initialSpanId: traceSpan.spanId,
         parentSpanId: traceSpan.spanId,
         requestId: traceSpan.requestId,
@@ -246,53 +217,7 @@ describe(RabbitMqMessageHelper.name, () => {
 
       const context = RabbitMqMessageHelper.toAsyncContext(messageProperties);
 
-      expect(context.traceId).toBe(mockId);
-    });
-
-    it('as zipkin', async () => {
-      headers = headersFactory(traceSpan, { useZipkin: true });
-      messageProperties.headers = headers;
-
-      expect(RabbitMqMessageHelper.toAsyncContext(messageProperties)).toEqual({
-        traceId: traceSpan.traceId,
-        spanId: mockId,
-        initialSpanId: traceSpan.spanId,
-        parentSpanId: traceSpan.spanId,
-        requestId: traceSpan.requestId,
-        correlationId,
-        messageId: messageProperties.messageId,
-        replyTo: messageProperties.replyTo,
-      });
-    });
-
-    it('form array format', async () => {
-      headers = headersFactory(traceSpan, { asArray: true });
-      messageProperties.headers = headers;
-
-      expect(RabbitMqMessageHelper.toAsyncContext(messageProperties)).toEqual({
-        traceId: traceSpan.traceId,
-        spanId: mockId,
-        initialSpanId: traceSpan.spanId,
-        parentSpanId: traceSpan.spanId,
-        requestId: traceSpan.requestId,
-        correlationId: correlationId,
-        messageId: messageProperties.messageId,
-        replyTo: messageProperties.replyTo,
-      });
-
-      headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = [];
-      messageProperties.headers = headers;
-
-      expect(RabbitMqMessageHelper.toAsyncContext(messageProperties)).toEqual({
-        traceId: mockId,
-        spanId: mockId,
-        initialSpanId: traceSpan.spanId,
-        parentSpanId: traceSpan.spanId,
-        requestId: traceSpan.requestId,
-        correlationId: correlationId,
-        messageId: messageProperties.messageId,
-        replyTo: messageProperties.replyTo,
-      });
+      expect(context.traceId).toBe(mockTraceId);
     });
   });
 });

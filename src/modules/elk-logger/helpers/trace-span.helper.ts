@@ -1,31 +1,20 @@
-import { randomUUID } from 'crypto';
-import { ITraceSpan } from '../types/trace-span';
+import { randomUUID, randomBytes } from 'crypto';
 
 export abstract class TraceSpanHelper {
+  public static generateTraceId(): string {
+    return randomBytes(16).toString('hex');
+  }
+
+  public static generateSpanId(): string {
+    return randomBytes(8).toString('hex');
+  }
+
   public static generateRandomValue(): string {
     return randomUUID();
   }
 
-  public static toZipkinFormat(ts: ITraceSpan): ITraceSpan {
-    return {
-      traceId: ts?.traceId ? TraceSpanHelper.formatToZipkin(ts?.traceId) : ts?.traceId,
-      spanId: ts?.spanId ? TraceSpanHelper.formatToZipkin(ts?.spanId) : ts?.spanId,
-      initialSpanId: ts?.initialSpanId ? TraceSpanHelper.formatToZipkin(ts?.initialSpanId) : ts?.initialSpanId,
-      parentSpanId: ts?.parentSpanId ? TraceSpanHelper.formatToZipkin(ts?.parentSpanId) : ts?.parentSpanId,
-    };
-  }
-
-  public static toGuidFormat(ts: ITraceSpan): ITraceSpan {
-    return {
-      traceId: ts?.traceId ? TraceSpanHelper.formatToGuid(ts?.traceId) : ts?.traceId,
-      spanId: ts?.spanId ? TraceSpanHelper.formatToGuid(ts?.spanId) : ts?.spanId,
-      initialSpanId: ts?.initialSpanId ? TraceSpanHelper.formatToGuid(ts?.initialSpanId) : ts?.initialSpanId,
-      parentSpanId: ts?.parentSpanId ? TraceSpanHelper.formatToGuid(ts?.parentSpanId) : ts?.parentSpanId,
-    };
-  }
-
   public static formatToZipkin(value: string): string {
-    return value.replace(/[^0-9a-z]/gi, '');
+    return value.replace(/[^0-9a-fA-F]/gi, '').toLowerCase();
   }
 
   public static formatToGuid(value: string): string {

@@ -28,7 +28,7 @@ const headers = HttHeadersHelper.normalize(request.headers);
 
 Дополнительно:
 
-- `HttHeadersHelper.nameAsHeaderName(name, useZipkin?)` — возвращает имя **HTTP**-заголовка для поля `IGeneralAsyncContext` (`traceId`, `spanId`, `correlationId`, `requestId`). При `useZipkin = true` используются B3-заголовки.
+- `HttHeadersHelper.nameAsHeaderName(name)` — возвращает имя **HTTP**-заголовка для поля `IGeneralAsyncContext` (`traceId`, `spanId`, `correlationId`, `requestId`).
 - `HttHeadersHelper.toAsyncContext<Ctx>(headers)` — собирает `IGeneralAsyncContext` из **HTTP**-заголовков: читает `x-trace-id` / `x-b3-trace-id`, `x-span-id` / `x-b3-span-id`, `x-correlation-id`, `x-request-id`. `spanId` всегда генерируется новым (`TraceSpanHelper.generateRandomValue()`), входящий становится `parentSpanId`/`initialSpanId`.
 
 ### ВАЖНО
@@ -39,16 +39,16 @@ const headers = HttHeadersHelper.normalize(request.headers);
 
 Описаны имена **HTTP**-заголовков, содержащих параметры сквозного логирования `IGeneralAsyncContext` (**@see** `src/modules/common`):
 
-| Поле | Заголовок | Zipkin-вариант |
-|---|---|---|
-| `traceId` | `x-trace-id` | `x-b3-trace-id` |
-| `spanId` | `x-span-id` | `x-b3-span-id` |
-| `correlationId` | `x-correlation-id` | — |
-| `requestId` | `x-request-id` | — |
+| Поле | Заголовок |
+|---|---|
+| `traceId` | `x-trace-id` |
+| `spanId` | `x-span-id` |
+| `correlationId` | `x-correlation-id` |
+| `requestId` | `x-request-id` |
 
 ## `HttpHeadersBuilder`
 
-Реализация `IHttpHeadersBuilder`. По заданному `IGeneralAsyncContext` и исходным заголовкам формирует итоговый `IHeaders`, удаляя `authorization` и дубли trace/span-заголовков. Поддерживает опции `useZipkin` и `asArray`. На его основе построены `HttpHeadersResponseBuilder` (server) и `HttpHeadersRequestBuilder` (client).
+Реализация `IHttpHeadersBuilder`. По заданному `IGeneralAsyncContext` и исходным заголовкам формирует итоговый `IHeaders`, удаляя `authorization` и дубли trace/span-заголовков. На его основе построены `HttpHeadersResponseBuilder` (server) и `HttpHeadersRequestBuilder` (client).
 
 ## `HttpAuthHelper`
 

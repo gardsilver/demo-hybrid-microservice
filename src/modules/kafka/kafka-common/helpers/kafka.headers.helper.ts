@@ -4,13 +4,13 @@ import { KafkaAsyncContextHeaderNames } from '../types/constants';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
 
 export abstract class KafkaHeadersHelper extends HttHeadersHelper {
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
+  public static nameAsHeaderName(name: string): string | undefined {
     const map: Record<string, KafkaAsyncContextHeaderNames> = {
       replyTopic: KafkaAsyncContextHeaderNames.REPLY_TOPIC,
       replyPartition: KafkaAsyncContextHeaderNames.REPLY_PARTITION,
     };
 
-    return map[name] ?? HttHeadersHelper.nameAsHeaderName(name, useZipkin);
+    return map[name] ?? HttHeadersHelper.nameAsHeaderName(name);
   }
 
   public static toAsyncContext<Ctx extends IKafkaAsyncContext>(headers: IHeaders): Ctx {

@@ -81,7 +81,7 @@ export class DemoKafkaIntegrationModule {}
 | Поле | Тип | Обязательный | По умолчанию | Описание |
 |---|---|---|---|---|
 | `serializerOption` | `Record<string, unknown>` | Нет | — | Дополнительные опции, пробрасываемые в `IProducerSerializer.serialize`. |
-| `headersBuilderOptions` | `IKafkaHeadersBuilderOptions & { skip?: boolean }` | Нет | — | Параметры построения заголовков: `useZipkin`, `asArray`, `skip`. |
+| `headersBuilderOptions` | `IKafkaHeadersBuilderOptions & { skip?: boolean }` | Нет | — | Параметры построения заголовков: `skip`. |
 | `acks` / `timeout` / `compression` и пр. поля `ProducerRecord` | см. `kafkajs` | Нет | — | Стандартные опции `ProducerRecord` и `Message`, кроме `topic`, `messages`, `key`, `value`, `headers`. |
 
 После успешного подключения будут доступны следующие сервисы:

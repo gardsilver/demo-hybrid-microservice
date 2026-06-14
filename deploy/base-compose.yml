@@ -108,3 +108,27 @@ services:
       - 'rabbitmq:/var/lib/rabbitmq/data'
     networks:
       - dev-local
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    restart: always
+    ports:
+      - "16686:16686" # Веб-интерфейс Jaeger UI
+    networks:
+      - dev-local
+
+  jaeger-ui:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: jaeger-ui
+    restart: always
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./configs/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC приемник
+      - "4318:4318" # OTLP HTTP приемник
+    depends_on:
+      - jaeger
+    networks:
+      - dev-local

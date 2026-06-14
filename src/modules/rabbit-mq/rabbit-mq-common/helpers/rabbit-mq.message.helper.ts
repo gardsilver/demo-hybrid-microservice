@@ -52,24 +52,16 @@ export abstract class RabbitMqMessageHelper {
   public static toAsyncContext<Ctx extends IRabbitMqAsyncContext>(properties: IRabbitMqMessageProperties): Ctx {
     const traceId =
       RabbitMqMessageHelper.headerValueAsString(
-        RabbitMqMessageHelper.searchValue(
-          properties.headers,
-          HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-          HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        ).value,
-      ) ?? TraceSpanHelper.generateRandomValue();
+        RabbitMqMessageHelper.searchValue(properties.headers, HttpGeneralAsyncContextHeaderNames.TRACE_ID).value,
+      ) ?? TraceSpanHelper.generateTraceId();
 
     const parentSpanId = RabbitMqMessageHelper.headerValueAsString(
-      RabbitMqMessageHelper.searchValue(
-        properties.headers,
-        HttpGeneralAsyncContextHeaderNames.SPAN_ID,
-        HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
-      ).value,
+      RabbitMqMessageHelper.searchValue(properties.headers, HttpGeneralAsyncContextHeaderNames.SPAN_ID).value,
     );
 
     const ctx: Ctx = {
       traceId,
-      spanId: TraceSpanHelper.generateRandomValue(),
+      spanId: TraceSpanHelper.generateSpanId(),
       parentSpanId,
       initialSpanId: parentSpanId,
       requestId: RabbitMqMessageHelper.headerValueAsString(
@@ -99,12 +91,12 @@ export abstract class RabbitMqMessageHelper {
     return value.toString().trim();
   }
 
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
+  public static nameAsHeaderName(name: string): string | undefined {
     if (name === 'correlationId') {
       return undefined;
     }
 
-    return HttHeadersHelper.nameAsHeaderName(name, useZipkin);
+    return HttHeadersHelper.nameAsHeaderName(name);
   }
 
   public static searchValue(
@@ -156,19 +148,6 @@ export abstract class RabbitMqMessageHelper {
         value: undefined,
       },
     );
-
-    if (
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID].includes(
-        result.header as unknown as HttpGeneralAsyncContextHeaderNames,
-      )
-    ) {
-      const asStr = RabbitMqMessageHelper.headerValueAsString(result.value);
-
-      return {
-        ...result,
-        value: asStr ? TraceSpanHelper.formatToGuid(asStr) : undefined,
-      };
-    }
 
     return result;
   }

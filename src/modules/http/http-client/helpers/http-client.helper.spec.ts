@@ -134,8 +134,6 @@ describe(HttpClientHelper.name, () => {
   it('mergeRequestOptions', async () => {
     const globalOptions: IHttpRequestOptions = {
       headersBuilderOptions: {
-        useZipkin: false,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {
@@ -155,8 +153,6 @@ describe(HttpClientHelper.name, () => {
 
     expect(HttpClientHelper.mergeRequestOptions(globalOptions)).toEqual({
       headersBuilderOptions: {
-        useZipkin: false,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {
@@ -169,9 +165,7 @@ describe(HttpClientHelper.name, () => {
 
     expect(
       HttpClientHelper.mergeRequestOptions(globalOptions, {
-        headersBuilderOptions: {
-          useZipkin: true,
-        },
+        headersBuilderOptions: {},
         retryOptions: {
           retry: true,
           delay: undefined,
@@ -180,8 +174,6 @@ describe(HttpClientHelper.name, () => {
       }),
     ).toEqual({
       headersBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {
@@ -195,9 +187,7 @@ describe(HttpClientHelper.name, () => {
 
     expect(
       HttpClientHelper.mergeRequestOptions(globalOptions, {
-        headersBuilderOptions: {
-          useZipkin: true,
-        },
+        headersBuilderOptions: {},
         retryOptions: {
           retry: true,
           delay: undefined,
@@ -207,8 +197,6 @@ describe(HttpClientHelper.name, () => {
       }),
     ).toEqual({
       headersBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {
@@ -222,9 +210,7 @@ describe(HttpClientHelper.name, () => {
 
     expect(
       HttpClientHelper.mergeRequestOptions(globalOptions, {
-        headersBuilderOptions: {
-          useZipkin: true,
-        },
+        headersBuilderOptions: {},
         retryOptions: {
           retry: true,
           delay: undefined,
@@ -234,8 +220,6 @@ describe(HttpClientHelper.name, () => {
       }),
     ).toEqual({
       headersBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {

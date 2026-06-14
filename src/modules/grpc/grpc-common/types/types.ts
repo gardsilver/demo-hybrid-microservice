@@ -3,9 +3,11 @@ import { IGeneralAsyncContext, IHeadersToContextAdapter } from 'src/modules/comm
 
 export interface IGrpcHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IGeneralAsyncContext> {}
 
+export interface IGrpcMetadataBuilderOptions {}
+
 export interface IGrpcMetadataBuilder {
   build(
     params: { asyncContext: IGeneralAsyncContext; metadata?: Metadata },
-    options?: { useZipkin?: boolean; asArray?: boolean },
+    options?: IGrpcMetadataBuilderOptions,
   ): Metadata;
 }

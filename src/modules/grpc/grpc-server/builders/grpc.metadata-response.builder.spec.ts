@@ -28,8 +28,8 @@ describe(GrpcMetadataResponseBuilder.name, () => {
   it('build', async () => {
     const spy = jest.spyOn(GrpcMetadataBuilder.prototype, 'build');
 
-    metadataResponseBuilder.build({ asyncContext }, { useZipkin: true });
+    metadataResponseBuilder.build({ asyncContext }, {});
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, {});
   });
 });

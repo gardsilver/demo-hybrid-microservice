@@ -3,7 +3,8 @@ import { ExecutionContext, HttpStatus, HttpException, BadRequestException } from
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   IElkLoggerService,
   IElkLoggerServiceBuilder,

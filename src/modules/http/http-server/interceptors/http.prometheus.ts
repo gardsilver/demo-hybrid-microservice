@@ -10,7 +10,8 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { GeneralAsyncContext, IGeneralAsyncContext, isSkipped } from 'src/modules/common';
+import { isSkipped } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { PrometheusLabels, PrometheusManager } from 'src/modules/prometheus';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';

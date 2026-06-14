@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { Factory } from 'fishery';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 
 export const generalAsyncContextFactory = Factory.define<IGeneralAsyncContext>(({ transientParams }) => {
   const tgt = {} as IGeneralAsyncContext;

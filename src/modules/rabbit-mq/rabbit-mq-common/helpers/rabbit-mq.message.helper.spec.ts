@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { MessagePropertyHeaders } from 'amqplib';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttHeadersHelper, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { CRYPTO_MOCK } from 'tests/crypto';

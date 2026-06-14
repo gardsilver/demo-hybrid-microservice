@@ -26,7 +26,6 @@ import {
   ConsumerConfig,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { delay } from 'src/modules/date-timestamp';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
@@ -146,9 +145,7 @@ export abstract class KafkaServerBase extends Server {
     this.client = this.createClient();
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @KafkaAsyncContext.define()
   protected async run(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
     this.runCallback = callback;
 

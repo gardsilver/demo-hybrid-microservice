@@ -8,7 +8,8 @@ import {
   LogFieldsHelper,
   TraceSpanBuilder,
 } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, IHeadersToContextAdapter, IKeyValue, LoggerMarkers } from 'src/modules/common';
+import { IHeadersToContextAdapter, IKeyValue, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcHeadersHelper } from 'src/modules//grpc/grpc-common';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { IGrpcMetadataResponseBuilder } from '../types/types';

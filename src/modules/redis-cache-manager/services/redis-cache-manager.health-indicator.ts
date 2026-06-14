@@ -1,12 +1,7 @@
 import { RedisClientType } from '@keyv/redis';
 import { Inject, Injectable } from '@nestjs/common';
 import { HealthIndicatorResult, HealthIndicatorService } from '@nestjs/terminus';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  IElkLoggerService,
-  IElkLoggerServiceBuilder,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { REDIS_CACHE_MANAGER_REDIS_CLIENT_DI } from '../types/tokens';
 import { IRedisHealthIndicatorOptions } from '../types/types';
 
@@ -63,7 +58,6 @@ export class RedisCacheManagerHealthIndicator {
     if (unavailableStatus === 'up' && this.redisClient.isReady) {
       this.logger.warn('Redis is unavailable — probe reports up due to unavailableStatus option', {
         payload: { ...details, exception: pingError },
-        ...TraceSpanBuilder.build(),
       });
     }
 

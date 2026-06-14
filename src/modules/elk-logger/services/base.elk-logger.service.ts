@@ -136,8 +136,13 @@ export abstract class BaseElkLoggerService {
     if (!record.spanId) {
       record.spanId = fallback.spanId;
     }
+
     if (!record.parentSpanId || record.parentSpanId === record.spanId) {
       record.parentSpanId = '';
+    }
+
+    if (!record.initialSpanId || record.initialSpanId === record.spanId) {
+      record.initialSpanId = record.parentSpanId;
     }
 
     return record;

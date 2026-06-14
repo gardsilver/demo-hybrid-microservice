@@ -25,7 +25,7 @@ const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);
 
 ### `KafkaAsyncContextHeaderNames`
 
-Описаны имена **Kafka**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common` и др.).
+Описаны имена **Kafka**-headers содержащие информацию асинхронного контекста выполнения (такие как параметры сквозного логирования `IGeneralAsyncContext`: **@see** `src/modules/common/context` и др.).
 
 ```ts
 export enum KafkaAsyncContextHeaderNames {
@@ -43,7 +43,7 @@ export enum KafkaAsyncContextHeaderNames {
 
 ```ts
 import { KafkaHeadersToAsyncContextAdapter, KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
-import { GeneralAsyncContext } from 'src/modules/async-context';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 
 const adapter = new KafkaHeadersToAsyncContextAdapter();
 const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers);

@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { Test } from '@nestjs/testing';
 import { AccessRoles, AuthStatus, IAuthInfo } from 'src/modules/auth';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { BaseRequest } from 'src/examples/integrations/common';
 import { generalAsyncContextFactory } from 'tests/modules/common';

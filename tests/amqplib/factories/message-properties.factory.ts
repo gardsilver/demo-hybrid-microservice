@@ -1,7 +1,7 @@
 import { Factory } from 'fishery';
 import { MessageProperties } from 'amqplib';
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { httpHeadersFactory, IBaseHeaders } from 'tests/modules/http/http-common';
 import {
   messagePropertyHeadersFactory,

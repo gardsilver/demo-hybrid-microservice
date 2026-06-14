@@ -2,7 +2,7 @@ import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
 import { Metadata } from '@grpc/grpc-js';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AccessRoles, AuthStatus, IAuthInfo } from 'src/modules/auth';
 import { METADATA_ASYNC_CONTEXT_KEY, METADATA_AUTH_INFO_KEY } from 'src/modules/http/http-server';
 import { generalAsyncContextFactory } from 'tests/modules/common';

@@ -3,7 +3,8 @@ import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiHeaders } from '@nestjs/swagger';
 import { Ctx, Payload } from '@nestjs/microservices';
 import { MAIN_SERVICE_NAME, MainResponse } from 'protos/compiled/demo/service/MainService';
-import { IGeneralAsyncContext, SkipInterceptors } from 'src/modules/common';
+import { SkipInterceptors } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   IElkLoggerService,

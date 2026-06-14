@@ -1,5 +1,6 @@
 import { Method, AxiosRequestConfig } from 'axios';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { IHttpHeadersBuilder, IHttpHeadersBuilderOptions as IBuilderOptions } from 'src/modules/http/http-common';
 
 export interface IHttpHeadersBuilderOptions extends IBuilderOptions {

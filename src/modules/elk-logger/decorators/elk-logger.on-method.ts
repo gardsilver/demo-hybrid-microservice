@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { copyMetadata } from 'src/modules/common/utils';
 import { DateTimestamp, MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
 import { ILogFields } from '../types/elk-logger.types';

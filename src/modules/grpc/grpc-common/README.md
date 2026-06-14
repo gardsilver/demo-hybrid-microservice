@@ -27,7 +27,7 @@ const headers = GrpcHeadersHelper.normalize(metadata.getMap());
 
 ```ts
 import { Metadata } from '@grpc/grpc-js';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 
 export interface IGrpcMetadataBuilder {
   build(

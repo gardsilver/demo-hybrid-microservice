@@ -4,7 +4,8 @@ import { HttpService } from '@nestjs/axios';
 import { HttpStatus } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
-import { GeneralAsyncContext, IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { TimeoutError } from 'src/modules/date-timestamp';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,

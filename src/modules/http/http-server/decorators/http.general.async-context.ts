@@ -1,6 +1,6 @@
 import { Request } from 'express';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 
 export const HttpGeneralAsyncContext = createParamDecorator(

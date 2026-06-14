@@ -84,7 +84,7 @@ const asyncContext = this.headersAdapter.adapt(headers);
 Обратите внимание на [Request lifecycle](https://docs.nestjs.com/faq/request-lifecycle). На этапах **Middleware**, **Guards**, **Interceptors**, **Pipes** `AsyncContext` ещё не создан. Чтобы избежать неконтролируемой генерации контекста, созданный `IGeneralAsyncContext` сохраняется в объекте **HTTP**-запроса через `HttpRequestHelper.setAsyncContext`, а на последующих этапах проверяется через `HttpRequestHelper.getAsyncContext`.
 
 ```ts
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttpRequestHelper } from 'src/modules/http/http-server';
 
 let asyncContext: IGeneralAsyncContext = HttpRequestHelper.getAsyncContext<IGeneralAsyncContext>(request);

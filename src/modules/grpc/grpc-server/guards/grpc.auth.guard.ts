@@ -2,7 +2,8 @@ import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/commo
 import { Reflector } from '@nestjs/core';
 import { Metadata } from '@grpc/grpc-js';
 import { AUTH_SERVICE_DI, AuthStatus, IAuthService } from 'src/modules/auth';
-import { GeneralAsyncContext, isSkipped, IGeneralAsyncContext, IHeadersToContextAdapter } from 'src/modules/common';
+import { isSkipped, IHeadersToContextAdapter } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcAuthHelper, GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';

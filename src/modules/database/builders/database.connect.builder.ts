@@ -4,7 +4,7 @@ import { Sequelize } from 'sequelize-typescript';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LoggerMarkers } from 'src/modules/common';
-import { IElkLoggerService, IElkLoggerServiceBuilder, TraceSpanBuilder } from 'src/modules/elk-logger';
+import { IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { DatabaseConfig } from '../services/database.config';
 import { DatabaseMigrationStatusService } from '../services/database-migration-status.service';
@@ -31,7 +31,6 @@ export abstract class DatabaseConnectBuilder {
     const logger = loggerBuilder.build({
       module: 'DatabaseModule',
       markers: [LoggerMarkers.DB],
-      ...TraceSpanBuilder.build(),
     });
 
     const connectOptions = DatabaseConnectOptionsBuilder.build(config, logger);

@@ -1,6 +1,6 @@
 import { Metadata } from '@grpc/grpc-js';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 
 export const GrpcGeneralAsyncContext = createParamDecorator(

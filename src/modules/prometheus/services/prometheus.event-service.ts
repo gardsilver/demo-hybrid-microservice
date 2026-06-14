@@ -1,6 +1,6 @@
 import { ReplaySubject, Subscription } from 'rxjs';
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { PrometheusLabels } from '../types/types';
 import {
   PrometheusEventArgs,

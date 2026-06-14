@@ -1,6 +1,6 @@
 import { Metadata } from '@grpc/grpc-js';
 import { Injectable } from '@nestjs/common';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AUTHORIZATION_HEADER_NAME, BEARER_NAME } from 'src/modules/http/http-common';
 import { GrpcMetadataBuilder } from 'src/modules/grpc/grpc-common';
 import { IGrpcMetadataBuilderOptions, IGrpcMetadataRequestBuilder } from '../types/types';

@@ -7,7 +7,6 @@ import {
   Kafka,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, IConsumerPacket } from '../types/types';
 import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
@@ -96,9 +95,7 @@ export class KafkaServerService extends KafkaServerBase {
     await readyPromise;
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @KafkaAsyncContext.define()
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {
@@ -188,9 +185,7 @@ export class KafkaServerService extends KafkaServerBase {
     await readyPromise;
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @KafkaAsyncContext.define()
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {

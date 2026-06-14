@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { GrpcMetadataResponseBuilder } from './grpc.metadata-response.builder';
 import { IGrpcMetadataResponseBuilder } from '../types/types';

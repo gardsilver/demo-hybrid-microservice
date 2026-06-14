@@ -7,7 +7,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RpcException } from '@nestjs/microservices';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,

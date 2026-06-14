@@ -2,7 +2,7 @@ import { Controller, Inject } from '@nestjs/common';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { Metadata, StatusBuilder, ServerUnaryCall, status as GrpcStatus } from '@grpc/grpc-js';
 import { MAIN_SERVICE_NAME, MainRequest, MainResponse } from 'protos/compiled/demo/service/MainService';
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { delay } from 'src/modules/date-timestamp';
 import { GracefulShutdownOnCount } from 'src/modules/graceful-shutdown';
 import {

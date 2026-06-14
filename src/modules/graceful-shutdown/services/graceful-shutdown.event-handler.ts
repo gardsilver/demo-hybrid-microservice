@@ -1,11 +1,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { MetadataExplorer, ITargetInstanceMethod, GeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  IElkLoggerServiceBuilder,
-  IElkLoggerService,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { MetadataExplorer, ITargetInstanceMethod, LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder, IElkLoggerService } from 'src/modules/elk-logger';
 import { GRACEFUL_SHUTDOWN_ON_EVENT_KEY } from '../types/constants';
 import {
   GracefulShutdownEventMetadata,
@@ -31,7 +27,7 @@ export class GracefulShutdownEventHandler implements OnModuleInit {
     });
   }
 
-  @GeneralAsyncContext.define(() => TraceSpanBuilder.build())
+  @GeneralAsyncContext.define()
   public async onModuleInit(): Promise<void> {
     this.logger.info('Start init decorators GracefulShutdownOnEvent');
 

@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import { Factory } from 'fishery';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 
 export interface IBaseHeaders {

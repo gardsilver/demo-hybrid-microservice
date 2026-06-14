@@ -15,7 +15,8 @@ import {
   LogFieldsHelper,
   TraceSpanBuilder,
 } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HttpRequestHelper } from '../helpers/http.request.helper';
 import { HttpLoggerHelper } from '../helpers/http.logger.helper';

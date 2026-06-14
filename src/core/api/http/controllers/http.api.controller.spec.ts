@@ -1,6 +1,6 @@
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ElkLoggerModule, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { AuthModule } from 'src/modules/auth';
 import { PrometheusModule } from 'src/modules/prometheus';

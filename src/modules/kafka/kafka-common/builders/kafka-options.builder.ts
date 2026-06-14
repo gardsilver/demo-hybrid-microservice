@@ -1,5 +1,5 @@
 import { KafkaOptions } from '@nestjs/microservices';
-import { IElkLoggerServiceBuilder, ILogFields, TraceSpanBuilder } from 'src/modules/elk-logger';
+import { IElkLoggerServiceBuilder, ILogFields } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { IKafkaClientProxyBuilderOptions, KafkaRetryConfig } from '../types/types';
 import { KafkaClientOptionsBuilder } from './kafka.client-options.builder';
@@ -47,7 +47,6 @@ export class KafkaOptionsBuilder {
               brokers,
               logFields: {
                 module: 'KafkaConsumer',
-                ...TraceSpanBuilder.build(),
               },
             }),
           }

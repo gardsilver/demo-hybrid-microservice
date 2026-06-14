@@ -1,5 +1,5 @@
 import { Metadata } from '@grpc/grpc-js';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { IGrpcMetadataBuilder, IGrpcMetadataBuilderOptions as IBuilderOptions } from 'src/modules/grpc/grpc-common';
 
 export interface IGrpcClientProxyBuilderOptions {

@@ -1,12 +1,8 @@
 import { BehaviorSubject } from 'rxjs';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { GeneralAsyncContext, MetadataExplorer } from 'src/modules/common';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  IElkLoggerService,
-  IElkLoggerServiceBuilder,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { MetadataExplorer } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
   ResultsCountActiveProcessType,
@@ -34,7 +30,7 @@ export class GracefulShutdownCountHandler implements OnModuleInit {
     this.totalCountActiveMethods = new BehaviorSubject<number>(0);
   }
 
-  @GeneralAsyncContext.define(() => TraceSpanBuilder.build())
+  @GeneralAsyncContext.define()
   public async onModuleInit(): Promise<void> {
     this.logger.info('Start init decorators GracefulShutdownOnCount');
 

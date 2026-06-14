@@ -112,7 +112,7 @@ describe(KafkaOptionsBuilder.name, () => {
 
     const tgt = builder.build(builderOptions);
 
-    expect(spyLogBuilder).toHaveBeenCalledWith({ module: 'KafkaConsumer', ...mockTraceSpan });
+    expect(spyLogBuilder).toHaveBeenCalledWith({ module: 'KafkaConsumer' });
 
     if (tgt.consumer === undefined || tgt.consumer.retry === undefined) {
       throw new Error('tgt.consumer/retry is not populated');

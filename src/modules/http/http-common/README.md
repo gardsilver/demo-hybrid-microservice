@@ -29,7 +29,7 @@ const headers = HttHeadersHelper.normalize(request.headers);
 Дополнительно:
 
 - `HttHeadersHelper.nameAsHeaderName(name)` — возвращает имя **HTTP**-заголовка для поля `IGeneralAsyncContext` (`traceId`, `spanId`, `correlationId`, `requestId`).
-- `HttHeadersHelper.toAsyncContext<Ctx>(headers)` — собирает `IGeneralAsyncContext` из **HTTP**-заголовков: читает `x-trace-id` / `x-b3-trace-id`, `x-span-id` / `x-b3-span-id`, `x-correlation-id`, `x-request-id`. `spanId` всегда генерируется новым (`TraceSpanHelper.generateRandomValue()`), входящий становится `parentSpanId`/`initialSpanId`.
+- `HttHeadersHelper.toAsyncContext<Ctx>(headers)` — собирает `IGeneralAsyncContext` из **HTTP**-заголовков: читает `x-trace-id`, `x-span-id`, `x-correlation-id`, `x-request-id`. `spanId` всегда генерируется новым (`TraceSpanHelper.generateRandomValue()`), входящий становится `parentSpanId`/`initialSpanId`.
 
 ### ВАЖНО
 
@@ -37,7 +37,7 @@ const headers = HttHeadersHelper.normalize(request.headers);
 
 ### `HttpGeneralAsyncContextHeaderNames`
 
-Описаны имена **HTTP**-заголовков, содержащих параметры сквозного логирования `IGeneralAsyncContext` (**@see** `src/modules/common`):
+Описаны имена **HTTP**-заголовков, содержащих параметры сквозного логирования `IGeneralAsyncContext` (**@see** `src/modules/common/context`):
 
 | Поле | Заголовок |
 |---|---|

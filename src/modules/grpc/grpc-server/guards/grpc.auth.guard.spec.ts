@@ -7,7 +7,8 @@ import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { RpcArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IGeneralAsyncContext, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AccessRoles, AUTH_SERVICE_DI, AuthModule, IAuthService } from 'src/modules/auth';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,

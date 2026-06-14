@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { DateTimestamp } from 'src/modules/date-timestamp';
@@ -128,7 +129,8 @@ describe(ElkLoggerService.name, () => {
     mockTraceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
     mockSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
-    ProcessTraceSpanStore.instance.reset();
+    ProcessTraceSpanStore.instance.clearBootstrapSpan();
+    (ProcessTraceSpanStore as any)._instance = undefined;
 
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
     jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
@@ -187,6 +189,7 @@ describe(ElkLoggerService.name, () => {
         traceId: traceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -224,6 +227,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -261,6 +265,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -298,6 +303,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -335,6 +341,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -372,6 +379,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -409,6 +417,7 @@ describe(ElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -480,6 +489,7 @@ describe(ElkLoggerService.name, () => {
         traceId: traceId,
         spanId: spanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
     });
@@ -567,6 +577,7 @@ describe(ElkLoggerService.name, () => {
       traceId: mockTraceId,
       spanId: mockSpanId,
       parentSpanId: '',
+      initialSpanId: '',
       timestamp: 'timestamp',
     });
   });

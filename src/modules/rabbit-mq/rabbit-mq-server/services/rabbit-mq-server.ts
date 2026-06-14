@@ -16,7 +16,6 @@ import {
 } from '@nestjs/microservices/constants';
 import { RmqEvents, RmqEventsMap } from '@nestjs/microservices/events/rmq.events';
 import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
   IRabbitMqConsumeMessage,
@@ -98,9 +97,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     return this.consumersInfo;
   }
 
-  @RabbitMqAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @RabbitMqAsyncContext.define()
   public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
     try {
       await this.start(callback);
@@ -374,9 +371,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     );
   }
 
-  @RabbitMqAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @RabbitMqAsyncContext.define()
   protected async handleMessage(
     pattern: string,
     messageRef: ConsumeMessage,

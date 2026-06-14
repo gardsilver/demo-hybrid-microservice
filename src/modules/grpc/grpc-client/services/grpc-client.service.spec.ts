@@ -3,7 +3,8 @@ import { Metadata, status as GrpcStatus } from '@grpc/grpc-js';
 import { Test } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ClientGrpcProxy } from '@nestjs/microservices';
-import { GeneralAsyncContext, IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { TimeoutError } from 'src/modules/date-timestamp';
 import {
   ITraceSpan,

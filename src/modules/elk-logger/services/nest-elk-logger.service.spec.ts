@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { CheckObjectsType } from 'src/modules/common/utils';
@@ -128,7 +129,8 @@ describe(NestElkLoggerService.name, () => {
     mockTraceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
     mockSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
-    ProcessTraceSpanStore.instance.reset();
+    ProcessTraceSpanStore.instance.clearBootstrapSpan();
+    (ProcessTraceSpanStore as any)._instance = undefined;
 
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
     jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
@@ -172,6 +174,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -194,6 +197,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -218,6 +222,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -247,6 +252,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -277,6 +283,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -299,6 +306,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -321,6 +329,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -345,6 +354,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -371,6 +381,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -393,6 +404,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -415,6 +427,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -441,6 +454,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -469,6 +483,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -518,6 +533,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -543,6 +559,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -573,6 +590,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -600,6 +618,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -624,6 +643,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -646,6 +666,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -668,6 +689,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -690,6 +712,7 @@ describe(NestElkLoggerService.name, () => {
           traceId: mockTraceId,
           spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -743,6 +766,7 @@ describe(NestElkLoggerService.name, () => {
 
       expect(spyLogWriter).toHaveBeenCalledTimes(1);
       expect(spyFileFormatter).toHaveBeenCalledTimes(1);
+
       expect(spyFileFormatter).toHaveBeenCalledWith({
         markers: [],
         businessData: {},
@@ -753,8 +777,10 @@ describe(NestElkLoggerService.name, () => {
         traceId: mockTraceId,
         spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
+
       expect(spyOnAppendFileSync).toHaveBeenCalledTimes(1);
       expect(spyOnAppendFileSync).toHaveBeenCalledWith(1002, 'NestElkLoggerService', 'utf8');
     });

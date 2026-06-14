@@ -1,5 +1,6 @@
 import { Metadata } from '@grpc/grpc-js';
-import { IGeneralAsyncContext, IHeadersToContextAdapter } from 'src/modules/common';
+import { IHeadersToContextAdapter } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 
 export interface IGrpcHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IGeneralAsyncContext> {}
 

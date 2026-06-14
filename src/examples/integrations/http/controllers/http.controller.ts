@@ -1,6 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
-import { GeneralAsyncContext, IGeneralAsyncContext, SkipInterceptors } from 'src/modules/common';
+import { SkipInterceptors } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { IAuthInfo } from 'src/modules/auth';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import {

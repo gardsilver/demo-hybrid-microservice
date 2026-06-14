@@ -4,7 +4,8 @@ import { Test } from '@nestjs/testing';
 import { BadRequestException, ExecutionContext, HttpStatus } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import {
   HttHeadersHelper,

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { IPrometheusEventConfig, ITargetPrometheusOnMethod, PrometheusEventArgs } from '../types/decorators.type';
 import { ICounterService, IGaugeService, IHistogramService, ISummaryService } from '../types/types';

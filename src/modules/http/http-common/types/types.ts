@@ -1,4 +1,5 @@
-import { IGeneralAsyncContext, IHeaders, IHeadersToContextAdapter } from 'src/modules/common';
+import { IHeaders, IHeadersToContextAdapter } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 
 export interface IHttpHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IGeneralAsyncContext> {}
 

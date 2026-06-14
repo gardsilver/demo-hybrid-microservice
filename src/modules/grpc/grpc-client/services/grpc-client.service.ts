@@ -1,7 +1,8 @@
 import { catchError, finalize, firstValueFrom, Observable, of, retry, tap, throwError, timeout, identity } from 'rxjs';
 import { ClientGrpcProxy } from '@nestjs/microservices';
 import { Inject, Injectable } from '@nestjs/common';
-import { GeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { MILLISECONDS_IN_SECOND, TimeoutError } from 'src/modules/date-timestamp';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder, ILogFields } from 'src/modules/elk-logger';
 import { PrometheusLabels, PrometheusManager } from 'src/modules/prometheus';

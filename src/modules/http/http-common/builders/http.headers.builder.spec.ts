@@ -1,6 +1,7 @@
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ITraceSpan, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { CRYPTO_MOCK } from 'tests/crypto';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';

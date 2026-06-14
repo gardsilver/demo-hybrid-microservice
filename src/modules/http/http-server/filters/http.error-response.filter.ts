@@ -1,6 +1,7 @@
 import { Response, Request } from 'express';
 import { ArgumentsHost, Catch, Inject } from '@nestjs/common';
-import { IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttpResponseHandler } from './http.response.handler';
 import { HttpResponseHelper } from '../helpers/http.response.helper';
 import { HTTP_SERVER_HEADERS_RESPONSE_BUILDER_DI } from '../types/tokens';

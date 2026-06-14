@@ -1,6 +1,6 @@
 import { ReplaySubject, Subscription } from 'rxjs';
 import { OnApplicationShutdown, Inject, Injectable } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { ELK_LOGGER_SERVICE_BUILDER_DI } from '../types/tokens';
 import { IElkLoggerServiceBuilder, LogLevel } from '../types/elk-logger.types';
 import { IElkLoggerEvent, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';

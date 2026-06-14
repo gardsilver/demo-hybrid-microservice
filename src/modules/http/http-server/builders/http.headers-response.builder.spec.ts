@@ -1,4 +1,4 @@
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ITraceSpan, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { HttpHeadersBuilder } from 'src/modules/http/http-common';
 import { generalAsyncContextFactory } from 'tests/modules/common';

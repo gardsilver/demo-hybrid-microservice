@@ -8,9 +8,7 @@
 
   <link rel="icon" href="data:," />
 
-  <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+  <link href="bootstrap.min.css" rel="stylesheet" />
 
   <title>Demo Chat</title>
 </head>
@@ -21,42 +19,47 @@
       <a class="navbar-brand">Demo Chat</a>
     </div>
   </nav>
+  
   <div class="container">
+    <!-- Блок 1. Авторизация по никнейму -->
     <div class="mb-3 mt-4">
       <div class="input-group">
         <span class="input-group-text" id="aria-from-email">
           <svg 
-            xmlns="http://www.w3.org/2000/svg" 
+            xmlns="http://w3.org" 
             width="16" 
             height="16" 
             fill="currentColor" 
             class="bi bi-circle-fill btn-outline-default" 
             viewBox="0 0 16 16"
+            id="connect-icon"
           >
             <circle cx="8" cy="8" r="8"></circle>
           </svg>
         </span>
-        <input class="form-control" id="from-email" rows="3" placeholder="Your Email or Nickname" aria-describedby="aria-from-email">
+        <input class="form-control" id="from-email" rows="3" placeholder="1. Enter Your Email or Nickname and press Enter" aria-describedby="aria-from-email">
       </div>
     </div>
+
+    <!-- Блок 2. Контейнер для вывода сообщений -->
     <div class="mb-3 mt-3">
-      <ul style="list-style: none" id="data-container"></ul>
+      <ul style="list-style: none; padding-left: 0;" id="data-container"></ul>
     </div>
+
+    <!-- Блок 3. Поле ввода получателя (Заблокировано по умолчанию) -->
     <div class="mb-3 mt-4">
-      <input class="form-control" id="to-email" rows="3" placeholder="Send to Email or Nickname" />
+      <input class="form-control" id="to-email" rows="3" placeholder="2. Send to Email or Nickname" disabled />
     </div>
+
+    <!-- Блок 4. Поле ввода текста сообщения (Заблокировано по умолчанию) -->
     <div class="mb-3 mt-4">
-      <input class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="Say something..." />
+      <input class="form-control" id="exampleFormControlTextarea1" rows="3" placeholder="3. Say something..." disabled />
     </div>
   </div>
-  <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"
-    integrity="sha384-KAZ4DtjNhLChOB/hxXuKqhMLYvx3b5MlT55xPEiNmREKRzeEm+RVPlTnAn0ajQNs"
-    crossorigin="anonymous"></script>
+
+  <script src="socket.io.min.js"></script>
+
   <script src="app.js"></script>
-  <!-- Option 1: Bootstrap Bundle with Popper -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-    crossorigin="anonymous"></script>
 </body>
 
 </html>

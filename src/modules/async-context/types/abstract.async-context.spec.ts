@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
-import { trace, TraceFlags, SpanStatusCode } from '@opentelemetry/api';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
-jest.mock('src/modules/elk-logger', () => {
+jest.mock('src/modules/elk-logger/services/process-trace-span.store', () => {
   return {
     __esModule: true,
     ProcessTraceSpanStore: {
@@ -46,7 +46,6 @@ jest.mock('@opentelemetry/api', () => {
 });
 
 import { IGeneralAsyncContext } from 'src/modules/common/context';
-import { generalAsyncContextFactory } from 'tests/modules/common';
 import { AbstractAsyncContext } from './abstract.async-context';
 import { EmptyAsyncContextError, IAsyncContext } from './types';
 
@@ -69,27 +68,26 @@ describe(AbstractAsyncContext.name, () => {
   beforeEach(() => {
     jest.clearAllMocks();
     contextInstance = TestAsyncContext.instance;
-
     AbstractAsyncContext.instance = TestAsyncContext.instance;
 
-    mockFields = generalAsyncContextFactory.build({
+    mockFields = {
       traceId: undefined,
       spanId: undefined,
       parentSpanId: undefined,
       startTimestamp: faker.number.int(),
-    }) as unknown as ITestAsyncContext;
+    } as any;
   });
 
-  describe('Управление локальным хранилищем (Базовые методы)', () => {
-    it('должен выбрасывать EmptyAsyncContextError, если хранилище еще не инициализировано', () => {
+  describe('Базовые методы AsyncLocalStorage', () => {
+    it('должен выбрасывать EmptyAsyncContextError при обращении к пустому хранилищу', () => {
       expect(() => contextInstance.get('startTimestamp')).toThrow(EmptyAsyncContextError);
     });
 
-    it('должен безопасно возвращать undefined через getSafe, если хранилище пустое', () => {
+    it('должен безопасно возвращать undefined через getSafe, если контекст не запущен', () => {
       expect(contextInstance.getSafe('startTimestamp')).toBeUndefined();
     });
 
-    it('должен успешно устанавливать, изменять и читать переменные внутри runWithContext', () => {
+    it('должен успешно мутировать и читать переменные внутри runWithContext', () => {
       contextInstance.runWithContext(() => {
         expect(contextInstance.get('startTimestamp')).toBe(mockFields.startTimestamp);
 
@@ -103,31 +101,33 @@ describe(AbstractAsyncContext.name, () => {
         expect(snapshot.startTimestamp).toBe(1111);
       }, mockFields);
     });
+
+    it('должен возвращать пустой объект через extend при ошибке хранилища', () => {
+      expect(contextInstance.extend()).toEqual({});
+    });
   });
 
-  describe('wrapWithTelemetry & Синхронизация цепочек трассировки', () => {
-    it('Сценарий 1: Чистый запуск. Должен привязаться к глобальному bootstrap контексту процесса', () => {
-      // Настраиваем мок так, чтобы он всегда возвращал пустой traceId (0000...)
-      // для прохождения в ветку "else if" (разрыв контекста),
-      // но при этом имел валидный родительский spanId для enrichedContext!
+  describe('wrapWithTelemetry (Ветвления OpenTelemetry)', () => {
+    it('Сценарий 1: Нативный контекст активен (hasValidActiveOtelContext === true)', () => {
+      // Имитируем живой входящий HTTP/Kafka трейс
       (trace.getSpanContext as jest.Mock).mockReturnValue({
-        traceId: '00000000000000000000000000000000',
-        spanId: 'bootstrap-span-id',
+        traceId: 'active-http-trace-id-32-chars-long',
+        spanId: 'active-http-span-id',
       });
 
       contextInstance.runWithContext(() => {
-        const traceId = contextInstance.get('traceId');
-        const parentSpanId = contextInstance.get('parentSpanId');
-
-        expect(traceId).toBe('mocked-otel-trace-id-32-chars-long');
-        expect(parentSpanId).toBe('bootstrap-span-id'); // Тест гарантированно пройдет!
+        expect(contextInstance.get('traceId')).toBe('mocked-otel-trace-id-32-chars-long');
+        expect(contextInstance.get('parentSpanId')).toBe('active-http-span-id');
       }, mockFields);
+
+      expect(trace.setSpanContext).not.toHaveBeenCalled(); // Спан создан нативно без оверрайда
     });
 
-    it('Сценарий 2: Исключительная ситуация. Бизнес-код принудительно передал кастомный traceId', () => {
+    it('Сценарий 2: Передан кастомный traceId вручную при пустом нативном контексте', () => {
       (trace.getSpanContext as jest.Mock).mockReturnValue(undefined);
       const spySetSpanContext = jest.spyOn(trace, 'setSpanContext');
       mockFields.traceId = 'custom-business-trace-id-32-chars';
+      mockFields.parentSpanId = 'custom-parent-id';
 
       contextInstance.runWithContext(() => {
         expect(contextInstance.get('traceId')).toBe('mocked-otel-trace-id-32-chars-long');
@@ -137,81 +137,135 @@ describe(AbstractAsyncContext.name, () => {
         expect.any(Object),
         expect.objectContaining({
           traceId: mockFields.traceId,
-          isRemote: true,
-          traceFlags: TraceFlags.SAMPLED,
+          spanId: mockFields.parentSpanId,
+          isRemote: true, // Ручной проброс помечается как Remote
         }),
       );
     });
 
-    it('Сценарий 3: Асинхронный запуск через runWithContextAsync с обработкой ошибок', async () => {
-      (trace.getSpanContext as jest.Mock).mockReturnValue(undefined);
-      const mockTracer = trace.getTracer('test');
-      const activeSpan = mockTracer.startSpan('any');
-      jest.spyOn(mockTracer, 'startSpan').mockReturnValue(activeSpan);
-
-      const asyncTask = () => Promise.reject(new Error('Database Timeout'));
-
-      await expect(contextInstance.runWithContextAsync(asyncTask, mockFields)).rejects.toThrow('Database Timeout');
-
-      expect(activeSpan.setStatus).toHaveBeenCalledWith({
-        code: SpanStatusCode.ERROR,
-        message: 'Database Timeout',
+    it('Сценарий 3: Полный разрыв контекста — фолбек на дерево bootstrap', () => {
+      // Нативный контекст пуст (нулевой traceId)
+      (trace.getSpanContext as jest.Mock).mockReturnValue({
+        traceId: '00000000000000000000000000000000',
+        spanId: '0000000000000000',
       });
-      expect(activeSpan.end).toHaveBeenCalled();
+      const spySetSpanContext = jest.spyOn(trace, 'setSpanContext');
+
+      contextInstance.runWithContext(() => {
+        expect(contextInstance.get('traceId')).toBe('mocked-otel-trace-id-32-chars-long');
+      }, mockFields);
+
+      expect(spySetSpanContext).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          traceId: 'bootstrap-trace-id-32-chars-long',
+          spanId: 'bootstrap-span-id',
+          isRemote: false, // Локальный bootstrap
+        }),
+      );
     });
   });
 
-  describe('Статический декоратор @Define()', () => {
-    it('должен успешно перехватывать вызов метода класса и выполнять его внутри изоляции', async () => {
-      class MockBusinessService {
-        @TestAsyncContext.define(() => ({ startTimestamp: 7777 }))
-        public async executeOperation(input: string) {
-          const currentTimestamp = TestAsyncContext.instance.get('startTimestamp');
-          const currentTraceId = TestAsyncContext.instance.get('traceId');
+  describe('executeAndLifecycleSpan (Жизненный цикл спанов и Промисы)', () => {
+    it('должен успешно закрывать спан со статусом OK для синхронных методов', () => {
+      const mockTracer = trace.getTracer('test');
+      const mockSpan = mockTracer.startSpan('any');
+      jest.spyOn(mockTracer, 'startSpan').mockReturnValue(mockSpan);
 
-          return {
-            processed: true,
-            input,
-            currentTimestamp,
-            currentTraceId,
-          };
+      contextInstance.runWithContext(() => 'sync-result', mockFields);
+
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SpanStatusCode.OK });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('должен успешно обрабатывать асинхронный Promise и проставлять OK', async () => {
+      const mockTracer = trace.getTracer('test');
+      const mockSpan = mockTracer.startSpan('any');
+      jest.spyOn(mockTracer, 'startSpan').mockReturnValue(mockSpan);
+
+      const result = await contextInstance.runWithContextAsync(async () => 'async-res', mockFields);
+
+      expect(result).toBe('async-res');
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SpanStatusCode.OK });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('должен перехватывать ошибки асинхронных методов, логировать в спан и закрывать его', async () => {
+      const mockTracer = trace.getTracer('test');
+      const mockSpan = mockTracer.startSpan('any');
+      jest.spyOn(mockTracer, 'startSpan').mockReturnValue(mockSpan);
+
+      await expect(
+        contextInstance.runWithContextAsync(() => Promise.reject(new Error('Async Failure')), mockFields),
+      ).rejects.toThrow('Async Failure');
+
+      expect(mockSpan.recordException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: 'Async Failure',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+
+    it('должен перехватывать ошибки синхронных вызовов', () => {
+      const mockTracer = trace.getTracer('test');
+      const mockSpan = mockTracer.startSpan('any');
+      jest.spyOn(mockTracer, 'startSpan').mockReturnValue(mockSpan);
+
+      expect(() => {
+        contextInstance.runWithContext(() => {
+          throw new Error('Sync Failure');
+        }, mockFields);
+      }).toThrow('Sync Failure');
+
+      expect(mockSpan.recordException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockSpan.setStatus).toHaveBeenCalledWith({
+        code: SpanStatusCode.ERROR,
+        message: 'Sync Failure',
+      });
+      expect(mockSpan.end).toHaveBeenCalled();
+    });
+  });
+
+  describe('Декоратор @Define()', () => {
+    it('должен успешно выполнять оборачиваемый метод внутри контекста', async () => {
+      class MockService {
+        @TestAsyncContext.define(() => ({ startTimestamp: 5555 }))
+        public async handle(data: string) {
+          const startTimestamp = TestAsyncContext.instance.get('startTimestamp');
+          return { data, startTimestamp };
         }
       }
 
-      const service = new MockBusinessService();
-      const result = await service.executeOperation('hello-world');
+      const service = new MockService();
+      const res = await service.handle('test-payload');
 
-      expect(result).toEqual({
-        processed: true,
-        input: 'hello-world',
-        currentTimestamp: 7777,
-        currentTraceId: 'mocked-otel-trace-id-32-chars-long',
+      expect(res).toEqual({
+        data: 'test-payload',
+        startTimestamp: 5555,
       });
     });
 
-    it('должен падать с понятным исключением, если статический инстанс класса не задан', async () => {
+    it('должен падать с ошибкой, если статический инстанс контекста равен undefined', async () => {
       class BrokenContext extends AbstractAsyncContext {
-        // Разрываем наследование статического инстанса
         public static override instance = undefined as any;
         protected getTracerName() {
           return 'broken';
         }
       }
 
-      const createAndRunFaultyService = async () => {
-        class FaultyService {
+      const runBrokenService = async () => {
+        class BrokenService {
           @BrokenContext.define()
           public doSomething() {
             return true;
           }
         }
-
-        const service = new FaultyService();
-        // КРИТИЧЕСКИ ВАЖНО: Вызываем метод, чтобы запустить выполнение wrappedMethod
+        const service = new BrokenService();
         return service.doSomething();
       };
 
-      await expect(createAndRunFaultyService()).rejects.toThrow('Не удалось перехватить контекст');
+      await expect(runBrokenService()).rejects.toThrow('Не удалось перехватить контекст');
     });
   });
 });

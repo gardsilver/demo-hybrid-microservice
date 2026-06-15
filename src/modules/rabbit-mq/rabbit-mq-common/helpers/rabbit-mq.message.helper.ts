@@ -1,8 +1,8 @@
-import { IKeyValue } from 'src/modules/common';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
+import { IHeaders, IKeyValue } from 'src/modules/common';
 import { HttHeadersHelper, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { IRabbitMqAsyncContext } from '../types/rabbit-mq.async-context.type';
 import { IRabbitMqHeaders, IRabbitMqMessageProperties, RabbitMqHeadersValue } from '../types/types';
+import { enumValues } from 'src/modules/common/utils';
 
 export abstract class RabbitMqMessageHelper {
   protected static normalizeHeaderValue(value: unknown): RabbitMqHeadersValue | undefined {
@@ -49,25 +49,35 @@ export abstract class RabbitMqMessageHelper {
     return tgt;
   }
 
-  public static toAsyncContext<Ctx extends IRabbitMqAsyncContext>(properties: IRabbitMqMessageProperties): Ctx {
-    const traceId =
-      RabbitMqMessageHelper.headerValueAsString(
-        RabbitMqMessageHelper.searchValue(properties.headers, HttpGeneralAsyncContextHeaderNames.TRACE_ID).value,
-      ) ?? TraceSpanHelper.generateTraceId();
+  protected static normalizeTraceSpanHeaders(rmqHeaders: IRabbitMqHeaders): IHeaders {
+    const headers: IHeaders = {};
 
-    const parentSpanId = RabbitMqMessageHelper.headerValueAsString(
-      RabbitMqMessageHelper.searchValue(properties.headers, HttpGeneralAsyncContextHeaderNames.SPAN_ID).value,
-    );
+    if (!rmqHeaders) {
+      return headers;
+    }
+
+    const targetKeys = enumValues(HttpGeneralAsyncContextHeaderNames);
+
+    for (const headerName of targetKeys) {
+      const rmqValue = RabbitMqMessageHelper.headerValueAsString(
+        RabbitMqMessageHelper.searchValue(rmqHeaders, headerName as string).value,
+      );
+
+      if (rmqValue !== undefined) {
+        headers[headerName as string] = rmqValue;
+      }
+    }
+
+    return headers;
+  }
+
+  public static toAsyncContext<Ctx extends IRabbitMqAsyncContext>(properties: IRabbitMqMessageProperties): Ctx {
+    const commonHeaders = RabbitMqMessageHelper.normalizeTraceSpanHeaders(properties.headers);
+    const commonCtx: Ctx = HttHeadersHelper.toAsyncContext<Ctx>(commonHeaders);
 
     const ctx: Ctx = {
-      traceId,
-      spanId: TraceSpanHelper.generateSpanId(),
-      parentSpanId,
-      initialSpanId: parentSpanId,
-      requestId: RabbitMqMessageHelper.headerValueAsString(
-        RabbitMqMessageHelper.searchValue(properties.headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID).value,
-      ),
-      correlationId: properties.correlationId,
+      ...commonCtx,
+      correlationId: properties.correlationId ?? commonCtx.correlationId,
       messageId: properties.messageId,
       replyTo: properties.replyTo,
     } as unknown as Ctx;

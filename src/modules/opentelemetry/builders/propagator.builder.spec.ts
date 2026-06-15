@@ -13,6 +13,17 @@ import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { PropagatorBuilder } from './propagator.builder';
 
+jest.mock('@opentelemetry/api', () => {
+  const original = jest.requireActual('@opentelemetry/api');
+  return {
+    ...original,
+    trace: {
+      getSpanContext: jest.fn(),
+      setSpanContext: jest.fn((ctx, spanCtx) => ({ ...ctx, __spanContext: spanCtx })),
+    },
+  };
+});
+
 describe('Propagator', () => {
   let propagator: any;
   let mockContext: Context;
@@ -44,8 +55,8 @@ describe('Propagator', () => {
 
     beforeEach(() => {
       mockGetter = {
-        get: jest.fn(),
-        keys: jest.fn(),
+        get: jest.fn((carrier: any, key: string) => carrier?.[key]),
+        keys: jest.fn((carrier: any) => Object.keys(carrier || {})),
       };
     });
 
@@ -58,6 +69,52 @@ describe('Propagator', () => {
       const resultContext = propagator.extract(mockContext, {}, mockGetter);
 
       expect(resultContext).toBe(mockContext);
+    });
+
+    it('Сценарий "Внешний запрос" (isRemote: true): должен извлечь, нормализовать ID и пометить как Remote, если текущий контекст пуст', () => {
+      (trace.getSpanContext as jest.Mock).mockReturnValue(undefined);
+
+      const carrier = {
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: '943BD5C6-8F46-F94E-C9E9-2020FEF02186',
+        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: 'DB6763CFD69947AE',
+      };
+
+      propagator.extract(mockContext, carrier, mockGetter);
+
+      expect(trace.setSpanContext).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          traceId: '943bd5c68f46f94ec9e92020fef02186',
+          spanId: 'db6763cfd69947ae',
+          traceFlags: TraceFlags.SAMPLED,
+          isRemote: true,
+        }),
+      );
+    });
+
+    it('Сценарий "Loopback-вызов" (isRemote: false): должен выставить false, если извлекаемый traceId совпадает с уже активным в Node.js', () => {
+      const targetTraceId = '7f5d75cad54d997c991e549b32097d25';
+
+      (trace.getSpanContext as jest.Mock).mockReturnValue({
+        traceId: targetTraceId,
+        spanId: 'any-active-local-span',
+      });
+
+      const carrier = {
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: targetTraceId,
+        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: 'bc6171317f45d53e',
+      };
+
+      propagator.extract(mockContext, carrier, mockGetter);
+
+      expect(trace.setSpanContext).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          traceId: targetTraceId,
+          spanId: 'bc6171317f45d53e',
+          isRemote: false,
+        }),
+      );
     });
 
     it('должен корректно нормализовать, дополнить нулями и установить валидный SpanContext', () => {

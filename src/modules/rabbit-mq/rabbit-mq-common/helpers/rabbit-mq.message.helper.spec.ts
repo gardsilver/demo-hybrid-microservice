@@ -1,7 +1,7 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { faker } from '@faker-js/faker';
 import { MessagePropertyHeaders } from 'amqplib';
 import { IGeneralAsyncContext } from 'src/modules/common/context';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttHeadersHelper, HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { CRYPTO_MOCK } from 'tests/crypto';
 import { messagePropertiesFactory, messagePropertyHeadersFactory } from 'tests/amqplib';
@@ -43,17 +43,11 @@ const headersFactory = (
 };
 
 describe(RabbitMqMessageHelper.name, () => {
-  let mockTraceId: string;
-  let mockSpamId: string;
   let traceSpan: IRabbitMqAsyncContext & { traceId: string; spanId: string; requestId: string; correlationId: string };
   let correlationId: string;
   let headers: MessagePropertyHeaders;
 
   beforeEach(async () => {
-    mockTraceId = TraceSpanHelper.generateTraceId();
-    mockSpamId = TraceSpanHelper.generateSpanId();
-    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
-    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => mockSpamId);
     correlationId = faker.string.uuid();
 
     traceSpan = {
@@ -182,6 +176,12 @@ describe(RabbitMqMessageHelper.name, () => {
 
   describe('toAsyncContext', () => {
     let messageProperties: IRabbitMqMessageProperties;
+    let mockBaseContext: IRabbitMqAsyncContext & {
+      traceId: string;
+      spanId: string;
+      requestId: string;
+      correlationId: string;
+    };
 
     beforeEach(async () => {
       messageProperties = messagePropertiesFactory.build(
@@ -197,27 +197,97 @@ describe(RabbitMqMessageHelper.name, () => {
           },
         },
       ) as unknown as IRabbitMqMessageProperties;
+
+      messageProperties.headers = RabbitMqMessageHelper.normalize(messageProperties.headers);
+
+      mockBaseContext = {
+        traceId: CRYPTO_MOCK.randomBytes(16).toString('hex'),
+        spanId: CRYPTO_MOCK.randomBytes(8).toString('hex'),
+        requestId: CRYPTO_MOCK.randomUUID(),
+        correlationId: CRYPTO_MOCK.randomUUID(),
+      };
+
+      jest.clearAllMocks();
     });
 
-    it('default', async () => {
-      expect(RabbitMqMessageHelper.toAsyncContext(messageProperties)).toEqual({
-        traceId: traceSpan.traceId,
-        spanId: mockSpamId,
-        initialSpanId: traceSpan.spanId,
-        parentSpanId: traceSpan.spanId,
-        requestId: traceSpan.requestId,
+    it('должен корректно преобразовывать свойства amqplib сообщения в IRabbitMqAsyncContext', () => {
+      const spy = jest.spyOn(HttHeadersHelper, 'toAsyncContext').mockReturnValue(mockBaseContext);
+
+      const result = RabbitMqMessageHelper.toAsyncContext(messageProperties);
+
+      expect(spy).toHaveBeenCalledWith({
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
+        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.SPAN_ID],
+        [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
+        [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID],
+      });
+
+      expect(result).toEqual({
+        traceId: mockBaseContext.traceId,
+        spanId: mockBaseContext.spanId,
+        requestId: mockBaseContext.requestId,
         correlationId,
         messageId: messageProperties.messageId,
         replyTo: messageProperties.replyTo,
       });
+    });
 
-      messageProperties.headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = {
-        test: faker.string.alpha(4),
+    it('должен брать correlationId из базового HTTP-контекста, если в свойствах amqplib он равен undefined', () => {
+      jest.spyOn(HttHeadersHelper, 'toAsyncContext').mockReturnValue(mockBaseContext);
+
+      messageProperties.correlationId = undefined;
+      messageProperties.replyTo = undefined;
+      messageProperties.headers = {
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
       };
 
-      const context = RabbitMqMessageHelper.toAsyncContext(messageProperties);
+      const result = RabbitMqMessageHelper.toAsyncContext(messageProperties);
 
-      expect(context.traceId).toBe(mockTraceId);
+      expect(result.correlationId).toBe(mockBaseContext.correlationId);
+      expect(result.messageId).toBe(messageProperties.messageId);
+      expect(result.replyTo).toBeUndefined();
+    });
+
+    it('должен корректно обрабатывать пустые, неопределенные заголовки без падения рантайма', () => {
+      jest.spyOn(HttHeadersHelper, 'toAsyncContext').mockReturnValue({
+        traceId: mockBaseContext.traceId,
+        spanId: mockBaseContext.spanId,
+      });
+
+      messageProperties.headers = undefined as unknown as IRabbitMqHeaders;
+      messageProperties.messageId = undefined;
+      messageProperties.replyTo = undefined;
+
+      const result = RabbitMqMessageHelper.toAsyncContext(messageProperties);
+
+      expect(HttHeadersHelper.toAsyncContext).toHaveBeenCalledWith({});
+      expect(result.traceId).toBe(mockBaseContext.traceId);
+      expect(result.correlationId).toBe(correlationId);
+    });
+
+    it('должен корректно обрабатывать массивы в заголовках трассировки (склеивать через дефис)', () => {
+      const spy = (HttHeadersHelper.toAsyncContext as jest.Mock).mockReturnValue(mockBaseContext);
+
+      messageProperties.headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID] = ['partA', 'partB'];
+
+      const result = RabbitMqMessageHelper.toAsyncContext(messageProperties);
+
+      expect(spy).toHaveBeenCalledWith({
+        [HttpGeneralAsyncContextHeaderNames.TRACE_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID],
+        [HttpGeneralAsyncContextHeaderNames.SPAN_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.SPAN_ID],
+        [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]:
+          messageProperties.headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
+        [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: 'partA-partB',
+      });
+
+      expect(result.requestId).toBe(mockBaseContext.requestId);
     });
   });
 });

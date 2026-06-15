@@ -28,11 +28,14 @@ class Propagator implements TextMapPropagator {
       .toLowerCase()
       .padStart(16, '0');
 
+    const currentActiveSpanContext = trace.getSpanContext(context);
+    const isActuallyRemote = !currentActiveSpanContext || currentActiveSpanContext.traceId !== formattedTraceId;
+
     const spanContext: SpanContext = {
       traceId: formattedTraceId,
       spanId: formattedSpanId,
       traceFlags: TraceFlags.SAMPLED,
-      isRemote: true,
+      isRemote: isActuallyRemote,
     };
 
     return trace.setSpanContext(context, spanContext);

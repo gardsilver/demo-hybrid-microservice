@@ -31,11 +31,38 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
     const globalBootstrapContext = ProcessTraceSpanStore.instance.get();
 
     let parentOtelContext = otelContext.active();
+    const currentActiveSpanContext = trace.getSpanContext(parentOtelContext);
+
+    const hasValidActiveOtelContext =
+      currentActiveSpanContext && currentActiveSpanContext.traceId !== '00000000000000000000000000000000';
+
+    if (hasValidActiveOtelContext) {
+      const span = tracer.startSpan(operationName, {}, parentOtelContext);
+      const spanContext = span.spanContext();
+
+      const enrichedContext = {
+        ...contextFields,
+        traceId: spanContext.traceId,
+        spanId: spanContext.spanId,
+        parentSpanId: currentActiveSpanContext.spanId,
+        initialSpanId: contextFields?.initialSpanId || currentActiveSpanContext.spanId,
+      };
+
+      const otelActiveContext = trace.setSpan(parentOtelContext, span);
+
+      return otelContext.with(otelActiveContext, () => {
+        return asyncLocalStorage.run(enrichedContext, () => {
+          return this.executeAndLifecycleSpan(span, executionBlock);
+        });
+      });
+    }
 
     if (contextFields?.traceId) {
+      const otelParentSpanId = contextFields.parentSpanId || '0000000000000000';
+
       const customParentSpanContext = {
         traceId: contextFields.traceId.padStart(32, '0'),
-        spanId: (contextFields.spanId || contextFields.parentSpanId || '0000000000000000').padStart(16, '0'),
+        spanId: otelParentSpanId.padStart(16, '0'),
         traceFlags: TraceFlags.SAMPLED,
         isRemote: true,
       };
@@ -43,7 +70,7 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
       parentOtelContext = trace.setSpanContext(otelContext.active(), customParentSpanContext);
     } else if (
       globalBootstrapContext.traceId &&
-      trace.getSpanContext(parentOtelContext)?.traceId === '00000000000000000000000000000000'
+      (!currentActiveSpanContext || currentActiveSpanContext.traceId === '00000000000000000000000000000000')
     ) {
       const mockParentSpanContext = {
         traceId: globalBootstrapContext.traceId,
@@ -54,16 +81,10 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
       parentOtelContext = trace.setSpanContext(otelContext.active(), mockParentSpanContext);
     }
 
-    // Создаем спан. OpenTelemetry автоматически свяжет его:
-    // Либо с вашим кастомным переданным traceId, либо с деревом bootstrap
     const span = tracer.startSpan(operationName, {}, parentOtelContext);
     const spanContext = span.spanContext();
 
-    // Формируем финальный контекст логирования для ELK
-    const currentStore = asyncLocalStorage.getStore() || {};
-
     const enrichedContext = {
-      ...currentStore,
       ...contextFields,
       traceId: spanContext.traceId,
       spanId: spanContext.spanId,
@@ -74,36 +95,39 @@ export abstract class AbstractAsyncContext<T = IAsyncContext> {
 
     return otelContext.with(otelActiveContext, () => {
       return asyncLocalStorage.run(enrichedContext, () => {
-        try {
-          const result = executionBlock();
-
-          if (result instanceof Promise) {
-            return result
-              .then((res) => {
-                span.setStatus({ code: SpanStatusCode.OK });
-                return res;
-              })
-              .catch((err) => {
-                span.recordException(err);
-                span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
-                throw err;
-              })
-              .finally(() => span.end());
-          }
-
-          span.setStatus({ code: SpanStatusCode.OK });
-          span.end();
-          return result;
-        } catch (error: any) {
-          span.recordException(error);
-          span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
-          span.end();
-          throw error;
-        } finally {
-          asyncLocalStorage.exit(() => {});
-        }
+        return this.executeAndLifecycleSpan(span, executionBlock);
       });
     });
+  }
+
+  private executeAndLifecycleSpan(span: any, executionBlock: () => any): any {
+    try {
+      const result = executionBlock();
+      if (result instanceof Promise) {
+        return result
+          .then((res) => {
+            span.setStatus({ code: SpanStatusCode.OK });
+            return res;
+          })
+          .catch((err) => {
+            span.recordException(err);
+            span.setStatus({ code: SpanStatusCode.ERROR, message: err.message });
+            throw err;
+          })
+          .finally(() => span.end());
+      }
+
+      span.setStatus({ code: SpanStatusCode.OK });
+      span.end();
+      return result;
+    } catch (error: any) {
+      span.recordException(error);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
+      span.end();
+      throw error;
+    } finally {
+      asyncLocalStorage.exit(() => {});
+    }
   }
 
   /**

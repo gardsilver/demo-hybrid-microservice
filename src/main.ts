@@ -22,7 +22,7 @@ async function main() {
       await bootstrap(args);
 
       args.logger.log('Application successfully bootstrapped and ready!');
-      
+
       bootstrapSpan.setStatus({ code: SpanStatusCode.OK });
     } catch (error) {
       args.logger.error('Fatal error during application bootstrap', error);

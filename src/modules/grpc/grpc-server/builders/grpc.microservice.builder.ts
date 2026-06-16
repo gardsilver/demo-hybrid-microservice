@@ -3,7 +3,7 @@ import { ReflectionService } from '@grpc/reflection';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MicroserviceOptions, Transport, GrpcOptions } from '@nestjs/microservices';
 import { UrlHelper } from 'src/modules/common';
-import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
+import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common/helpers/grpc.proto-path.helper';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 import { GrpcServerStrategy } from '../services/grpc-server.strategy';
 

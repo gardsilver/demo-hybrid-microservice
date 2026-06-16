@@ -5,8 +5,11 @@ import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MAIN_SERVICE_NAME } from 'protos/compiled/demo/service/MainService';
-import { ELK_NEST_LOGGER_SERVICE_DI, ELK_LOGGER_SERVICE_BUILDER_DI } from 'src/modules/elk-logger';
-import { INestElkLoggerService } from 'src/modules/elk-logger';
+import {
+  INestElkLoggerService,
+  ELK_NEST_LOGGER_SERVICE_DI,
+  ELK_LOGGER_SERVICE_BUILDER_DI,
+} from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { BEARER_NAME } from 'src/modules/http/http-common';
 import { HttpAuthGuard, HttpHeadersResponse, HttpLogging, HttpPrometheus } from 'src/modules/http/http-server';
@@ -24,6 +27,7 @@ import {
 } from 'src/modules/kafka/kafka-server';
 import { RabbitMqMicroserviceBuilder, RabbitMqServerStatusService } from 'src/modules/rabbit-mq/rabbit-mq-server';
 import { HybridErrorResponseFilter, LoggingValidationPipe } from 'src/modules/hybrid/hybrid-server';
+import { WsMicroserviceBuilder } from 'src/modules/websocket';
 import {
   GLOBAL_ROUTE_PREFIX,
   AppConfig,
@@ -157,6 +161,12 @@ export async function bootstrap(globalLogger: INestElkLoggerService): Promise<vo
     },
     prometheusManager: app.get(PrometheusManager),
     rabbitMqStatusService: app.get(RabbitMqServerStatusService),
+  });
+
+  WsMicroserviceBuilder.setup(app, {
+    serverOptions: {
+      cors: appConfig.getCorsOptions(),
+    },
   });
 
   app.enableShutdownHooks();

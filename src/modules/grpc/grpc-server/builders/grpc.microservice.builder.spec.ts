@@ -2,8 +2,8 @@
 import { HealthImplementation } from 'grpc-health-check';
 import { ReflectionService } from '@grpc/reflection';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { UrlHelper } from 'src/modules/common';
-import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
+import { UrlHelper } from 'src/modules/common/helpers/url.helper';
+import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common/helpers/grpc.proto-path.helper';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 import { GrpcMicroserviceBuilder } from './grpc.microservice.builder';
 import { GrpcServerStatusService } from '../services/grpc-server.status.service';
@@ -43,7 +43,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
 
   it('Должен успешно подключить Микросервис через кастомную стратегию', async () => {
     const spyStatusService = jest.spyOn(statusService, 'addGrpcHealthImplementation');
-    
+
     GrpcMicroserviceBuilder.setup(
       app as unknown as NestExpressApplication,
       {
@@ -94,7 +94,9 @@ describe(GrpcMicroserviceBuilder.name, () => {
   });
 
   it('Должен зарегистрировать хуки ReflectionService и HealthImplementation на этапе загрузки пакетов', async () => {
-    const spyRefSetStatus = jest.spyOn(ReflectionService.prototype, 'addToServer').mockImplementation(() => ({} as any));
+    const spyRefSetStatus = jest
+      .spyOn(ReflectionService.prototype, 'addToServer')
+      .mockImplementation(() => ({}) as any);
     const spyHelAddToServer = jest.spyOn(HealthImplementation.prototype, 'addToServer').mockImplementation(() => {});
     const spySetStatus = jest.spyOn(HealthImplementation.prototype, 'setStatus').mockImplementation(() => {});
 

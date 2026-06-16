@@ -49,16 +49,11 @@ export class RabbitMqDemoController {
       },
     });
 
-    if (
-      await RabbitMqAsyncContext.instance.runWithContextAsync(
-        () => {
-          return this.apiService.sendResponse(request);
-        },
-        {
-          ...this.messagePropertiesAdapter.adapt(request.properties ?? ({} as IRabbitMqMessageProperties)),
-        },
-      )
-    ) {
+    RabbitMqAsyncContext.instance.setMultiple({
+      ...this.messagePropertiesAdapter.adapt(request.properties ?? ({} as IRabbitMqMessageProperties)),
+    });
+
+    if (await this.apiService.sendResponse(request)) {
       this.logger.info('RMQ request success', {
         payload: {
           request,

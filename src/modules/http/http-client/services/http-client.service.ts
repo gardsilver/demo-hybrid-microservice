@@ -2,7 +2,8 @@ import { tap, catchError, throwError, finalize, firstValueFrom, of, retry, timeo
 import { AxiosResponse } from 'axios';
 import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable } from '@nestjs/common';
-import { GeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { MILLISECONDS_IN_SECOND, TimeoutError } from 'src/modules/date-timestamp';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerServiceBuilder, ILogFields } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';

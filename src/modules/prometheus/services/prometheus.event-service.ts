@@ -1,6 +1,6 @@
 import { ReplaySubject, Subscription } from 'rxjs';
 import { Injectable, OnApplicationShutdown } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { PrometheusLabels } from '../types/types';
 import {
   PrometheusEventArgs,
@@ -86,9 +86,13 @@ export class PrometheusEventService implements OnApplicationShutdown {
 
     const prometheusEventConfig: IPrometheusEventConfig = param.prometheusEventConfig;
 
-    GeneralAsyncContext.instance.runWithContext(() => {
-      this.handleEvent(prometheusEventConfig, options);
-    }, param.context ?? {});
+    GeneralAsyncContext.instance.runWithContext(
+      () => {
+        this.handleEvent(prometheusEventConfig, options);
+      },
+      param.context ?? {},
+      'Prometheus.handleEvent',
+    );
   }
 
   private handleEvent(

@@ -3,7 +3,8 @@ import { faker } from '@faker-js/faker';
 import { status as GrpcStatus } from '@grpc/grpc-js';
 import { Test } from '@nestjs/testing';
 import { TimeoutError } from 'src/modules/date-timestamp';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   ILogFields,
   IElkLoggerService,

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ILogFields, IOptionLog, LogLevel } from './elk-logger.types';
 
 export enum IElkLoggerEvent {

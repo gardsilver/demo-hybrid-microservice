@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
 import { IHeaders } from 'src/modules/common';
-import { ITraceSpan, TraceSpanBuilder, TraceSpanHelper } from 'src/modules/elk-logger';
+import { ITraceSpan, TraceSpanBuilder } from 'src/modules/elk-logger';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { kafkaHeadersFactory } from 'tests/modules/kafka';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
@@ -9,6 +11,7 @@ import { IKafkaHeadersBuilder } from '../types/types';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
 import { KafkaAsyncContextHeaderNames } from '../types/constants';
 import { KafkaHeadersBuilder } from './kafka.headers.builder';
+import { KafkaHeadersHelper } from '../helpers/kafka.headers.helper';
 
 describe(KafkaHeadersBuilder.name, () => {
   let traceSpan: ITraceSpan;
@@ -79,36 +82,8 @@ describe(KafkaHeadersBuilder.name, () => {
     });
   });
 
-  it('useZipkin', async () => {
-    const result = builder.build({ asyncContext }, { useZipkin: true });
-
-    expect(result).toEqual({
-      ...headers,
-      programsIds: undefined,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(traceSpan.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(traceSpan.spanId),
-      [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: asyncContext.replyTopic,
-      [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: asyncContext.replyPartition.toString(),
-    });
-  });
-
-  it('asArray', async () => {
-    const result = builder.build({ asyncContext }, { asArray: true });
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId.split('-'),
-      [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: [asyncContext.replyTopic],
-      [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: [asyncContext.replyPartition.toString()],
-    });
-  });
-
   it('with headers', async () => {
-    const traceId = faker.string.uuid();
+    const traceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
     let result = builder.build({
       asyncContext: {
         ...asyncContext,
@@ -144,56 +119,6 @@ describe(KafkaHeadersBuilder.name, () => {
 
     expect(copyHeaders).toEqual(headers);
     expect(result).toEqual(headers);
-
-    result = builder.build(
-      {
-        asyncContext,
-        headers: copyHeaders,
-      },
-      { useZipkin: true },
-    );
-
-    expect(copyHeaders).toEqual(headers);
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID],
-      [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: asyncContext.replyTopic,
-      [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: asyncContext.replyPartition.toString(),
-      programsIds: ['1', '30'],
-    });
-  });
-
-  it('with headers and useZipkin', async () => {
-    const traceId = faker.string.uuid();
-    const result = builder.build(
-      {
-        asyncContext: {
-          ...asyncContext,
-          traceId,
-          spanId: undefined,
-        },
-        headers: {
-          [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-          [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-          [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: faker.string.uuid(),
-          [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: faker.string.alpha(5),
-          [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: faker.number.int(4).toString(),
-        },
-      },
-      { useZipkin: true },
-    );
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
-      [KafkaAsyncContextHeaderNames.REPLY_TOPIC]: asyncContext.replyTopic,
-      [KafkaAsyncContextHeaderNames.REPLY_PARTITION]: asyncContext.replyPartition.toString(),
-    });
   });
 
   it('strips authorization header from input', async () => {
@@ -206,5 +131,46 @@ describe(KafkaHeadersBuilder.name, () => {
     });
     expect(result.authorization).toBeUndefined();
     expect(result['x-other']).toBe('keep-me');
+  });
+
+  it('должен безопасно пропустить итерацию, если хелпер вернул undefined для имени заголовка', () => {
+    jest.spyOn(KafkaHeadersHelper, 'nameAsHeaderName').mockImplementation((name: string) => {
+      if (name === 'correlationId') {
+        return undefined;
+      }
+      return HttpGeneralAsyncContextHeaderNames.TRACE_ID;
+    });
+
+    const result = builder.build({
+      asyncContext: { correlationId: 'should-be-skipped' } as any,
+    });
+
+    expect(result['x-correlation-id']).toBeUndefined();
+    expect(result[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]).toBeUndefined();
+  });
+
+  it('должен правильно склеить массив заголовков, если значение извлечено из headers', () => {
+    const targetHeaderName = KafkaHeadersHelper.nameAsHeaderName('requestId') || 'x-request-id';
+
+    const result = builder.build({
+      asyncContext: {} as any,
+      headers: {
+        [targetHeaderName]: ['req-chunk-1', 'req-chunk-2', 'req-chunk-3'],
+      },
+    });
+
+    expect(result[targetHeaderName]).toBe('req-chunk-1-req-chunk-2-req-chunk-3');
+  });
+
+  it('должен игнорировать пустые строки или неопределенные значения (value === undefined || value === "") при сборке финального объекта', () => {
+    const result = builder.build({
+      asyncContext: {
+        traceId: '',
+        spanId: undefined,
+      } as any,
+    });
+
+    expect(result[HttpGeneralAsyncContextHeaderNames.TRACE_ID]).toBeUndefined();
+    expect(result[HttpGeneralAsyncContextHeaderNames.SPAN_ID]).toBeUndefined();
   });
 });

@@ -14,4 +14,5 @@ export enum LoggerMarkers {
   HTTP = 'HTTP',
   KAFKA = 'KAFKA',
   RABBIT_MQ = 'RMQ',
+  WS = 'WS',
 }

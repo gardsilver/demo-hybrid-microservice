@@ -3,7 +3,8 @@ import { AxiosError, AxiosResponse } from 'axios';
 import { HttpStatus } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { TimeoutError } from 'src/modules/date-timestamp';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IHeaders, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   IElkLoggerService,
   IElkLoggerServiceBuilder,

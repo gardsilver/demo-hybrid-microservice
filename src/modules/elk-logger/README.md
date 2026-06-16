@@ -66,7 +66,7 @@ export interface ILogRecord {
 | `PruneConfig` | `class` | Конфигурация сжатия логов. |
 | `@ElkLoggerOnService` / `@ElkLoggerOnMethod` | декораторы | Автоматическое логирование вызова методов. |
 | `NestElkLoggerServiceBuilder` | `class` | Создание `INestElkLoggerService` до `NestFactory.create`. |
-| `TraceSpanHelper`, `TraceSpanBuilder` | утилиты | Работа с `traceId` / `spanId` (Zipkin / GUID). |
+| `TraceSpanHelper`, `TraceSpanBuilder` | утилиты | Работа с `traceId` / `spanId` |
 | `BaseObjectFormatter`, `BaseErrorObjectFormatter` | абстрактные классы | Базовые классы для пользовательских `IObjectFormatter`. |
 | `GeneralAsyncContextFormatter` | `class` | Встроенный `ILogRecordFormatter`, подключается модулем по умолчанию и дополняет запись `traceId`/`spanId`/`initialSpanId`/`parentSpanId` из `GeneralAsyncContext`, а при их отсутствии — из `ProcessTraceSpanStore`. |
 | `ProcessTraceSpanStore` | `class` (singleton) | Стабильный fallback trace/span на весь процесс для логов, возникших вне async-контекста. |
@@ -311,7 +311,7 @@ export class AppService {
 
 ### `TraceSpanHelper`
 
-Набор операций над параметрами сквозного логирования: `generateRandomValue`, `toZipkinFormat`, `toGuidFormat`, `formatToZipkin`, `formatToGuid`.
+Набор операций над параметрами сквозного логирования: `generateRandomValue`, `formatToZipkin`, `formatToGuid`.
 
 ### `TraceSpanBuilder`
 

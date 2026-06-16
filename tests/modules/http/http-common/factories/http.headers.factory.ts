@@ -1,36 +1,25 @@
 import { faker } from '@faker-js/faker';
 import { Factory } from 'fishery';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 
 export interface IBaseHeaders {
   [key: string]: string | string[];
 }
 
-export const httpHeadersFactory = Factory.define<
-  IBaseHeaders,
-  IGeneralAsyncContext & { useZipkin?: boolean; asArray?: boolean }
->(({ transientParams }) => {
+export const httpHeadersFactory = Factory.define<IBaseHeaders, IGeneralAsyncContext>(({ transientParams }) => {
   const tgt: IHeaders = {};
 
   if ('traceId' in transientParams) {
-    const value = transientParams.traceId ?? faker.string.uuid();
+    const value = transientParams.traceId ?? faker.string.hexadecimal({ length: 32, casing: 'lower', prefix: '' });
 
-    if (transientParams?.useZipkin) {
-      tgt[HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID] = TraceSpanHelper.formatToZipkin(value);
-    } else {
-      tgt[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = value;
-    }
+    tgt[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = value;
   }
 
   if ('spanId' in transientParams) {
-    const value = transientParams.spanId ?? faker.string.uuid();
-    if (transientParams?.useZipkin) {
-      tgt[HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID] = TraceSpanHelper.formatToZipkin(value);
-    } else {
-      tgt[HttpGeneralAsyncContextHeaderNames.SPAN_ID] = value;
-    }
+    const value = transientParams.spanId ?? faker.string.hexadecimal({ length: 16, casing: 'lower', prefix: '' });
+    tgt[HttpGeneralAsyncContextHeaderNames.SPAN_ID] = value;
   }
 
   if ('requestId' in transientParams) {

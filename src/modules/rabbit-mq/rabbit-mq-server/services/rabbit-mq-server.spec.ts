@@ -15,7 +15,12 @@ import {
   INestElkLoggerService,
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
-import { IRabbitMqConsumeMessage, RabbitMqServerBuilder, RmqStatus } from 'src/modules/rabbit-mq/rabbit-mq-common';
+import {
+  IRabbitMqConsumeMessage,
+  RabbitMqAsyncContext,
+  RabbitMqServerBuilder,
+  RmqStatus,
+} from 'src/modules/rabbit-mq/rabbit-mq-common';
 import { messageFieldsFactory, messagePropertiesFactory, messagePropertyHeadersFactory } from 'tests/amqplib';
 import { MockAmqpConnectionManager, MockChannel, MockChannelWrapper } from 'tests/amqp-connection-manager';
 import { MockConfigService } from 'tests/nestjs';
@@ -32,6 +37,36 @@ import {
 } from '../types/metrics';
 import { RabbitMqContext } from '../ctx-host/rabbit-mq.context';
 import { IConsumerPacket, IEventRabbitMqMessageOptions } from '../types/types';
+
+jest.mock('@opentelemetry/api', () => {
+  const original = jest.requireActual('@opentelemetry/api');
+  return {
+    ...original,
+    trace: {
+      getTracer: jest.fn().mockReturnValue({
+        startSpan: jest.fn().mockReturnValue({
+          spanContext: jest.fn().mockReturnValue({
+            traceId: '00000000000000000000000000000000',
+            spanId: '0000000000000000',
+          }),
+          setStatus: jest.fn(),
+          recordException: jest.fn(),
+          end: jest.fn(),
+        }),
+      }),
+      getSpanContext: jest.fn().mockReturnValue({
+        traceId: '00000000000000000000000000000000',
+        spanId: '0000000000000000',
+      }),
+      setSpan: jest.fn().mockReturnValue({}),
+      setSpanContext: jest.fn((ctx) => ctx),
+    },
+    context: {
+      active: jest.fn().mockReturnValue({}),
+      with: jest.fn((ctx, cb) => cb()),
+    },
+  };
+});
 
 describe(RabbitMqServer.name, () => {
   let mockConnect: () => AmqpConnectionManager;
@@ -116,6 +151,8 @@ describe(RabbitMqServer.name, () => {
         { transient: { consumerTag: undefined } },
       ) as unknown as CommonMessageFields,
     } as unknown as ConsumeMessage;
+
+    jest.spyOn(RabbitMqAsyncContext.instance, 'setMultiple');
 
     jest.clearAllMocks();
   });
@@ -395,6 +432,7 @@ describe(RabbitMqServer.name, () => {
           pattern: 'pattern',
           data: {
             content: 'content',
+            properties: {},
           } as unknown as IRabbitMqConsumeMessage,
         };
         const deserializeOptions = {
@@ -559,6 +597,7 @@ describe(RabbitMqServer.name, () => {
           pattern: 'pattern',
           data: {
             content: 'content',
+            properties: {},
           } as unknown as IRabbitMqConsumeMessage,
         };
         const deserializeOptions = {
@@ -715,7 +754,6 @@ describe(RabbitMqServer.name, () => {
             },
             prometheusManager,
           );
-
           callback = jest.fn();
           spyHandler = jest.fn();
           extras = {
@@ -738,6 +776,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             } as unknown as IRabbitMqConsumeMessage,
           };
           const deserializeOptions = {
@@ -804,6 +843,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             },
           };
 
@@ -864,6 +904,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             },
           };
 
@@ -942,6 +983,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             } as unknown as IRabbitMqConsumeMessage,
           };
           const deserializeOptions = {
@@ -1008,6 +1050,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             },
           };
 
@@ -1068,6 +1111,7 @@ describe(RabbitMqServer.name, () => {
             pattern: 'pattern',
             data: {
               content: 'content',
+              properties: {},
             },
           };
 

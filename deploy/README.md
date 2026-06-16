@@ -1,6 +1,6 @@
 # Deploy
 
-Минимальные настройки локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**), **RabbitMq** (**RabbitMq Management**) и сам микросервис **Demo Hybrid Microservice**.
+Минимальные настройки локальной среды разработки: **Postgres**, **Redis** (**Redis Insight**), **Kafka** (**Kafka UI**), **RabbitMq** (**RabbitMq Management**), **Jaeger** (**OpenTelemetry Collector (Contrib)**) и сам микросервис **Demo Hybrid Microservice**.
 
 ## ВНИМАНИЕ
 
@@ -8,7 +8,7 @@
 
 ## Состав
 
-- `base-compose.yml` — описание контейнеров инфраструктуры (Postgres, Redis, Redis Insight, Kafka, Kafka UI, RabbitMq).
+- `base-compose.yml` — описание контейнеров инфраструктуры (Postgres, Redis, Redis Insight, Kafka, Kafka UI, RabbitMq, Jaeger, OpenTelemetry Collector (Contrib)).
 - `demo-hybrid-microservice.yml` — overlay для запуска самого микросервиса в Docker (сборка из корня репозитория, команда `npm run start:dev`, порты `3000:3000` и `3001:3001`; исходники синхронизируются в контейнер через Docker Compose Watch, см. ниже).
 - `makefile` — набор команд для управления инфраструктурой (см. ниже).
 
@@ -20,7 +20,7 @@
 
 | **make**-команда | Описание |
 |---|---|
-| `make dc-start` | Поднимает все контейнеры (`docker compose ... up -d`) **и запускает Docker Compose Watch в фоне**. Терминал не блокируется. |
+| `make dc-start` | Поднимает все контейнеры (`docker compose ... up -d`) и запускает **Docker Compose Watch** в фоне. Терминал не блокируется. |
 | `make dc-watch` | Перезапускает фоновый watch-процесс (если упал или нужно обновить). Не блокирует терминал. |
 | `make dc-watch-log` | Follow лога фонового watch (`tail -f $(WATCH_LOG)`). Блокирующий, `Ctrl+C` останавливает только просмотр. |
 | `make dc-down` | Останавливает **фоновый watch и все контейнеры** (`docker compose ... down`). |
@@ -40,6 +40,8 @@
 - **kafka** — Брокер **Kafka** (`apache/kafka:latest`, KRaft-режим, single-node).
 - **kafka-ui** — Web-клиент **Kafka UI** (`provectuslabs/kafka-ui:latest`).
 - **rabbitmq** — Брокер **RabbitMq** (`rabbitmq:4-management`).
+- **jaeger** — Коллектор opentelemetry **Jaeger** (`jaegertracing/all-in-one:latest`).
+- **jaeger-ui** — Web-клиент **OpenTelemetry Collector (Contrib)** (`otel/opentelemetry-collector-contrib:latest`).
 - **demo-hybrid-microservice** — сам микросервис (собирается из `../Dockerfile` или контекста `../`, запускается `npm run start:dev`).
 
 ## Сетевое взаимодействие
@@ -90,6 +92,16 @@
 | `RABBIT_MQ_PASSWORD` | Пароль пользователя | `RABBIT_MQ_PASSWORD=admin` | `password=admin` |
 
 - <http://localhost:15672> — **RabbitMq Management** (user: `admin`; pass: `admin`).
+
+## **Jaeger**
+
+Сервис сбора телеметрии (образ `jaegertracing/all-in-one:latest`).
+
+| Параметр | Описание | `.env` микросервиса | localhost |
+|---|---|---|---|
+| `OPENTELEMETRY_URL` | Коллектор телеметрии | `OPENTELEMETRY_URL=http://jaeger-ui:4318/v1/traces` | `localhost::4318/v1/traces` |
+
+- <http://localhost:16686> — **Jaeger UI**.
 
 ## Микросервис в контейнере
 

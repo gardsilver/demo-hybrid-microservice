@@ -4,7 +4,8 @@ import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } fr
 import { Reflector } from '@nestjs/core';
 import { RpcException } from '@nestjs/microservices';
 import { PATTERN_METADATA } from '@nestjs/microservices/constants';
-import { GeneralAsyncContext, IGeneralAsyncContext, IHeadersToContextAdapter, isSkipped } from 'src/modules/common';
+import { IHeadersToContextAdapter, isSkipped } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { PrometheusLabels, PrometheusManager } from 'src/modules/prometheus';
 import { GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
@@ -32,6 +33,9 @@ export class GrpcPrometheus implements NestInterceptor {
     const handler = context.getHandler();
     const headers = GrpcHeadersHelper.normalize(metadata.getMap());
     const pattern = this.reflector.get(PATTERN_METADATA, handler)[0];
+    const serviceName = pattern.service;
+    const methodName = pattern.rpc;
+    const operationName = `gRPC SERVER (prometheus): ${serviceName}/${methodName}`;
 
     let asyncContext: IGeneralAsyncContext = GrpcMetadataHelper.getAsyncContext<IGeneralAsyncContext>(metadata);
 
@@ -41,13 +45,17 @@ export class GrpcPrometheus implements NestInterceptor {
     }
 
     const labels: PrometheusLabels = {
-      service: pattern.service,
-      method: pattern.rpc,
+      service: serviceName,
+      method: methodName,
     };
 
-    const end = GeneralAsyncContext.instance.runWithContext(() => {
-      return this.prometheusManager.histogram().startTimer(GRPC_INTERNAL_REQUEST_DURATIONS, { labels });
-    }, asyncContext);
+    const end = GeneralAsyncContext.instance.runWithContext(
+      () => {
+        return this.prometheusManager.histogram().startTimer(GRPC_INTERNAL_REQUEST_DURATIONS, { labels });
+      },
+      asyncContext,
+      operationName,
+    );
 
     return next.handle().pipe(
       catchError((error) => {
@@ -65,21 +73,29 @@ export class GrpcPrometheus implements NestInterceptor {
           }
         }
 
-        GeneralAsyncContext.instance.runWithContext(() => {
-          return this.prometheusManager.counter().increment(GRPC_INTERNAL_REQUEST_FAILED, {
-            labels: {
-              ...labels,
-              statusCode: statusCode.toString(),
-            },
-          });
-        }, asyncContext);
+        GeneralAsyncContext.instance.runWithContext(
+          () => {
+            return this.prometheusManager.counter().increment(GRPC_INTERNAL_REQUEST_FAILED, {
+              labels: {
+                ...labels,
+                statusCode: statusCode.toString(),
+              },
+            });
+          },
+          asyncContext,
+          operationName,
+        );
 
         return throwError(() => error);
       }),
       finalize(() => {
-        GeneralAsyncContext.instance.runWithContext(() => {
-          return end();
-        }, asyncContext);
+        GeneralAsyncContext.instance.runWithContext(
+          () => {
+            return end();
+          },
+          asyncContext,
+          operationName,
+        );
       }),
     );
   }

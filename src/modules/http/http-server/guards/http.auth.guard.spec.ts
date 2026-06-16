@@ -6,7 +6,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ExecutionContext } from '@nestjs/common';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AccessRoles, AUTH_SERVICE_DI, AuthModule, IAuthService } from 'src/modules/auth';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerService } from 'src/modules/elk-logger';
 import {

@@ -5,7 +5,8 @@ import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, LoggerMarkers, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IHeaders, LoggerMarkers, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   ElkLoggerModule,

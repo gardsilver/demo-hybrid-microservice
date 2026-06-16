@@ -1,14 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jwt = require('jsonwebtoken');
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { MILLISECONDS_IN_SECOND } from 'src/modules/date-timestamp';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  IElkLoggerService,
-  IElkLoggerServiceBuilder,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { IAuthService, ICertificateService } from '../types/interfaces';
 import { IAccessTokenData, AuthStatus, IAuthInfo } from '../types/types';
 import { AUTH_CERTIFICATE_SERVICE_DI } from '../types/tokens';
@@ -66,9 +61,7 @@ export class AuthService implements IAuthService, OnModuleInit {
     return this.certificate !== null ? jwt.sign(dataToken, this.certificate) : undefined;
   }
 
-  @GeneralAsyncContext.define(() => {
-    return TraceSpanBuilder.build();
-  })
+  @GeneralAsyncContext.define()
   public async onModuleInit() {
     this.logger.info('Getting certificate start');
 

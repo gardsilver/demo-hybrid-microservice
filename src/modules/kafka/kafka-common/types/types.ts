@@ -5,10 +5,12 @@ import { IKafkaLogFilterParams } from '../builders/kafka.elk-logger.builder';
 
 export interface IKafkaHeadersToAsyncContextAdapter extends IHeadersToContextAdapter<IKafkaAsyncContext> {}
 
+export interface IKafkaHeadersBuilderOptions {}
+
 export interface IKafkaHeadersBuilder {
   build(
     params: { asyncContext: IKafkaAsyncContext; headers?: IHeaders },
-    options?: { useZipkin?: boolean; asArray?: boolean },
+    options?: IKafkaHeadersBuilderOptions,
   ): IHeaders;
 }
 

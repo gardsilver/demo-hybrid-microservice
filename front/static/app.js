@@ -1,112 +1,172 @@
-let socket;
+/* eslint-env browser */
+/* global io */
 
-const msgBox = document.getElementById('exampleFormControlTextarea1');
-const msgCont = document.getElementById('data-container');
-const email = document.getElementById('to-email');
-const fromEmail = document.getElementById('from-email');
-const connectStatus = document.getElementById('from-email').parentElement.firstElementChild.firstElementChild;
-const messages = [];
+let socket = null;
+let currentUsername = "";
 
-fromEmail.addEventListener('keydown', (e) => {
-  if (e.keyCode === 13) {
-    e.target.disabled = true;
+/**
+ * Инициализирует процесс REST-авторизации и подключает WebSocket при успехе.
+ */
+async function loginAndConnect() {
+  const usernameInput = document.getElementById('username-input');
+  const errorDiv = document.getElementById('auth-error');
+  
+  if (!usernameInput || !errorDiv) return;
 
-    socket = io('', {
-      extraHeaders: {
-        "send-from": e.target.value,
+  const username = usernameInput.value.trim();
+  errorDiv.innerText = "";
+
+  if (!username) {
+    errorDiv.innerText = "Имя пользователя не может быть пустым";
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      errorDiv.innerText = data.message || "Доступ запрещен (Forbidden)";
+      return;
+    }
+
+    currentUsername = username;
+    
+    // Переключаем блоки интерфейса
+    document.getElementById('auth-block').style.display = 'none';
+    document.getElementById('chat-block').style.display = 'block';
+    
+    const titleEl = document.getElementById('chat-title');
+    if (titleEl) titleEl.innerText = `Чат: ${currentUsername}`;
+
+    // Сразу выводим сообщение о старте сессии на клиенте
+    appendSystemMessage(`Система: REST-авторизация успешна. Запуск сокета...`, '#d1a100');
+
+    // Инициализируем WebSocket-соединение.
+    socket = io({
+      transports: ['websocket'],
+      query: {
+        'send-from': currentUsername
       }
     });
 
-    socket.io.on("error", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-danger")
-    })
+    setupSocketListeners();
 
-    socket.io.on("reconnect", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-warning")
-    })
-
-    socket.io.on("reconnect_error", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-danger")
-    })
-
-    socket.io.on("reconnect_failed", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-danger")
-    })
-
-    socket.on("connect", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-success")
-    })
-
-     socket.on("disconnect", () => {
-      connectStatus.classList.remove("btn-outline-default", "btn-outline-warning", "btn-outline-success", "btn-outline-danger")
-      connectStatus.classList.add("btn-outline-danger")
-    })
-
-    socket.on('answerMessage', (message) => {
-      messages.push(message);
-      loadDate(messages);
-    });
-
-    email.focus();
+  } catch (err) {
+    errorDiv.innerText = "Ошибка сети при попытке входа через /api/auth";
   }
-});
+}
 
-email.addEventListener('keydown', (e) => {
-  if (e.keyCode === 13) {
-    msgCont.focus();
-  }
-});
+/**
+ * Регистрирует подписки на сетевые события и каналы ответов бэкенда.
+ */
+function setupSocketListeners() {
+  if (!socket) return;
 
-msgBox.addEventListener('keydown', (e) => {
-  if (e.keyCode === 13) {
-    sendMessage({ email: email.value, text: e.target.value });
-    e.target.value = '';
-  }
-});
-
-function loadDate(data) {
-  let messages = '';
-  data.map((message) => {
-    let text = '';
-    if (message.from) {
-      text += `<span class="fw-bolder">${message.from}</span>`
-    }
-
-    if (message.to) {
-      if (text !== '') {
-        text += ' to ';
-      }
-
-      text += `<span class="fw-bolder">${message.to}</span>`
-    }
-
-    if (text !== '') {
-      text += `: ${message.text}`;
-    } else {
-      text += message.text;
-    }
-
-    switch (message.status) {
-      case "send":
-        messages += `<li class="bg-success p-2 rounded mb-2 text-light">${text}</li>`
-        break;
-      case "error":
-        messages += `<li class="bg-danger p-2 rounded mb-2 text-light">${text}</li>`;
-        break;
-      default:
-        messages += `<li class="bg-primary  p-2 rounded mb-2 text-light">${text}</li>`;
-        break;
-    }
+  // 🟡 ЖЕЛТЫЙ ЦВЕТ: События подключения и дисконнекта сокета
+  socket.on('connect', () => {
+    appendSystemMessage(`Система: Сетевое соединение установлено. Сокет ID: [${socket.id}]`, '#d1a100');
   });
-  msgCont.innerHTML = messages;
+
+  socket.on('disconnect', () => {
+    appendSystemMessage('Система: Сетевое соединение разорвано сокетом', '#d1a100');
+  });
+
+  socket.on('connect_error', (err) => {
+    appendSystemMessage(`Система: Ошибка подключения сокета: ${err.message}`, '#ff0000');
+  });
+
+  // 🔴 КРАСНЫЙ ЦВЕТ: Вывод критических ошибок из платформенного канала 'exception'
+  socket.on('exception', (data) => {
+    const errorText = data.message || data.text || "Критический сбой пайплайна";
+    appendSystemMessage(`Критическая ошибка бэкенда: ${errorText}`, '#ff0000');
+  });
+
+  // Раскраска входящих/исходящих сообщений чата по статусам доставки от бэкенда
+  socket.on('answerMessage', (data) => {
+    let color = '#000000';
+    let prefix = `[${data.from} ➔ ${data.to}]: `;
+
+    if (data.status === 'send') {
+      color = '#333333'; 
+    } else if (data.status === 'error') {
+      // ⚪ СЕРАЯ РАСКРАСКА: Адресата нет в сети сокетов
+      color = '#888888'; 
+      prefix = `[Оффлайн] ${prefix}`;
+    } else if (data.status === 'ok') {
+      color = '#008000'; // Зеленый для подтвержденной доставки
+    }
+
+    appendChatMessage(prefix + data.text, color);
+  });
 }
 
-function sendMessage(message) {
-  socket?.emit('askMessage', message);
+/**
+ * Отправляет логическое событие сообщения на бэкенд.
+ */
+function sendMessage() {
+  const emailInput = document.getElementById('target-email');
+  const textInput = document.getElementById('message-text');
+  
+  if (!emailInput || !textInput) return;
+
+  const email = emailInput.value.trim();
+  const text = textInput.value.trim();
+  
+  if (socket && email && text) {
+    socket.emit('askMessage', { email, text });
+    textInput.value = ""; 
+  }
 }
 
+/**
+ * Реализует механизм Разлогирования (Clear Session)
+ */
+function logout() {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+
+  // Принудительно затираем куку 'authorization' через выставление срока жизни в 0
+  document.cookie = "authorization=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0;";
+  
+  currentUsername = "";
+  
+  // Очищаем окно чата и инпуты
+  const win = document.getElementById('chat-window');
+  if (win) win.innerHTML = "";
+  
+  const usernameInput = document.getElementById('username-input');
+  if (usernameInput) usernameInput.value = "";
+
+  // Переключаем видимость блоков обратно на форму входа
+  document.getElementById('auth-block').style.display = 'block';
+  document.getElementById('chat-block').style.display = 'none';
+}
+
+function appendChatMessage(text, color) {
+  const win = document.getElementById('chat-window');
+  if (!win) return;
+  
+  win.innerHTML += `<div class="chat-msg" style="color: ${color};">${text}</div>`;
+  win.scrollTop = win.scrollHeight;
+}
+
+function appendSystemMessage(text, color) {
+  const win = document.getElementById('chat-window');
+  if (!win) return;
+  
+  win.innerHTML += `<div class="system-msg" style="color: ${color}; border-left: 4px solid ${color};">⚠️ ${text}</div>`;
+  win.scrollTop = win.scrollHeight;
+}
+
+// Привязываем методы к глобальному window скоупу для EJS
+window.loginAndConnect = loginAndConnect;
+window.sendMessage = sendMessage;
+window.logout = logout;

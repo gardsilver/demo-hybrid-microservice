@@ -12,19 +12,17 @@ import {
   IKafkaAsyncContext,
   IKafkaClientProxyBuilderOptions,
   IKafkaHeadersBuilder,
+  IKafkaHeadersBuilderOptions as IBuilderOptions,
   IKafkaMessage,
   IKafkaProducerOptions,
 } from 'src/modules/kafka/kafka-common';
 
-export interface IKafkaHeadersBuilderOptions {
-  useZipkin?: boolean;
-  asArray?: boolean;
+export interface IKafkaRequestHeadersBuilderOptions extends IBuilderOptions {
+  skip?: boolean;
 }
+
 export interface IKafkaHeadersRequestBuilder extends IKafkaHeadersBuilder {
-  build(
-    params: { asyncContext: IKafkaAsyncContext; headers?: IHeaders },
-    options?: IKafkaHeadersBuilderOptions,
-  ): IHeaders;
+  build(params: { asyncContext: IKafkaAsyncContext; headers?: IHeaders }, options?: IBuilderOptions): IHeaders;
 }
 
 export enum ProducerMode {
@@ -48,7 +46,7 @@ export interface IKafkaSendOptions
   serializer?: IProducerSerializer;
   serializerOption?: Record<string, unknown>;
   headerBuilder?: IKafkaHeadersRequestBuilder;
-  headersBuilderOptions?: IKafkaHeadersBuilderOptions & { skip?: boolean };
+  headersBuilderOptions?: IKafkaRequestHeadersBuilderOptions;
 }
 
 export interface IKafkaRequestOptions extends IKafkaSendOptions {}

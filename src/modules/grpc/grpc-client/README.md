@@ -109,8 +109,6 @@ export class MainServiceIntegrationModule {}
 | `metadataRequestBuilder.useFactory` | `(...deps) => IGrpcMetadataRequestBuilder \| Promise<...>` | — | — | Фабрика. |
 | `metadataRequestBuilder.inject` | `FactoryProvider['inject']` | Нет | `[]` | Зависимости фабрики. |
 | `requestOptions` | `IServiceClassProvider<IGrpcRequestOptions>` \| `IServiceValueProvider<IGrpcRequestOptions>` \| `IServiceFactoryProvider<IGrpcRequestOptions>` | Нет | `{ useValue: {} }` | Provider `IGrpcRequestOptions` — значения по умолчанию для `GrpcClientService.request()`; переопределяются во втором аргументе вызова. Привязан к `GRPC_CLIENT_REQUEST_OPTIONS_DI`. |
-| `requestOptions.useValue.metadataBuilderOptions.useZipkin` | `boolean` | Нет | `false` | Проставлять Zipkin-заголовки в `Metadata`. |
-| `requestOptions.useValue.metadataBuilderOptions.asArray` | `boolean` | Нет | `false` | Передавать значения `Metadata` массивами. |
 | `requestOptions.useValue.metadataBuilderOptions.authToken` | `string` | Нет | — | Значение заголовка `Authorization`. |
 | `requestOptions.useValue.requestOptions.timeout` | `number` (мс) | Нет | `GRPC_CLIENT_REQUEST_TIMEOUT` | Таймаут одного **gRPC**-запроса. |
 | `requestOptions.useValue.retryOptions.retry` | `boolean` | Нет | Значение `GRPC_CLIENT_RETRY_ENABLED` | Включить/отключить retry. |
@@ -133,8 +131,6 @@ export class MainServiceIntegrationModule {}
 
 Интерфейс билдера `Metadata` для исходящих **gRPC**-запросов (расширение `IGrpcMetadataBuilder` из `grpc-common`). Дефолтная реализация — `GrpcMetadataRequestBuilder`. Дополнительные опции:
 
-- `useZipkin` — включить распространение Zipkin-заголовков.
-- `asArray` — передавать значения заголовков в виде массивов.
 - `authToken` — проставить авторизационный токен в `Metadata`.
 
 ## `GrpcClientResponseHandler`

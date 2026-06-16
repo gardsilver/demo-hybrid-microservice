@@ -72,10 +72,7 @@ export interface IRabbitMqMessagePropertiesToAsyncContextAdapter extends IHeader
   IRabbitMqMessageProperties
 > {}
 
-export interface IRabbitMqPublishOptionsBuilderOptions {
-  useZipkin?: boolean;
-  asArray?: boolean;
-}
+export interface IRabbitMqPublishOptionsBuilderOptions {}
 
 export interface IRabbitMqPublishOptionsBuilder {
   build(

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Test } from '@nestjs/testing';
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { DateTimestamp } from 'src/modules/date-timestamp';
 import { ElkLoggerEventService } from '../services/elk-logger.event-service';
 import { ElkLoggerOnMethod } from './elk-logger.on-method';

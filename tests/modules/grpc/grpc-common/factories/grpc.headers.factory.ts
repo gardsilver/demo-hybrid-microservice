@@ -1,4 +1,4 @@
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { httpHeadersFactory, IBaseHeaders } from 'tests/modules/http/http-common';
 
 export const grpcHeadersFactory = {

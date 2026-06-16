@@ -5,7 +5,8 @@ import { ExecutionContext, CallHandler, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 import { Test } from '@nestjs/testing';
-import { IGeneralAsyncContext, IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IHeaders, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   HttHeadersHelper,
   HttpHeadersToAsyncContextAdapter,

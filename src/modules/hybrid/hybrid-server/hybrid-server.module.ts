@@ -4,10 +4,11 @@ import { GrpcServerModule } from 'src/modules/grpc/grpc-server';
 import { HttpServerModule } from 'src/modules/http/http-server';
 import { KafkaServerModule } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerModule } from 'src/modules/rabbit-mq/rabbit-mq-server';
+import { WsModule } from 'src/modules/websocket';
 import { HybridErrorResponseFilter } from './filters/hybrid.error-response.filter';
 
 @Module({
-  imports: [ElkLoggerModule, HttpServerModule, GrpcServerModule, KafkaServerModule, RabbitMqServerModule],
+  imports: [ElkLoggerModule, HttpServerModule, GrpcServerModule, KafkaServerModule, RabbitMqServerModule, WsModule],
   providers: [HybridErrorResponseFilter],
   exports: [HybridErrorResponseFilter],
 })

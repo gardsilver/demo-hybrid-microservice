@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { ITraceSpan, TraceSpanBuilder } from 'src/modules/elk-logger';
 import { AUTHORIZATION_HEADER_NAME, BEARER_NAME, HttpHeadersBuilder } from 'src/modules/http/http-common';
 import { generalAsyncContextFactory } from 'tests/modules/common';
@@ -35,9 +35,9 @@ describe(HttpHeadersRequestBuilder.name, () => {
 
   it('default', async () => {
     const spy = jest.spyOn(HttpHeadersBuilder.prototype, 'build');
-    builder.build({ asyncContext }, { useZipkin: true });
+    builder.build({ asyncContext }, {});
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, {});
   });
 
   it('build with authToken', async () => {

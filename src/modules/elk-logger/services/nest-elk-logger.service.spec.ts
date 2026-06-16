@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Test } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { faker } from '@faker-js/faker';
 import { CheckObjectsType } from 'src/modules/common/utils';
 import { DateTimestamp } from 'src/modules/date-timestamp';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { MockConfigService } from 'tests/nestjs';
 import { FS_MOCK } from 'tests/fs';
 import { MockEncodeFormatter, MockFormatter, MockRecordEncodeFormatter } from 'tests/modules/elk-logger';
@@ -33,6 +34,8 @@ jest.mock('fs', () => ({ ...jest.requireActual('fs'), ...jest.requireActual('tes
 
 describe(NestElkLoggerService.name, () => {
   let mockUuid: string;
+  let mockTraceId: string;
+  let mockSpanId: string;
   let spyFormatter: jest.SpyInstance;
   let spyRecordEncodeFormatter: jest.SpyInstance;
   let spyEncodeFormatter: jest.SpyInstance;
@@ -122,10 +125,17 @@ describe(NestElkLoggerService.name, () => {
     formattersFactory = module.get(FormattersFactory);
     recordEncodeFormattersFactory = module.get(RecordEncodeFormattersFactory);
 
-    mockUuid = faker.string.uuid();
+    mockUuid = CRYPTO_MOCK.randomUUID();
+    mockTraceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
+    mockSpanId = CRYPTO_MOCK.randomBytes(8).toString('hex');
 
-    ProcessTraceSpanStore.instance.reset();
+    ProcessTraceSpanStore.instance.clearBootstrapSpan();
+    (ProcessTraceSpanStore as any)._instance = undefined;
+
     jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockUuid);
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => mockTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => mockSpanId);
+
     jest.spyOn(DateTimestamp.prototype, 'format').mockImplementation(() => 'timestamp');
 
     spyFormatter = jest.spyOn(formatter, 'transform');
@@ -161,9 +171,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'TestApplication',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -183,9 +194,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'NestElkLoggerService',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -207,9 +219,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'TestApplication',
           message: 'message 3',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -236,9 +249,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'NestElkLoggerService',
           message: 'Message as object',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -266,9 +280,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'NestElkLoggerService',
           message: 'Message as object',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -288,9 +303,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'NestElkLoggerService',
           message: 'Hello World',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -310,9 +326,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'INFO',
           module: 'NestElkLoggerService',
           message: TestService.name,
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -334,9 +351,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'TestApplication',
           message: 'Test application failed',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -360,9 +378,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Test application failed',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -382,9 +401,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Test application failed',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -404,9 +424,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Test application failed',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -430,9 +451,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Test error',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -458,9 +480,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Message as object',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -507,9 +530,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'TestApplication',
           message: 'Test application failed',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -532,9 +556,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'TestApplication',
           message: 'message 2',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -562,9 +587,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Message as object',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -589,9 +615,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'ERROR',
           module: 'NestElkLoggerService',
           message: 'Test error',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -613,9 +640,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'WARN',
           module: 'TestApplication',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -635,9 +663,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'DEBUG',
           module: 'TestApplication',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -657,9 +686,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'DEBUG',
           module: 'TestApplication',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -679,9 +709,10 @@ describe(NestElkLoggerService.name, () => {
           level: 'FATAL',
           module: 'TestApplication',
           message: 'Test application successfully started',
-          traceId: mockUuid,
-          spanId: mockUuid,
+          traceId: mockTraceId,
+          spanId: mockSpanId,
           parentSpanId: '',
+          initialSpanId: '',
           timestamp: 'timestamp',
         });
       });
@@ -735,6 +766,7 @@ describe(NestElkLoggerService.name, () => {
 
       expect(spyLogWriter).toHaveBeenCalledTimes(1);
       expect(spyFileFormatter).toHaveBeenCalledTimes(1);
+
       expect(spyFileFormatter).toHaveBeenCalledWith({
         markers: [],
         businessData: {},
@@ -742,11 +774,13 @@ describe(NestElkLoggerService.name, () => {
         level: 'INFO',
         module: 'NestElkLoggerService',
         message: 'any message',
-        traceId: mockUuid,
-        spanId: mockUuid,
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         parentSpanId: '',
+        initialSpanId: '',
         timestamp: 'timestamp',
       });
+
       expect(spyOnAppendFileSync).toHaveBeenCalledTimes(1);
       expect(spyOnAppendFileSync).toHaveBeenCalledWith(1002, 'NestElkLoggerService', 'utf8');
     });

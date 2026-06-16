@@ -19,7 +19,6 @@ describe(GrpcHeadersToAsyncContextAdapter.name, () => {
           spanId: undefined,
           requestId: undefined,
           correlationId: undefined,
-          useZipkin: true,
         },
       },
     );

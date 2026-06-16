@@ -1,7 +1,9 @@
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
-import { ITraceSpan, TraceSpanBuilder, TraceSpanHelper } from 'src/modules/elk-logger';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
+import { ITraceSpan, TraceSpanBuilder } from 'src/modules/elk-logger';
+import { CRYPTO_MOCK } from 'tests/crypto';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { generalAsyncContextFactory } from 'tests/modules/common';
 import { IHttpHeadersBuilder } from '../types/types';
@@ -73,32 +75,8 @@ describe(HttpHeadersBuilder.name, () => {
     });
   });
 
-  it('useZipkin', async () => {
-    const result = builder.build({ asyncContext }, { useZipkin: true });
-
-    expect(result).toEqual({
-      ...headers,
-      programsIds: undefined,
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: undefined,
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(traceSpan.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(traceSpan.spanId),
-    });
-  });
-
-  it('asArray', async () => {
-    const result = builder.build({ asyncContext }, { asArray: true });
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID]: asyncContext.traceId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID]: asyncContext.spanId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId.split('-'),
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId.split('-'),
-    });
-  });
-
   it('with headers', async () => {
-    const traceId = faker.string.uuid();
+    const traceId = CRYPTO_MOCK.randomBytes(16).toString('hex');
     let result = builder.build({
       asyncContext: {
         ...asyncContext,
@@ -130,50 +108,6 @@ describe(HttpHeadersBuilder.name, () => {
 
     expect(copyHeaders).toEqual(headers);
     expect(result).toEqual(headers);
-
-    result = builder.build(
-      {
-        asyncContext,
-        headers: copyHeaders,
-      },
-      { useZipkin: true },
-    );
-
-    expect(copyHeaders).toEqual(headers);
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: headers[HttpGeneralAsyncContextHeaderNames.REQUEST_ID],
-      programsIds: ['1', '30'],
-    });
-  });
-
-  it('with headers and useZipkin', async () => {
-    const traceId = faker.string.uuid();
-    const result = builder.build(
-      {
-        asyncContext: {
-          ...asyncContext,
-          traceId,
-          spanId: undefined,
-        },
-        headers: {
-          [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(asyncContext.traceId),
-          [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-          [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: faker.string.uuid(),
-        },
-      },
-      { useZipkin: true },
-    );
-
-    expect(result).toEqual({
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID]: TraceSpanHelper.formatToZipkin(traceId),
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID]: TraceSpanHelper.formatToZipkin(asyncContext.spanId),
-      [HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]: asyncContext.correlationId,
-      [HttpGeneralAsyncContextHeaderNames.REQUEST_ID]: asyncContext.requestId,
-    });
   });
 
   it('strips authorization header from input', async () => {

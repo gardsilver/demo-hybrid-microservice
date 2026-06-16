@@ -17,6 +17,8 @@ const metadata = rpc.getContext<Metadata>();
 const headers = GrpcHeadersHelper.normalize(metadata.getMap());
 ```
 
+Метод `GrpcHeadersHelper.parsePattern` парсинга паттерна gRPC из NestJS. Перебирает все возможные варианты именования ключей (регистронезависимо), возвращая красивую плоскую строку "ServiceName/MethodName".
+
 ## `IGrpcHeadersToAsyncContextAdapter`
 
 Интерфейс адаптера `IHeaders → IGeneralAsyncContext`. Используется для восстановления асинхронного контекста из входящих/исходящих **gRPC**-заголовков. Можно использовать дефолтный `GrpcHeadersToAsyncContextAdapter` либо реализовать собственный.
@@ -27,12 +29,12 @@ const headers = GrpcHeadersHelper.normalize(metadata.getMap());
 
 ```ts
 import { Metadata } from '@grpc/grpc-js';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 
 export interface IGrpcMetadataBuilder {
   build(
     params: { asyncContext: IGeneralAsyncContext; metadata?: Metadata },
-    options?: { useZipkin?: boolean; asArray?: boolean },
+    options?: {},
   ): Metadata;
 }
 ```

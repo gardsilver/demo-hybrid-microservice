@@ -13,7 +13,7 @@
 - `IHeaders` - нормализованный тип заголовков. К нему будут приведены все форматы заголовков (`http`, `gRPC` metadata, `Kafka` и др.).
 - `IKeyValue<T = unknown>` - общий тип объектов. К нему будут приведены все неизвестные экземпляры классов, объектов и др структур.
 - `LoggerMarkers` - enum часто используемых маркеров при формировании логов.
-- `IGeneralAsyncContext` и `GeneralAsyncContext` - Базовый асинхронный контекст, расширяет `IAsyncContext` и `Partial<ITraceSpan>` полями `requestId`, `correlationId`, `traceId`, `spanId` и т.д.
+- `IGeneralAsyncContext` и `GeneralAsyncContext` - Базовый асинхронный контекст (подмодуль `src/modules/common/context`), расширяет `IAsyncContext` и `Partial<ITraceSpan>` полями `requestId`, `correlationId`, `traceId`, `spanId` и т.д.
 
 ### Базовые интерфейсы сервисов
 
@@ -39,6 +39,7 @@
 
 - `normalize` - приводит заголовки (`http`, `gRPC`, `Kafka` и тд.) к нормализованному `IHeaders` виду.
 - `searchValue` - ищет по именам заголовков значение. Вернет первое найденное.
+- `searchHeaderAsString` - ищет по именам заголовков значение и первое найденное преобразует к строке (массив склеивает через разделитель `-`).
 
 ### `ConfigServiceHelper`
 
@@ -140,7 +141,7 @@ export class MyModule {}
 
 ```ts
 import { Injectable } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 
 @Injectable()
 export class OrderService {

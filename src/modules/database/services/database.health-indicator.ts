@@ -1,12 +1,7 @@
 import { Sequelize } from 'sequelize-typescript';
 import { Inject, Injectable } from '@nestjs/common';
 import { HealthIndicatorResult, HealthIndicatorService, SequelizeHealthIndicator } from '@nestjs/terminus';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  IElkLoggerService,
-  IElkLoggerServiceBuilder,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { DATABASE_DI } from '../types/tokens';
 import { IDatabaseHealthIndicatorOptions } from '../types/types';
 import { DatabaseMigrationStatusService } from './database-migration-status.service';
@@ -72,7 +67,6 @@ export class DatabaseHealthIndicator {
             migration: details.migration,
             exception: this.migrationStatus.getError(),
           },
-          ...TraceSpanBuilder.build(),
         });
 
         return indicator.up(details);

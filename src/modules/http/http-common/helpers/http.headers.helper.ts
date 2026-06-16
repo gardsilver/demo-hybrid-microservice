@@ -1,3 +1,4 @@
+import { trace, context } from '@opentelemetry/api';
 import { IAsyncContext } from 'src/modules/async-context';
 import { BaseHeadersHelper, IHeaders, IKeyValue } from 'src/modules/common';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
@@ -8,14 +9,10 @@ export abstract class HttHeadersHelper {
     return BaseHeadersHelper.normalize(headers);
   }
 
-  public static nameAsHeaderName(name: string, useZipkin?: boolean): string | undefined {
+  public static nameAsHeaderName(name: string): string | undefined {
     const map: Record<string, HttpGeneralAsyncContextHeaderNames> = {
-      traceId: useZipkin
-        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID
-        : HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-      spanId: useZipkin
-        ? HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID
-        : HttpGeneralAsyncContextHeaderNames.SPAN_ID,
+      traceId: HttpGeneralAsyncContextHeaderNames.TRACE_ID,
+      spanId: HttpGeneralAsyncContextHeaderNames.SPAN_ID,
       correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
       requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
     };
@@ -24,50 +21,20 @@ export abstract class HttHeadersHelper {
   }
 
   public static toAsyncContext<Ctx extends IAsyncContext>(headers: IHeaders): Ctx {
-    const traceId =
-      HttHeadersHelper.searchValue(
-        headers,
-        HttpGeneralAsyncContextHeaderNames.TRACE_ID,
-        HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-      ) ?? TraceSpanHelper.generateRandomValue();
+    const activeSpanContext = trace.getSpanContext(context.active());
 
-    const parentSpanId = HttHeadersHelper.searchValue(
-      headers,
-      HttpGeneralAsyncContextHeaderNames.SPAN_ID,
-      HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
-    );
+    const traceId = activeSpanContext?.traceId ?? TraceSpanHelper.generateTraceId();
+    const spanId = activeSpanContext?.spanId ?? TraceSpanHelper.generateSpanId();
+    const parentSpanId =
+      BaseHeadersHelper.searchHeaderAsString(headers, HttpGeneralAsyncContextHeaderNames.SPAN_ID) ?? spanId;
 
-    const ctx: Ctx = {
+    return {
       traceId,
-      spanId: TraceSpanHelper.generateRandomValue(),
+      spanId,
       parentSpanId,
       initialSpanId: parentSpanId,
-      requestId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
-      correlationId: HttHeadersHelper.searchValue(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
+      requestId: BaseHeadersHelper.searchHeaderAsString(headers, HttpGeneralAsyncContextHeaderNames.REQUEST_ID),
+      correlationId: BaseHeadersHelper.searchHeaderAsString(headers, HttpGeneralAsyncContextHeaderNames.CORRELATION_ID),
     } as unknown as Ctx;
-
-    return ctx;
-  }
-
-  protected static searchValue(headers: IHeaders, ...headerName: string[]): string | undefined {
-    const result = BaseHeadersHelper.searchValue(headers, ...headerName);
-
-    if (Array.isArray(result.value)) {
-      result.value = result.value.length ? result.value.join('-') : undefined;
-    }
-
-    if (result.value === undefined) {
-      return undefined;
-    }
-
-    if (
-      [HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID, HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID].includes(
-        result.header as unknown as HttpGeneralAsyncContextHeaderNames,
-      )
-    ) {
-      return TraceSpanHelper.formatToGuid(result.value);
-    }
-
-    return result.value;
   }
 }

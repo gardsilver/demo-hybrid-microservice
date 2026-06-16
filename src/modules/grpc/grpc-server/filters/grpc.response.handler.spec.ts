@@ -12,7 +12,8 @@ import {
   TraceSpanBuilder,
   TraceSpanHelper,
 } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   GrpcHeadersHelper,
   GrpcHeadersToAsyncContextAdapter,

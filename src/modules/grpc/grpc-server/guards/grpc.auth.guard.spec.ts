@@ -7,7 +7,8 @@ import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
 import { RpcArgumentsHost } from '@nestjs/common/interfaces';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { IGeneralAsyncContext, SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { SKIP_INTERCEPTORS_KEY } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AccessRoles, AUTH_SERVICE_DI, AuthModule, IAuthService } from 'src/modules/auth';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
@@ -122,6 +123,15 @@ describe(GrpcAuthGuard.name, () => {
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
       return key === SKIP_INTERCEPTORS_KEY ? [GrpcAuthGuard] : [];
     });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
+    });
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
     expect(await guard.canActivate(host)).toBeTruthy();
@@ -138,6 +148,14 @@ describe(GrpcAuthGuard.name, () => {
     });
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
       return [];
+    });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
     });
     host.getType = jest.fn().mockImplementation(() => 'rpc');
     requestMetadata.set(AUTHORIZATION_HEADER_NAME, BEARER_NAME + ' token');
@@ -164,6 +182,15 @@ describe(GrpcAuthGuard.name, () => {
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
       return [];
     });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
+    });
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
     requestMetadata.set(AUTHORIZATION_HEADER_NAME, BEARER_NAME + ' ' + token);
 

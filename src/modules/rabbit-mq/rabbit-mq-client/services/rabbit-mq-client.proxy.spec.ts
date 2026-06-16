@@ -159,7 +159,6 @@ describe(RabbitMqClientProxy.name, () => {
               },
             },
             publishOptionsBuilderOptions: {
-              useZipkin: true,
               skip: true,
             },
             routing: 'routing',
@@ -191,7 +190,6 @@ describe(RabbitMqClientProxy.name, () => {
           },
         },
         publishOptionsBuilderOptions: {
-          useZipkin: true,
           skip: true,
         },
         routing: ['routing'],
@@ -530,7 +528,6 @@ describe(RabbitMqClientProxy.name, () => {
               },
             },
             publishOptionsBuilderOptions: {
-              useZipkin: true,
               skip: true,
             },
             serializerOption: {

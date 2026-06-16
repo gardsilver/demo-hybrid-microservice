@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { IHttpHeadersToAsyncContextAdapter } from '../types/types';
 import { HttHeadersHelper } from '../helpers/http.headers.helper';
 

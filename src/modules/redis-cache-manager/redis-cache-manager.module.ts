@@ -6,12 +6,7 @@ import { DynamicModule, Module, Provider } from '@nestjs/common';
 import { CACHE_MANAGER, CacheModule } from '@nestjs/cache-manager';
 import { TerminusModule } from '@nestjs/terminus';
 import { ImportsType, ProviderBuilder } from 'src/modules/common';
-import {
-  ELK_LOGGER_SERVICE_BUILDER_DI,
-  ElkLoggerModule,
-  IElkLoggerServiceBuilder,
-  TraceSpanBuilder,
-} from 'src/modules/elk-logger';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, ElkLoggerModule, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
 import { IRedisCacheManagerModuleOptions } from './types/module.options';
 import {
@@ -114,7 +109,6 @@ export class RedisCacheManagerModule {
         ) => {
           const logger = loggerBuilder.build({
             module: 'RedisModule',
-            ...TraceSpanBuilder.build(),
           });
           if (!defaultOptions.socket) {
             defaultOptions.socket = {};

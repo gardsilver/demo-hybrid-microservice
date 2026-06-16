@@ -16,7 +16,6 @@ import {
 } from '@nestjs/microservices/constants';
 import { RmqEvents, RmqEventsMap } from '@nestjs/microservices/events/rmq.events';
 import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import {
   IRabbitMqConsumeMessage,
@@ -25,6 +24,7 @@ import {
   IRMQErrorInfo,
   RmqStatus,
   RabbitMqFormatterHelper,
+  RabbitMqMessageHelper,
 } from 'src/modules/rabbit-mq/rabbit-mq-common';
 import {
   IConsumerInfo,
@@ -42,6 +42,7 @@ import {
   RABBIT_MQ_SERVER_CONNECTION_FAILED,
 } from '../types/metrics';
 import { RabbitMqContext } from '../ctx-host/rabbit-mq.context';
+import { RabbitMqTelemetry } from '../decorators/rabbit-mq-telemetry.decorator';
 
 const INFINITE_CONNECTION_ATTEMPTS = -1;
 const UNKNOWN_EXCEPTION_TYPE = 'UnknownErrorRMQ';
@@ -98,9 +99,7 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     return this.consumersInfo;
   }
 
-  @RabbitMqAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @RabbitMqAsyncContext.define()
   public async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
     try {
       await this.start(callback);
@@ -374,9 +373,8 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
     );
   }
 
-  @RabbitMqAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @RabbitMqTelemetry()
+  @RabbitMqAsyncContext.define()
   protected async handleMessage(
     pattern: string,
     messageRef: ConsumeMessage,
@@ -410,13 +408,19 @@ export class RabbitMqServer extends Server<RmqEvents, RmqStatus> {
 
       packet = await deserializer.deserialize(messageRef, messageOptions);
 
-      if (!packet.data) {
+      if (packet.data === undefined) {
         if (!noAck) {
           channel.ack(messageRef);
         }
 
         return;
       }
+
+      const businessAsyncContext = RabbitMqMessageHelper.toAsyncContext(packet.data.properties);
+
+      RabbitMqAsyncContext.instance.setMultiple({
+        ...businessAsyncContext,
+      });
 
       const rmqContext = new RabbitMqContext([messageRef, packet.data, channel, messageOptions]);
 

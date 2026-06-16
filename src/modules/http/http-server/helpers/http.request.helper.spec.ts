@@ -1,7 +1,8 @@
 import { merge } from 'ts-deepmerge';
 import { Request } from 'express';
 import { faker } from '@faker-js/faker';
-import { IGeneralAsyncContext, IHeaders } from 'src/modules/common';
+import { IHeaders } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
 import { AccessRoles, AuthStatus, IAuthInfo } from 'src/modules/auth';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';

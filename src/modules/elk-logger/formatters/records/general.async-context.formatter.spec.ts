@@ -1,6 +1,7 @@
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
-import { GeneralAsyncContext, IGeneralAsyncContext, LoggerMarkers } from 'src/modules/common';
+import { LoggerMarkers } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { ILogRecord } from '../../types/elk-logger.types';
 import { LogLevel } from '../../types/elk-logger.types';
 import { ITraceSpan } from '../../types/trace-span';

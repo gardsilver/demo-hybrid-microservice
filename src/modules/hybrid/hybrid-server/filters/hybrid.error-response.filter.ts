@@ -5,15 +5,18 @@ import { HttpErrorResponseFilter } from 'src/modules/http/http-server';
 import { GrpcErrorResponseFilter, GrpcHelper } from 'src/modules/grpc/grpc-server';
 import { KafkaErrorFilter, KafkaServerHelper } from 'src/modules/kafka/kafka-server';
 import { RabbitMqErrorFilter, RabbitMqHelper } from 'src/modules/rabbit-mq/rabbit-mq-server';
+import { WsErrorResponseFilter, WsHelper } from 'src/modules/websocket';
 
 @Catch()
 export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionFilter {
   private readonly defaultRpcExceptionFilter: BaseRpcExceptionFilter;
+
   constructor(
     private readonly httpErrorResponseFilter: HttpErrorResponseFilter,
     private readonly grpcErrorResponseFilter: GrpcErrorResponseFilter,
     private readonly kafkaErrorFilter: KafkaErrorFilter,
     private readonly rabbitMqErrorFilter: RabbitMqErrorFilter,
+    private readonly wsErrorResponseFilter: WsErrorResponseFilter,
   ) {
     this.defaultRpcExceptionFilter = new BaseRpcExceptionFilter();
   }
@@ -22,7 +25,6 @@ export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionF
   catch(exception: any, host: ArgumentsHost): any | Observable<any> {
     if (host.getType() === 'http') {
       this.httpErrorResponseFilter.catch(exception, host);
-
       return;
     }
 
@@ -36,6 +38,10 @@ export class HybridErrorResponseFilter implements ExceptionFilter, RpcExceptionF
 
     if (RabbitMqHelper.isRabbitMq(host)) {
       return this.rabbitMqErrorFilter.catch(exception, host);
+    }
+
+    if (WsHelper.isWs(host)) {
+      return this.wsErrorResponseFilter.catch(exception, host);
     }
 
     if (host.getType() === 'rpc') {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IAsyncContext } from 'src/modules/async-context';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { ILogRecord, ILogRecordFormatter } from '../../types/elk-logger.types';
 import { ITraceSpan } from '../../types/trace-span';
 import { ProcessTraceSpanStore } from '../../services/process-trace-span.store';

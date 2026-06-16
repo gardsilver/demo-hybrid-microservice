@@ -1,22 +1,44 @@
 import { faker } from '@faker-js/faker';
 import { BaseHeadersHelper } from 'src/modules/common';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
+import { CRYPTO_MOCK } from 'tests/crypto';
+import { OPENTELEMETRY_API_MOCK } from 'tests/opentelemetry';
 import { httpHeadersFactory } from 'tests/modules/http/http-common';
 import { HttpGeneralAsyncContextHeaderNames } from '../types/general.async-context';
 import { HttHeadersHelper } from './http.headers.helper';
 
+jest.mock('@opentelemetry/api', () => ({
+  ...jest.requireActual('@opentelemetry/api'),
+  ...jest.requireActual('tests/opentelemetry').OPENTELEMETRY_API_MOCK,
+}));
+
 describe(HttHeadersHelper.name, () => {
-  let mockId: string;
+  let mockTraceId: string | undefined;
+  let randTraceId: string;
+  let mockSpanId: string | undefined;
+  let randSpanId: string;
 
   beforeEach(async () => {
-    mockId = TraceSpanHelper.generateRandomValue();
-    jest.spyOn(TraceSpanHelper, 'generateRandomValue').mockImplementation(() => mockId);
+    mockTraceId = TraceSpanHelper.generateTraceId();
+    randTraceId = TraceSpanHelper.generateTraceId();
+    mockSpanId = TraceSpanHelper.generateSpanId();
+    randSpanId = TraceSpanHelper.generateSpanId();
+
+    jest.spyOn(TraceSpanHelper, 'generateTraceId').mockImplementation(() => randTraceId);
+    jest.spyOn(TraceSpanHelper, 'generateSpanId').mockImplementation(() => randSpanId);
+
+    OPENTELEMETRY_API_MOCK.trace.getSpanContext.mockImplementation(() => ({
+      traceId: mockTraceId,
+      spanId: mockSpanId,
+    }));
+
+    jest.clearAllMocks();
   });
 
   it('normalize', async () => {
     const ts = {
-      traceId: faker.string.uuid(),
-      spanId: faker.string.uuid(),
+      traceId: CRYPTO_MOCK.randomBytes(16).toString('hex'),
+      spanId: CRYPTO_MOCK.randomBytes(8).toString('hex'),
       requestId: faker.string.uuid(),
       correlationId: faker.string.uuid(),
     };
@@ -54,28 +76,13 @@ describe(HttHeadersHelper.name, () => {
         requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
       });
     });
-
-    it('as zipkin', async () => {
-      const map: Record<string, string | undefined> = {};
-
-      ['traceId', 'spanId', 'correlationId', 'requestId', 'customParam'].forEach((paramName) => {
-        map[paramName] = HttHeadersHelper.nameAsHeaderName(paramName, true);
-      });
-
-      expect(map).toEqual({
-        traceId: HttpGeneralAsyncContextHeaderNames.ZIPKIN_TRACE_ID,
-        spanId: HttpGeneralAsyncContextHeaderNames.ZIPKIN_SPAN_ID,
-        correlationId: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID,
-        requestId: HttpGeneralAsyncContextHeaderNames.REQUEST_ID,
-      });
-    });
   });
 
   describe('toAsyncContext', () => {
     it('default', async () => {
       const ts = {
-        traceId: faker.string.uuid(),
-        spanId: faker.string.uuid(),
+        traceId: CRYPTO_MOCK.randomBytes(16).toString('hex'),
+        spanId: CRYPTO_MOCK.randomBytes(8).toString('hex'),
         requestId: faker.string.uuid(),
         correlationId: faker.string.uuid(),
       };
@@ -91,80 +98,25 @@ describe(HttHeadersHelper.name, () => {
         },
       );
 
-      expect(HttHeadersHelper.toAsyncContext(headers)).toEqual({
-        traceId: ts.traceId,
-        spanId: mockId,
-        initialSpanId: ts.spanId,
-        parentSpanId: ts.spanId,
-        correlationId: ts.correlationId,
-        requestId: ts.requestId,
-      });
-    });
+      let ctx = HttHeadersHelper.toAsyncContext(headers);
 
-    it('as zipkin', async () => {
-      const ts = {
-        traceId: faker.string.uuid(),
-        spanId: faker.string.uuid(),
-        requestId: faker.string.uuid(),
-        correlationId: faker.string.uuid(),
-      };
-
-      const headers = httpHeadersFactory.build(
-        {
-          customParam: ['1', '30'],
-        },
-        {
-          transient: {
-            ...ts,
-            useZipkin: true,
-          },
-        },
-      );
-
-      expect(HttHeadersHelper.toAsyncContext(headers)).toEqual({
-        traceId: ts.traceId,
-        spanId: mockId,
-        initialSpanId: ts.spanId,
-        parentSpanId: ts.spanId,
-        correlationId: ts.correlationId,
-        requestId: ts.requestId,
-      });
-    });
-
-    it('form array format', async () => {
-      const ts = {
-        traceId: faker.string.uuid(),
-        spanId: faker.string.uuid(),
-        requestId: faker.string.uuid(),
-        correlationId: faker.string.uuid(),
-      };
-
-      const headers = httpHeadersFactory.build(
-        {
-          customParam: ['1', '30'],
-        },
-        {
-          transient: {
-            ...ts,
-            asArray: true,
-          },
-        },
-      );
-
-      expect(HttHeadersHelper.toAsyncContext(headers)).toEqual({
-        traceId: ts.traceId,
-        spanId: mockId,
+      expect(ctx).toEqual({
+        traceId: mockTraceId,
+        spanId: mockSpanId,
         initialSpanId: ts.spanId,
         parentSpanId: ts.spanId,
         correlationId: ts.correlationId,
         requestId: ts.requestId,
       });
 
-      headers[HttpGeneralAsyncContextHeaderNames.TRACE_ID] = [];
+      mockTraceId = undefined;
+      mockSpanId = undefined;
 
-      expect(HttHeadersHelper.toAsyncContext(headers)).toEqual({
-        traceId: mockId,
-        spanId: mockId,
+      ctx = HttHeadersHelper.toAsyncContext(headers);
+
+      expect(ctx).toEqual({
+        traceId: randTraceId,
+        spanId: randSpanId,
         initialSpanId: ts.spanId,
         parentSpanId: ts.spanId,
         correlationId: ts.correlationId,

@@ -1,8 +1,10 @@
 import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { PATTERN_METADATA } from '@nestjs/microservices/constants';
 import { Metadata } from '@grpc/grpc-js';
 import { AUTH_SERVICE_DI, AuthStatus, IAuthService } from 'src/modules/auth';
-import { GeneralAsyncContext, isSkipped, IGeneralAsyncContext, IHeadersToContextAdapter } from 'src/modules/common';
+import { isSkipped, IHeadersToContextAdapter } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcAuthHelper, GrpcHeadersHelper } from 'src/modules/grpc/grpc-common';
 import { GrpcMetadataHelper } from '../helpers/grpc.metadata.helper';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from '../types/tokens';
@@ -25,6 +27,12 @@ export class GrpcAuthGuard implements CanActivate {
 
     const rpc = context.switchToRpc();
     const metadata = rpc.getContext<Metadata>();
+    const handler = context.getHandler();
+    const pattern = this.reflector.get(PATTERN_METADATA, handler)[0];
+    const serviceName = pattern.service;
+    const methodName = pattern.rpc;
+    const operationName = `gRPC SERVER (GrpcAuthGuard): ${serviceName}/${methodName}`;
+
     const headers = GrpcHeadersHelper.normalize(metadata.getMap());
     const jwtToken = GrpcAuthHelper.token(headers);
 
@@ -35,9 +43,13 @@ export class GrpcAuthGuard implements CanActivate {
       GrpcMetadataHelper.setAsyncContext(asyncContext, metadata);
     }
 
-    const auth = await GeneralAsyncContext.instance.runWithContextAsync(async () => {
-      return await this.authService.authenticate(jwtToken ?? null);
-    }, asyncContext);
+    const auth = await GeneralAsyncContext.instance.runWithContextAsync(
+      async () => {
+        return await this.authService.authenticate(jwtToken ?? null);
+      },
+      asyncContext,
+      operationName,
+    );
 
     GrpcMetadataHelper.setAuthInfo(auth, metadata);
 

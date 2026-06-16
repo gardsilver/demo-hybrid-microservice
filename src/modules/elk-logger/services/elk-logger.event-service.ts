@@ -1,6 +1,6 @@
 import { ReplaySubject, Subscription } from 'rxjs';
 import { OnApplicationShutdown, Inject, Injectable } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { ELK_LOGGER_SERVICE_BUILDER_DI } from '../types/tokens';
 import { IElkLoggerServiceBuilder, LogLevel } from '../types/elk-logger.types';
 import { IElkLoggerEvent, IElkLoggerParams, ITargetLoggerOnMethod } from '../types/decorators.type';
@@ -66,12 +66,16 @@ export class ElkLoggerEventService implements OnApplicationShutdown {
       ...(loggerPrams.fields ?? {}),
     });
 
-    GeneralAsyncContext.instance.runWithContext(() => {
-      logger.log(
-        loggerPrams.level ?? defaultLevel[param.event],
-        loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', moduleName),
-        loggerPrams.data,
-      );
-    }, param.context ?? {});
+    GeneralAsyncContext.instance.runWithContext(
+      () => {
+        logger.log(
+          loggerPrams.level ?? defaultLevel[param.event],
+          loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', moduleName),
+          loggerPrams.data,
+        );
+      },
+      param.context ?? {},
+      `ElkLoggerEventService.handleOnMethod: ${moduleName}`,
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker';
 import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { AUTHORIZATION_HEADER_NAME, BEARER_NAME } from 'src/modules/http/http-common';
 import { GrpcMetadataBuilder } from 'src/modules/grpc/grpc-common';
 import { generalAsyncContextFactory } from 'tests/modules/common';
@@ -29,9 +29,11 @@ describe(GrpcMetadataRequestBuilder.name, () => {
   it('build', async () => {
     const spy = jest.spyOn(GrpcMetadataBuilder.prototype, 'build');
 
-    metadataRequestBuilder.build({ asyncContext }, { useZipkin: true });
+    metadataRequestBuilder.build({ asyncContext }, {});
+    metadataRequestBuilder.build({ asyncContext });
 
-    expect(spy).toHaveBeenCalledWith({ asyncContext }, { useZipkin: true });
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, {});
+    expect(spy).toHaveBeenCalledWith({ asyncContext }, undefined);
   });
 
   it('build with authToken', async () => {

@@ -18,6 +18,7 @@ import { RedisCacheManagerHealthIndicator } from 'src/modules/redis-cache-manage
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { KafkaServerStatusService } from 'src/modules/kafka/kafka-server';
 import { RabbitMqServerStatusService } from 'src/modules/rabbit-mq/rabbit-mq-server';
+import { TraceSpanHelper } from 'src/modules/elk-logger';
 
 @SkipInterceptors(SKIP_ALL)
 @ApiTags('health')
@@ -99,6 +100,16 @@ export class HealthController {
     return {
       accessToken: this.authService.getJwtToken(accessToken),
       certificate: await this.certificateService.getCert(),
+    };
+  }
+
+  @Get('generate-trace-span')
+  async generateTraceSpan() {
+    return {
+      traceId: TraceSpanHelper.generateTraceId(),
+      spanId: TraceSpanHelper.generateSpanId(),
+      requestId: TraceSpanHelper.generateRandomValue(),
+      correlationId: TraceSpanHelper.generateRandomValue(),
     };
   }
 }

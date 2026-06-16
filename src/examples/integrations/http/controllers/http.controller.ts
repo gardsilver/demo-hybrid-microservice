@@ -1,6 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiHeaders, ApiTags } from '@nestjs/swagger';
-import { GeneralAsyncContext, IGeneralAsyncContext, SkipInterceptors } from 'src/modules/common';
+import { SkipInterceptors } from 'src/modules/common';
+import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { IAuthInfo } from 'src/modules/auth';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import {
@@ -17,10 +18,7 @@ import { HttpService } from '../services/http.service';
 @Controller('examples/http')
 @ApiTags('examples')
 @ApiBearerAuth()
-@ApiHeaders([
-  { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },
-  { name: HttpGeneralAsyncContextHeaderNames.SPAN_ID },
-])
+@ApiHeaders([{ name: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID }])
 export class HttpController {
   constructor(private readonly service: HttpService) {}
 
@@ -33,6 +31,7 @@ export class HttpController {
     return GeneralAsyncContext.instance.runWithContextAsync(
       async () => this.service.search(request, authInfo),
       context,
+      'http handler: /api/examples/http/find',
     );
   }
 }

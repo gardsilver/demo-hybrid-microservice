@@ -17,8 +17,6 @@ describe(GrpcClientHelper.name, () => {
   it('mergeRequestOptions', async () => {
     const globalOptions: IGrpcRequestOptions = {
       metadataBuilderOptions: {
-        useZipkin: false,
-        asArray: false,
         authToken: 'authToken',
       },
       retryOptions: {
@@ -41,8 +39,6 @@ describe(GrpcClientHelper.name, () => {
 
     expect(GrpcClientHelper.mergeRequestOptions(globalOptions)).toEqual({
       metadataBuilderOptions: {
-        useZipkin: false,
-        asArray: false,
         authToken: 'authToken',
       },
       requestOptions: {
@@ -58,9 +54,7 @@ describe(GrpcClientHelper.name, () => {
 
     expect(
       GrpcClientHelper.mergeRequestOptions(globalOptions, {
-        metadataBuilderOptions: {
-          useZipkin: true,
-        },
+        metadataBuilderOptions: {},
         requestOptions: {
           timeout: 10_000,
         },
@@ -72,8 +66,6 @@ describe(GrpcClientHelper.name, () => {
       }),
     ).toEqual({
       metadataBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       requestOptions: {
@@ -90,9 +82,7 @@ describe(GrpcClientHelper.name, () => {
 
     expect(
       GrpcClientHelper.mergeRequestOptions(globalOptions, {
-        metadataBuilderOptions: {
-          useZipkin: true,
-        },
+        metadataBuilderOptions: {},
         requestOptions: {
           timeout: 10_000,
         },
@@ -105,8 +95,6 @@ describe(GrpcClientHelper.name, () => {
       }),
     ).toEqual({
       metadataBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       requestOptions: {
@@ -123,9 +111,7 @@ describe(GrpcClientHelper.name, () => {
 
     expect(
       GrpcClientHelper.mergeRequestOptions(globalOptions, {
-        metadataBuilderOptions: {
-          useZipkin: true,
-        },
+        metadataBuilderOptions: {},
         requestOptions: {
           timeout: 10_000,
         },
@@ -138,8 +124,6 @@ describe(GrpcClientHelper.name, () => {
       }),
     ).toEqual({
       metadataBuilderOptions: {
-        useZipkin: true,
-        asArray: false,
         authToken: 'authToken',
       },
       requestOptions: {

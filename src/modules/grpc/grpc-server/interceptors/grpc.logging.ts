@@ -3,7 +3,8 @@ import { Metadata, status as GrpcStatus } from '@grpc/grpc-js';
 import { CallHandler, ExecutionContext, Inject, NestInterceptor } from '@nestjs/common';
 import { PATTERN_METADATA } from '@nestjs/microservices/constants';
 import { Reflector } from '@nestjs/core';
-import { isSkipped, IGeneralAsyncContext, IHeadersToContextAdapter, LoggerMarkers } from 'src/modules/common';
+import { isSkipped, IHeadersToContextAdapter, LoggerMarkers } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import {
   ELK_LOGGER_SERVICE_BUILDER_DI,
   IElkLoggerServiceBuilder,

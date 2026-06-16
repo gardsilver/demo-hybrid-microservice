@@ -7,12 +7,12 @@ import {
   Kafka,
   KafkaMessage,
 } from '@nestjs/microservices/external/kafka.interface';
-import { TraceSpanBuilder } from 'src/modules/elk-logger';
-import { KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
+import { IKafkaAsyncContext, KafkaAsyncContext, KafkaHeadersHelper } from 'src/modules/kafka/kafka-common';
 import { ConsumerMode, IKafkaMessageOptions, IConsumerPacket } from '../types/types';
 import { KAFKA_HANDLE_MESSAGE, KAFKA_HANDLE_MESSAGE_FAILED } from '../types/metrics';
 import { KafkaContext } from '../ctx-host/kafka.context';
 import { KafkaServerBase } from './kafka-server.base';
+import { KafkaTelemetry } from '../decorators/kafka-telemetry.decorator';
 
 export class KafkaServerService extends KafkaServerBase {
   protected consumer: Consumer | null = null;
@@ -96,30 +96,41 @@ export class KafkaServerService extends KafkaServerBase {
     await readyPromise;
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @KafkaTelemetry()
+  @KafkaAsyncContext.define()
   protected async handleEachMessage(payload: EachMessagePayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
-      labels: {
-        service: this.serverName,
-        topics: payload.topic,
-        method: ConsumerMode.EACH_MESSAGE,
-      },
+      labels: { service: this.serverName, topics: payload.topic, method: ConsumerMode.EACH_MESSAGE },
     });
 
     try {
       const pattern = payload.topic;
-
       const handler = this.getHandlerByPattern(pattern);
 
       const { messageOptions, adapters } = this.getMessageOptionsAndAdapters(pattern, payload.message, handler);
-      const packet = await adapters.deserializer.deserialize(payload.message, messageOptions);
 
-      // Skip: не целевое сообщение
+      const headers = KafkaHeadersHelper.normalize(payload.message.headers ?? {});
+      const asyncContext = adapters.headerAdapter.adapt(headers);
+
+      const useMessageOptions = {
+        ...messageOptions,
+        correlationId: asyncContext.correlationId,
+        replyPartition: messageOptions.replyPartition ?? asyncContext.replyPartition,
+        replyTopic: messageOptions.replyTopic ?? asyncContext.replyTopic,
+      };
+
+      const packet = await adapters.deserializer.deserialize(payload.message, useMessageOptions);
+
       if (packet.data === undefined) {
         return;
       }
+
+      KafkaAsyncContext.instance.setMultiple({
+        ...asyncContext,
+        replyPartition: useMessageOptions.replyPartition,
+        replyTopic: useMessageOptions.replyTopic,
+        correlationId: useMessageOptions.correlationId,
+      });
 
       const kafkaContext = new KafkaContext([
         payload.message,
@@ -134,10 +145,12 @@ export class KafkaServerService extends KafkaServerBase {
       await this.handleEvent(packet.pattern, packet, kafkaContext);
     } catch (error) {
       const err = error as Error;
+
       this.logger.error(this.logTitle + `handle ${ConsumerMode.EACH_MESSAGE} failed.`, {
         payload,
         error,
       });
+
       this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE_FAILED, {
         labels: {
           service: this.serverName,
@@ -188,9 +201,8 @@ export class KafkaServerService extends KafkaServerBase {
     await readyPromise;
   }
 
-  @KafkaAsyncContext.define(() => ({
-    ...TraceSpanBuilder.build(),
-  }))
+  @KafkaTelemetry()
+  @KafkaAsyncContext.define()
   protected async handleBatchMessages(payload: EachBatchPayload): Promise<void> {
     this.prometheusManager.counter().increment(KAFKA_HANDLE_MESSAGE, {
       labels: {
@@ -212,7 +224,19 @@ export class KafkaServerService extends KafkaServerBase {
         messages.push(this.handleBatchOneMessage(pattern, kafkaMessage, handler));
       }
 
-      messages = (await Promise.all(messages)).filter((options) => options.packet.data);
+      messages = await Promise.all(messages);
+
+      const asyncContext = messages[0]?.asyncContext || {};
+      const useMessageOptions = messages[0]?.messageOptions || {};
+
+      KafkaAsyncContext.instance.setMultiple({
+        ...asyncContext,
+        replyPartition: useMessageOptions.replyPartition,
+        replyTopic: useMessageOptions.replyTopic,
+        correlationId: useMessageOptions.correlationId,
+      });
+
+      messages = messages.filter((options) => options.packet.data);
 
       // Skip: не целевые сообщения
       if (!messages.length) {
@@ -260,14 +284,27 @@ export class KafkaServerService extends KafkaServerBase {
     kafkaMessage: KafkaMessage;
     packet: IConsumerPacket;
     messageOptions: IKafkaMessageOptions;
+    asyncContext: IKafkaAsyncContext;
   }> {
     const { messageOptions, adapters } = this.getMessageOptionsAndAdapters(pattern, kafkaMessage, handler);
-    const packet = await adapters.deserializer.deserialize(kafkaMessage, messageOptions);
+
+    const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers ?? {});
+    const asyncContext = adapters.headerAdapter.adapt(headers);
+
+    const useMessageOptions = {
+      ...messageOptions,
+      correlationId: asyncContext.correlationId,
+      replyPartition: messageOptions.replyPartition ?? asyncContext.replyPartition,
+      replyTopic: messageOptions.replyTopic ?? asyncContext.replyTopic,
+    };
+
+    const packet = await adapters.deserializer.deserialize(kafkaMessage, useMessageOptions);
 
     return {
       kafkaMessage,
       packet,
-      messageOptions,
+      messageOptions: useMessageOptions,
+      asyncContext,
     };
   }
 }

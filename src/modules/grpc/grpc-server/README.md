@@ -91,7 +91,7 @@ export class MainGrpcController {
 ```ts
 import { Inject, ExecutionContext } from '@nestjs/common';
 import { Metadata } from '@grpc/grpc-js';
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcHeadersHelper, IGrpcHeadersToAsyncContextAdapter } from 'src/modules/grpc/grpc-common';
 import { GRPC_SERVER_HEADERS_ADAPTER_DI } from 'src/modules/grpc/grpc-server';
 
@@ -111,7 +111,7 @@ const asyncContext = this.headersAdapter.adapt(headers);
 Обратите внимание на [Request lifecycle](https://docs.nestjs.com/faq/request-lifecycle). На этапах **Middleware**, **Guards**, **Interceptors**, **Pipes** `AsyncContext` ещё не создан. Чтобы избежать неконтролируемой повторной генерации, созданный контекст сохраняется в `Metadata` **gRPC**-запроса и переиспользуется на последующих этапах:
 
 ```ts
-import { IGeneralAsyncContext } from 'src/modules/common';
+import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { GrpcMetadataHelper } from 'src/modules/grpc/grpc-server';
 
 let asyncContext: IGeneralAsyncContext = GrpcMetadataHelper.getAsyncContext<IGeneralAsyncContext>(metadata);
@@ -137,7 +137,7 @@ if (asyncContext === undefined) {
 
 ```ts
 import { Inject } from '@nestjs/common';
-import { GeneralAsyncContext } from 'src/modules/common';
+import { GeneralAsyncContext } from 'src/modules/common/context';
 import { GRPC_SERVER_METADATA_RESPONSE_BUILDER_DI, IGrpcMetadataResponseBuilder } from 'src/modules/grpc/grpc-server';
 
 constructor(

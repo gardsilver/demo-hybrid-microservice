@@ -1,12 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { HealthImplementation } from 'grpc-health-check';
 import { ReflectionService } from '@grpc/reflection';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { GrpcOptions, Transport } from '@nestjs/microservices';
 import { UrlHelper } from 'src/modules/common';
 import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
 import { GrpcMicroserviceBuilder } from './grpc.microservice.builder';
 import { GrpcServerStatusService } from '../services/grpc-server.status.service';
+import { GrpcServerStrategy } from '../services/grpc-server.strategy';
+
+jest.mock('src/modules/elk-logger', () => {
+  return {
+    __esModule: true,
+    TraceSpanHelper: {
+      generateTraceId: jest.fn().mockReturnValue('generated_trace_id_32_chars_long'),
+      generateSpanId: jest.fn().mockReturnValue('generated_span_id'),
+    },
+  };
+});
 
 describe(GrpcMicroserviceBuilder.name, () => {
   let spyUrlHelper: jest.SpyInstance;
@@ -30,8 +41,9 @@ describe(GrpcMicroserviceBuilder.name, () => {
     } as unknown as GrpcServerStatusService;
   });
 
-  it('Должен подключить Микросервис', async () => {
+  it('Должен успешно подключить Микросервис через кастомную стратегию', async () => {
     const spyStatusService = jest.spyOn(statusService, 'addGrpcHealthImplementation');
+    
     GrpcMicroserviceBuilder.setup(
       app as unknown as NestExpressApplication,
       {
@@ -39,16 +51,17 @@ describe(GrpcMicroserviceBuilder.name, () => {
         statusService,
       } as IGrpcMicroserviceBuilderOptions,
     );
+
     expect(app.connectMicroservice).toHaveBeenCalled();
 
-    const params = app.connectMicroservice.mock.calls[0][0];
+    const configPassedToNest = app.connectMicroservice.mock.calls[0][0];
 
-    expect(params.transport).toBe(Transport.GRPC);
-    expect(params.options.url).toBe('test:1111');
+    expect(configPassedToNest.strategy).toBeDefined();
+    expect(configPassedToNest.strategy).toBeInstanceOf(GrpcServerStrategy);
     expect(spyStatusService).toHaveBeenCalledTimes(1);
   });
 
-  it('Должен проверить все proto-файлы', async () => {
+  it('Должен проверить существование всех proto-файлов по путям', async () => {
     GrpcMicroserviceBuilder.setup(
       app as unknown as NestExpressApplication,
       {
@@ -65,7 +78,7 @@ describe(GrpcMicroserviceBuilder.name, () => {
     expect(spyExistPaths).toHaveBeenCalledWith(['protos/test']);
   });
 
-  it('Должен скорректировать url и выбросить ошибку при не корректном url', async () => {
+  it('Должен скорректировать url и выбросить ошибку при некорректном url', async () => {
     expect(() => {
       GrpcMicroserviceBuilder.setup(
         app as unknown as NestExpressApplication,
@@ -80,10 +93,10 @@ describe(GrpcMicroserviceBuilder.name, () => {
     expect(spyUrlHelper).toHaveBeenCalledTimes(1);
   });
 
-  it('Должен подключить ReflectionService и HealthImplementation', async () => {
-    const spyRefSetStatus = jest.spyOn(ReflectionService.prototype, 'addToServer');
-    const spyHelAddToServer = jest.spyOn(HealthImplementation.prototype, 'addToServer');
-    const spySetStatus = jest.spyOn(HealthImplementation.prototype, 'setStatus');
+  it('Должен зарегистрировать хуки ReflectionService и HealthImplementation на этапе загрузки пакетов', async () => {
+    const spyRefSetStatus = jest.spyOn(ReflectionService.prototype, 'addToServer').mockImplementation(() => ({} as any));
+    const spyHelAddToServer = jest.spyOn(HealthImplementation.prototype, 'addToServer').mockImplementation(() => {});
+    const spySetStatus = jest.spyOn(HealthImplementation.prototype, 'setStatus').mockImplementation(() => {});
 
     GrpcMicroserviceBuilder.setup(
       app as unknown as NestExpressApplication,
@@ -96,11 +109,14 @@ describe(GrpcMicroserviceBuilder.name, () => {
       } as IGrpcMicroserviceBuilderOptions,
     );
 
-    const onLoadPackageDefinition = (app.connectMicroservice.mock.calls[0][0] as GrpcOptions).options
-      .onLoadPackageDefinition;
+    const configPassedToNest = app.connectMicroservice.mock.calls[0][0];
+    const strategyInstance = configPassedToNest.strategy as GrpcServerStrategy;
+
+    const internalGrpcOptions = (strategyInstance as any).options;
+    const onLoadPackageDefinition = internalGrpcOptions?.onLoadPackageDefinition;
 
     if (onLoadPackageDefinition === undefined) {
-      throw new Error('onLoadPackageDefinition is not defined');
+      throw new Error('onLoadPackageDefinition is not defined on internal options');
     }
 
     const mockServer = {

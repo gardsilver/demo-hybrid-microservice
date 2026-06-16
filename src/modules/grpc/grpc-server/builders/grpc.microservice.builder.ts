@@ -5,6 +5,7 @@ import { MicroserviceOptions, Transport, GrpcOptions } from '@nestjs/microservic
 import { UrlHelper } from 'src/modules/common';
 import { GrpcProtoPathHelper } from 'src/modules/grpc/grpc-common';
 import { IGrpcMicroserviceBuilderOptions } from '../types/types';
+import { GrpcServerStrategy } from '../services/grpc-server.strategy';
 
 export abstract class GrpcMicroserviceBuilder {
   public static setup(
@@ -36,14 +37,18 @@ export abstract class GrpcMicroserviceBuilder {
     const grpcHealthImpl = GrpcMicroserviceBuilder.createHealthImplementation(grpcServices);
 
     app.connectMicroservice<MicroserviceOptions>(
-      GrpcMicroserviceBuilder.createGrpcOptions({
-        url,
-        services: grpcServices,
-        package: options.package,
-        protoPath,
-        includeDirs,
-        grpcHealthImpl,
-      }),
+      {
+        strategy: new GrpcServerStrategy(
+          GrpcMicroserviceBuilder.createGrpcOptions({
+            url,
+            services: grpcServices,
+            package: options.package,
+            protoPath,
+            includeDirs,
+            grpcHealthImpl,
+          }).options,
+        ),
+      },
       {
         inheritAppConfig: true,
       },

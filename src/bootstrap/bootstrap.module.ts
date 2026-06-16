@@ -30,6 +30,7 @@ import { ExampleHttpModule } from 'src/examples/integrations/http';
 import { ExampleGrpcModule } from 'src/examples/integrations/grpc';
 import { ExampleKafkaModule } from 'src/examples/integrations/kafka';
 import { ExampleRabbitMqModule } from 'src/examples/integrations/rabbit-mq';
+import { WsModule } from 'src/modules/websocket';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { ExampleRabbitMqModule } from 'src/examples/integrations/rabbit-mq';
     GrpcApiModule,
     KafkaApiModule,
     RabbitMqApiModule,
+    WsModule,
     WebSocketApiModule,
     PostgresModule,
     ExampleHttpModule,

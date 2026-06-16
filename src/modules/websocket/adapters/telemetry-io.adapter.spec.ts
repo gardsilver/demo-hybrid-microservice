@@ -4,7 +4,7 @@ import { trace, SpanStatusCode } from '@opentelemetry/api';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { INestApplicationContext } from '@nestjs/common';
 import { Server } from 'socket.io';
-import { WsPacketHelper } from '../helpers/ws-packet.helper';
+import { WsPacketHelper } from '../helpers/ws.packet.helper';
 import { TelemetryIoAdapter } from './telemetry-io.adapter';
 
 jest.mock('src/modules/elk-logger', () => ({

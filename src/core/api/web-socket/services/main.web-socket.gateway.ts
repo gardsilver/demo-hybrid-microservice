@@ -1,16 +1,13 @@
 import { Socket } from 'socket.io';
 import { SocketId } from 'socket.io-adapter';
-import {
-  WebSocketGateway,
-  SubscribeMessage,
-  OnGatewayInit,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-} from '@nestjs/websockets';
+import { WebSocketGateway, OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { Inject } from '@nestjs/common';
 import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HTTP_SERVER_HEADERS_ADAPTER_DI } from 'src/modules/http/http-server';
+import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
+import { LoggerMarkers } from 'src/modules/common';
+import { WsConnectionContextHelper, WsEvent } from 'src/modules/websocket';
 
 interface IUserSocketData {
   socket: Socket;
@@ -27,54 +24,54 @@ enum MessageStatus {
 export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   private userMap!: Map<string, Map<SocketId, IUserSocketData>>;
   private clientMap!: Map<SocketId, string>;
+  private logger: IElkLoggerService;
 
   constructor(
     @Inject(HTTP_SERVER_HEADERS_ADAPTER_DI)
     private readonly headersAdapter: IHttpHeadersToAsyncContextAdapter,
-  ) {}
+    @Inject(ELK_LOGGER_SERVICE_BUILDER_DI)
+    loggerBuilder: IElkLoggerServiceBuilder,
+  ) {
+    this.logger = loggerBuilder.build({
+      module: MainWebSocketGateway.name,
+      markers: [LoggerMarkers.WS],
+    });
+  }
 
   afterInit() {
     this.userMap = new Map<string, Map<SocketId, IUserSocketData>>();
     this.clientMap = new Map<SocketId, string>();
   }
 
-  async handleConnection(client: Socket) {
-    const headers = HttHeadersHelper.normalize(client.handshake.headers);
-    const asyncContext: IGeneralAsyncContext = this.headersAdapter.adapt(headers);
+  async handleConnection(client: Socket): Promise<void> {
+    return WsConnectionContextHelper.run(client, this.headersAdapter, async () => {
+      const headers = HttHeadersHelper.normalize(client.handshake.headers);
 
-    /**
-     * @TODO
-     *   Здесь можно проверять разрешено ли подключение через WS.
-     *   В нашем примере разрешено для любого пользователя и в заголовке "send-from" указывается от кого будут отправляться сообщения.
-     */
+      let userEmail =
+        typeof headers['send-from'] === 'string' && headers['send-from'] !== '' ? headers['send-from'] : undefined;
 
-    const sendFrom = headers['send-from'];
-    const userEmail = typeof sendFrom === 'string' && sendFrom !== '' ? sendFrom : undefined;
+      if (!userEmail && typeof client.handshake.query?.['send-from'] === 'string') {
+        userEmail = client.handshake.query['send-from'];
+      }
 
-    if (!userEmail) {
-      client.emit('answerMessage', {
-        text: 'Unknown user',
-        status: MessageStatus.ERROR,
-      });
+      if (!userEmail) {
+        this.logger.warn(`[WS Handshake] Connected user token is valid, but 'send-from' parameter is empty.`);
+        client.emit('answerMessage', { text: 'Unknown user email', status: MessageStatus.ERROR });
+        client.disconnect(true);
+        return;
+      }
 
-      client.disconnect(true);
-      return;
-    }
+      let userSockets = this.userMap.get(userEmail);
+      if (userSockets === undefined) {
+        userSockets = new Map<SocketId, IUserSocketData>();
+        this.userMap.set(userEmail, userSockets);
+      }
 
-    let userSockets = this.userMap.get(userEmail);
-    if (userSockets === undefined) {
-      userSockets = new Map<SocketId, IUserSocketData>();
-      this.userMap.set(userEmail, userSockets);
-    }
-
-    userSockets.set(client.id, {
-      socket: client,
-      context: asyncContext,
-    });
-
-    if (!this.clientMap.has(client.id)) {
+      userSockets.set(client.id, { socket: client, context: client.data?.__wsRootContext });
       this.clientMap.set(client.id, userEmail);
-    }
+
+      this.logger.info(`[WS Handshake] User [${userEmail}] successfully authorized on socket [${client.id}].`);
+    });
   }
 
   handleDisconnect(client: Socket) {
@@ -89,7 +86,7 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
     });
   }
 
-  @SubscribeMessage('askMessage')
+  @WsEvent('askMessage')
   handleMessage(client: Socket, payload: { email: string; text: string }) {
     const senderEmail = this.clientMap.get(client.id);
 

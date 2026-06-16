@@ -1,4 +1,4 @@
-import { WsPacketHelper } from './ws-packet.helper';
+import { WsPacketHelper } from './ws.packet.helper';
 
 describe('WsPacketHelper', () => {
   describe('getEventName', () => {

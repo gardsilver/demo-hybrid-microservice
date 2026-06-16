@@ -3,7 +3,7 @@
 import { trace, TraceFlags, SpanStatusCode } from '@opentelemetry/api';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
 import { GeneralAsyncContext } from 'src/modules/common/context';
-import { WsConnectionContextHelper } from './ws-connection-context.helper';
+import { WsConnectionContextHelper } from './ws.connection-context.helper';
 
 const mockSpan: any = {
   spanContext: jest.fn().mockReturnValue({

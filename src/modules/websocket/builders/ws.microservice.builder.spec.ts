@@ -33,7 +33,7 @@ jest.mock(
 );
 
 import { TelemetryIoAdapter } from '../adapters/telemetry-io.adapter';
-import { WsMicroserviceBuilder } from './ws-microservice.builder';
+import { WsMicroserviceBuilder } from './ws.microservice.builder';
 
 describe(WsMicroserviceBuilder.name, () => {
   let mockApp: jest.Mocked<INestApplication>;

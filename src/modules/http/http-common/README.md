@@ -54,7 +54,7 @@ const headers = HttHeadersHelper.normalize(request.headers);
 
 Описания констант **HTTP**-заголовков, содержащих данные авторизации.
 
-- `HttpAuthHelper.token(headers)` — извлекает **Bearer**-токен из `IHeaders` (строка после `Bearer `), либо `undefined`.
+- `HttpAuthHelper.token(headers)` — извлекает **Bearer**-токен из `IHeaders` или из кук (строка после `Bearer `, либо `undefined`).
 
 ## Record Formatters
 

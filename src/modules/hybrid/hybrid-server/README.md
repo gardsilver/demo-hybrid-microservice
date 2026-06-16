@@ -2,12 +2,12 @@
 
 ## Описание
 
-Модуль-агрегатор серверной части всех транспортов гибридного микросервиса. `HybridServerModule` импортирует все `*-server` модули (**HTTP**, **gRPC**, **Kafka**, **RabbitMQ**) и предоставляет общий для всех транспортов обработчик ошибок `HybridErrorResponseFilter`, а также вспомогательный `LoggingValidationPipe`.
+Модуль-агрегатор серверной части всех транспортов гибридного микросервиса. `HybridServerModule` импортирует все `*-server` модули (**HTTP**, **gRPC**, **Kafka**, **RabbitMQ**, **Websocket**) и предоставляет общий для всех транспортов обработчик ошибок `HybridErrorResponseFilter`, а также вспомогательный `LoggingValidationPipe`.
 
 Зависимости модуля:
 
 - `ElkLoggerModule` — сквозное логирование.
-- `HttpServerModule`, `GrpcServerModule`, `KafkaServerModule`, `RabbitMqServerModule` — серверные модули соответствующих транспортов. Каждый из них уже регистрируется как `global: true`.
+- `HttpServerModule`, `GrpcServerModule`, `KafkaServerModule`, `RabbitMqServerModule`, `WsModule` — серверные модули соответствующих транспортов. Каждый из них уже регистрируется как `global: true`.
 
 Экспортирует:
 
@@ -23,11 +23,12 @@
 | gRPC | `GrpcHelper.isGrpc(host)` | `GrpcErrorResponseFilter` |
 | Kafka | `KafkaServerHelper.isKafka(host)` | `KafkaErrorFilter` |
 | RabbitMQ | `RabbitMqHelper.isRabbitMq(host)` | `RabbitMqErrorFilter` |
+| Websocket | `WsHelper.isWs(host)` | `WsErrorResponseFilter` |
 | прочий `rpc` | `host.getType() === 'rpc'` | `BaseRpcExceptionFilter` (`@nestjs/microservices`) |
 
 ### ВАЖНО
 
-Транспортные фильтры (`HttpErrorResponseFilter`, `GrpcErrorResponseFilter`, `KafkaErrorFilter`, `RabbitMqErrorFilter`) **НЕ должны** регистрироваться глобально по отдельности. Они подключаются только через `HybridErrorResponseFilter` (глобально) или точечно через `@UseFilters` (**@see** `@nestjs/common`).
+Транспортные фильтры (`HttpErrorResponseFilter`, `GrpcErrorResponseFilter`, `KafkaErrorFilter`, `RabbitMqErrorFilter`, `WsErrorResponseFilter`) **НЕ должны** регистрироваться глобально по отдельности. Они подключаются только через `HybridErrorResponseFilter` (глобально) или точечно через `@UseFilters` (**@see** `@nestjs/common`).
 
 ## Подключение
 
@@ -53,7 +54,7 @@ export class MainModule {}
 
 | Секция | Значение | Описание |
 |---|---|---|
-| `imports` | `ElkLoggerModule`, `HttpServerModule`, `GrpcServerModule`, `KafkaServerModule`, `RabbitMqServerModule` | Все транспортные серверные модули и общий логгер. Каждый из транспортных модулей регистрируется как `global: true` в собственных `forRoot()`. |
+| `imports` | `ElkLoggerModule`, `HttpServerModule`, `GrpcServerModule`, `KafkaServerModule`, `RabbitMqServerModule`, `WsErrorResponseFilter` | Все транспортные серверные модули и общий логгер. Каждый из транспортных модулей регистрируется как `global: true` в собственных `forRoot()`. |
 | `providers` | `HybridErrorResponseFilter` | Глобальный фильтр, делегирующий обработку ошибок транспортным фильтрам. |
 | `exports` | `HybridErrorResponseFilter` | Экспортируется для подключения через `app.useGlobalFilters(...)` в `main.ts`. |
 

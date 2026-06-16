@@ -14,12 +14,19 @@
 
 src/modules/websocket/
 ├── adapters/
-│   └── telemetry-io.adapter.ts      # Кастомный адаптер сокетов с Middleware телеметрии
+│   └── telemetry-io.adapter.ts          # Кастомный адаптер сокетов с Middleware телеметрии
 ├── builders/
-│   └── ws-microservice.builder.ts   # Изолированный Билдер для инициализации подсистемы
+│   └── ws.microservice.builder.ts       # Изолированный Билдер для инициализации подсистемы
+├── decorators/
+│   └── ws.event.decorator.ts            # Аналог декоратора `SubscribeMessage` (**@see** `@nestjs/websockets`), но задействует также `WsAuthGuard`
+├── filters/
+│   └── ws.exceptions.filter.ts          # Фильтер Websocket ошибок
+│   └── ws.response.handler.ts           # Обработчик Websocket ошибок, логирует приводит к единому виду.
 └── helpers/
-    ├── ws-connection-context.helper.ts  # Хелпер трассировки фазы Handshake (handleConnection)
-    └── ws-packet.helper.ts          # Пуленепробиваемый безопасный парсер пакетов Socket.io
+│   ├── ws.connection-context.helper.ts  # Хелпер трассировки фазы Handshake (handleConnection)
+│   └── ws.helper.ts                     # Реализует проверку контескта на соотвествие Websocket.
+│   └── ws.packet.helper.ts              # Безопасный парсер пакетов Socket.io
+└── ws.module.ts                         # Модуль `WsModule`, предоставляет доступ к `WsErrorResponseFilter` и к `WsAuthGuard`, подключается глобально.
 
 ------------------------------
 
@@ -27,7 +34,7 @@ src/modules/websocket/
 
 ## Шаг 1. Регистрация в bootstrap.ts
 
-Внедрение модуля в сетевой стек приложения выполняется одной строчкой кода через WsMicroserviceBuilder. Билдер сам извлечет необходимые DI-компоненты (адаптер HTTP-заголовков) и применит динамические параметры CORS.
+Внедрение модуля в сетевой стек приложения выполняется одной строчкой кода через `WsMicroserviceBuilder`. Билдер сам извлечет необходимые DI-компоненты (адаптер HTTP-заголовков) и применит динамические параметры CORS.
 
 ```ts
 import { INestElkLoggerService } from 'src/modules/elk-logger';
@@ -55,10 +62,10 @@ export async function bootstrap(logger: INestElkLoggerService): Promise<void> {
 
 ## Шаг 2. Использование в Бизнес-Гейтвеях (*.gateway.ts)
 
-Благодаря Middleware-архитектуре, контекст выполнения событий `@SubscribeMessage` удерживается асинхронно силами метода runWithContextAsync(..., 'ws_pipeline_execute').
+Благодаря Middleware-архитектуре, контекст выполнения событий `SubscribeMessage` удерживается асинхронно силами метода `runWithContextAsync(..., 'ws_pipeline_execute')`.
 
-* Для чтения параметров трассировки в любом месте гейтвея или сервиса достаточно вызвать GeneralAsyncContext.instance.get().
-* Для безопасного логирования этапа авторизации внутри handleConnection (так как он выполняется вне рамок Middleware) используется утилитарный хелпер WsConnectionContextHelper.run.
+* Для чтения параметров трассировки в любом месте гейтвея или сервиса достаточно вызвать `GeneralAsyncContext.instance.get()`.
+* Для безопасного логирования этапа авторизации внутри handleConnection (так как он выполняется вне рамок Middleware) используется утилитарный хелпер `WsConnectionContextHelper`.run.
 
 ```ts
 import { WebSocketGateway, SubscribeMessage, OnGatewayConnection } from '@nestjs/websockets';
@@ -108,6 +115,24 @@ export class ChatGateway implements OnGatewayConnection {
   }
 }
 ```
+
+------------------------------
+
+## WsEvent
+
+Аналог декоратора `SubscribeMessage`, но дополнительно подключает `WsAuthGuard`
+
+------------------------------
+
+## WsErrorResponseFilter
+
+Обработчик Websocket ошибок. Подключается глобально в модуле `src/modules/hybrid`
+
+------------------------------
+
+## WsAuthGuard
+
+Стандартна проверка авторизации. Из-за особенностей реализации Websocket в `NestJS`, не возможно подключить глобально: используйте либо `UseGuards`, либо `WsEvent`
 
 ------------------------------
 

@@ -8,7 +8,7 @@ import { BaseHeadersHelper } from 'src/modules/common/helpers/base.headers.helpe
 import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
 import { IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
-import { WsPacketHelper } from '../helpers/ws-packet.helper';
+import { WsPacketHelper } from '../helpers/ws.packet.helper';
 
 export class TelemetryIoAdapter extends IoAdapter {
   constructor(

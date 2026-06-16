@@ -1,4 +1,4 @@
-import { IHeaders } from 'src/modules/common';
+import { BaseHeadersHelper, IHeaders } from 'src/modules/common';
 import { HttHeadersHelper } from 'src/modules/http/http-common';
 import { KafkaAsyncContextHeaderNames } from '../types/constants';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
@@ -14,11 +14,14 @@ export abstract class KafkaHeadersHelper extends HttHeadersHelper {
   }
 
   public static toAsyncContext<Ctx extends IKafkaAsyncContext>(headers: IHeaders): Ctx {
-    const replyPartitionRaw = KafkaHeadersHelper.searchValue(headers, KafkaAsyncContextHeaderNames.REPLY_PARTITION);
+    const replyPartitionRaw = BaseHeadersHelper.searchHeaderAsString(
+      headers,
+      KafkaAsyncContextHeaderNames.REPLY_PARTITION,
+    );
 
     return {
       ...HttHeadersHelper.toAsyncContext<Ctx>(headers),
-      replyTopic: KafkaHeadersHelper.searchValue(headers, KafkaAsyncContextHeaderNames.REPLY_TOPIC),
+      replyTopic: BaseHeadersHelper.searchHeaderAsString(headers, KafkaAsyncContextHeaderNames.REPLY_TOPIC),
       replyPartition: replyPartitionRaw !== undefined ? Number(replyPartitionRaw) : undefined,
     };
   }

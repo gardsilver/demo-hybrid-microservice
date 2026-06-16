@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { IHeaders } from 'src/modules/common';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { AUTHORIZATION_HEADER_NAME } from 'src/modules/http/http-common';
 import { IKafkaHeadersBuilder, IKafkaHeadersBuilderOptions } from '../types/types';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
@@ -46,7 +45,6 @@ export class KafkaHeadersBuilder implements IKafkaHeadersBuilder {
 
         if (Array.isArray(headerValue)) {
           value = headerValue.join('-');
-          value = TraceSpanHelper.formatToGuid(value);
         } else {
           value = headerValue;
         }

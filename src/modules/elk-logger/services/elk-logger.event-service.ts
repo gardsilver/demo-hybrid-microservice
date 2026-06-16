@@ -66,12 +66,16 @@ export class ElkLoggerEventService implements OnApplicationShutdown {
       ...(loggerPrams.fields ?? {}),
     });
 
-    GeneralAsyncContext.instance.runWithContext(() => {
-      logger.log(
-        loggerPrams.level ?? defaultLevel[param.event],
-        loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', moduleName),
-        loggerPrams.data,
-      );
-    }, param.context ?? {});
+    GeneralAsyncContext.instance.runWithContext(
+      () => {
+        logger.log(
+          loggerPrams.level ?? defaultLevel[param.event],
+          loggerPrams.message ?? defaultMessage[param.event].replace('[[method]]', moduleName),
+          loggerPrams.data,
+        );
+      },
+      param.context ?? {},
+      `ElkLoggerEventService.handleOnMethod: ${moduleName}`,
+    );
   }
 }

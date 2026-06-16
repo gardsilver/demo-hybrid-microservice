@@ -2,11 +2,6 @@ import { ConfigService } from '@nestjs/config';
 import { MockConfigService } from 'tests/nestjs';
 import { OpentelemetryConfig } from './opentelemetry.config';
 
-jest.mock('@opentelemetry/sdk-node', () => ({
-  ...jest.requireActual('@opentelemetry/sdk-node'),
-  ...jest.requireActual('tests/opentelemetry').OPENTELEMETRY_SDK_NODE_MOCK,
-}));
-
 describe('OpentelemetryConfig', () => {
   let mockConfigService: ConfigService;
 

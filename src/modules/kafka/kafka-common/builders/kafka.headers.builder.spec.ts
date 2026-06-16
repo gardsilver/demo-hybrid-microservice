@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { merge } from 'ts-deepmerge';
 import { faker } from '@faker-js/faker';
 import { IHeaders } from 'src/modules/common';
@@ -10,6 +11,7 @@ import { IKafkaHeadersBuilder } from '../types/types';
 import { IKafkaAsyncContext } from '../types/kafka.async-context.type';
 import { KafkaAsyncContextHeaderNames } from '../types/constants';
 import { KafkaHeadersBuilder } from './kafka.headers.builder';
+import { KafkaHeadersHelper } from '../helpers/kafka.headers.helper';
 
 describe(KafkaHeadersBuilder.name, () => {
   let traceSpan: ITraceSpan;
@@ -129,5 +131,46 @@ describe(KafkaHeadersBuilder.name, () => {
     });
     expect(result.authorization).toBeUndefined();
     expect(result['x-other']).toBe('keep-me');
+  });
+
+  it('должен безопасно пропустить итерацию, если хелпер вернул undefined для имени заголовка', () => {
+    jest.spyOn(KafkaHeadersHelper, 'nameAsHeaderName').mockImplementation((name: string) => {
+      if (name === 'correlationId') {
+        return undefined;
+      }
+      return HttpGeneralAsyncContextHeaderNames.TRACE_ID;
+    });
+
+    const result = builder.build({
+      asyncContext: { correlationId: 'should-be-skipped' } as any,
+    });
+
+    expect(result['x-correlation-id']).toBeUndefined();
+    expect(result[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID]).toBeUndefined();
+  });
+
+  it('должен правильно склеить массив заголовков, если значение извлечено из headers', () => {
+    const targetHeaderName = KafkaHeadersHelper.nameAsHeaderName('requestId') || 'x-request-id';
+
+    const result = builder.build({
+      asyncContext: {} as any,
+      headers: {
+        [targetHeaderName]: ['req-chunk-1', 'req-chunk-2', 'req-chunk-3'],
+      },
+    });
+
+    expect(result[targetHeaderName]).toBe('req-chunk-1-req-chunk-2-req-chunk-3');
+  });
+
+  it('должен игнорировать пустые строки или неопределенные значения (value === undefined || value === "") при сборке финального объекта', () => {
+    const result = builder.build({
+      asyncContext: {
+        traceId: '',
+        spanId: undefined,
+      } as any,
+    });
+
+    expect(result[HttpGeneralAsyncContextHeaderNames.TRACE_ID]).toBeUndefined();
+    expect(result[HttpGeneralAsyncContextHeaderNames.SPAN_ID]).toBeUndefined();
   });
 });

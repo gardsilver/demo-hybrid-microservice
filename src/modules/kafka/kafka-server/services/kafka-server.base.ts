@@ -31,7 +31,6 @@ import { PrometheusManager } from 'src/modules/prometheus';
 import {
   IKafkaHeadersToAsyncContextAdapter,
   KafkaAsyncContext,
-  KafkaHeadersHelper,
   KafkaHeadersToAsyncContextAdapter,
 } from 'src/modules/kafka/kafka-common';
 import { KafkaContext } from '../ctx-host/kafka.context';
@@ -350,23 +349,14 @@ export abstract class KafkaServerBase extends Server {
       ...(handler?.extras ?? {}),
     } as unknown as Record<string, any> & IEventKafkaMessageOptions;
 
-    const headers = KafkaHeadersHelper.normalize(kafkaMessage.headers ?? {});
     const headerAdapter = eventKafkaMessageOptions.headerAdapter ?? this.headerAdapter;
     const deserializer = eventKafkaMessageOptions.deserializer ?? this.deserializer;
-    const asyncContext = headerAdapter.adapt(headers);
-
-    const correlationId = asyncContext.correlationId;
-    const replyPartition = eventKafkaMessageOptions.replyPartition || asyncContext.replyPartition;
-    const replyTopic = eventKafkaMessageOptions.replyTopic || asyncContext.replyTopic;
 
     const messageOptions: IKafkaMessageOptions = {
       ...eventKafkaMessageOptions,
       serverName: this.serverName,
       mode: eventKafkaMessageOptions.mode ?? ConsumerMode.EACH_MESSAGE,
       topic,
-      correlationId,
-      replyTopic,
-      replyPartition,
       headerAdapter: undefined,
       deserializer: undefined,
     };

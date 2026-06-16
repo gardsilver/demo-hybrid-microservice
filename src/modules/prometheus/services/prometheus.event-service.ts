@@ -86,9 +86,13 @@ export class PrometheusEventService implements OnApplicationShutdown {
 
     const prometheusEventConfig: IPrometheusEventConfig = param.prometheusEventConfig;
 
-    GeneralAsyncContext.instance.runWithContext(() => {
-      this.handleEvent(prometheusEventConfig, options);
-    }, param.context ?? {});
+    GeneralAsyncContext.instance.runWithContext(
+      () => {
+        this.handleEvent(prometheusEventConfig, options);
+      },
+      param.context ?? {},
+      'Prometheus.handleEvent',
+    );
   }
 
   private handleEvent(

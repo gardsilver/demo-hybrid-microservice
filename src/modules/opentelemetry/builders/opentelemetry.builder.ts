@@ -40,7 +40,12 @@ export abstract class OpentelemetryBuilder {
       }),
       traceExporter,
       textMapPropagator: PropagatorBuilder.build(),
-      instrumentations: [getNodeAutoInstrumentations(), new NestInstrumentation()],
+      instrumentations: [
+        getNodeAutoInstrumentations({
+          '@opentelemetry/instrumentation-grpc': { enabled: false },
+        }),
+        new NestInstrumentation(),
+      ],
     });
 
     OpentelemetryBuilder.otelSDK.start();

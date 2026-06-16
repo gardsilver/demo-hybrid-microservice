@@ -2,7 +2,7 @@ import { Controller, Inject } from '@nestjs/common';
 import { Ctx, Payload } from '@nestjs/microservices';
 import { MainRequest, MainResponse } from 'protos/compiled/demo/service/MainService';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
-import { IKafkaHeadersToAsyncContextAdapter, IKafkaMessage, KafkaAsyncContext } from 'src/modules/kafka/kafka-common';
+import { IKafkaHeadersToAsyncContextAdapter, IKafkaMessage } from 'src/modules/kafka/kafka-common';
 import { IKafkaRequest, IProducerPacket, KafkaClientService } from 'src/modules/kafka/kafka-client';
 import {
   ConsumerMode,
@@ -46,16 +46,7 @@ export class KafkaDemoController {
     const results: Promise<IProducerPacket<MainResponse> | undefined>[] = [];
 
     data.forEach((request, index) => {
-      results.push(
-        KafkaAsyncContext.instance.runWithContextAsync(
-          () => {
-            return this.service.search(messageOptions[index].topic, request);
-          },
-          {
-            ...this.headerAdapter.adapt(request.headers ?? {}),
-          },
-        ),
-      );
+      results.push(this.service.search(messageOptions[index].topic, request));
     });
 
     const responses: Record<string, IKafkaRequest<MainResponse>> = {};

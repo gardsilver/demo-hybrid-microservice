@@ -123,6 +123,15 @@ describe(GrpcAuthGuard.name, () => {
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation((key) => {
       return key === SKIP_INTERCEPTORS_KEY ? [GrpcAuthGuard] : [];
     });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
+    });
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
 
     expect(await guard.canActivate(host)).toBeTruthy();
@@ -139,6 +148,14 @@ describe(GrpcAuthGuard.name, () => {
     });
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
       return [];
+    });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
     });
     host.getType = jest.fn().mockImplementation(() => 'rpc');
     requestMetadata.set(AUTHORIZATION_HEADER_NAME, BEARER_NAME + ' token');
@@ -165,6 +182,15 @@ describe(GrpcAuthGuard.name, () => {
     jest.spyOn(reflector, 'getAllAndMerge').mockImplementation(() => {
       return [];
     });
+    jest.spyOn(reflector, 'get').mockImplementation(() => {
+      return [
+        {
+          service: 'TestService',
+          rpc: 'Main',
+        },
+      ];
+    });
+
     host.getType = jest.fn().mockImplementation(() => 'rpc');
     requestMetadata.set(AUTHORIZATION_HEADER_NAME, BEARER_NAME + ' ' + token);
 

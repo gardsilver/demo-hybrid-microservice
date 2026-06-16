@@ -5,7 +5,8 @@ import * as dotenv from 'dotenv';
 import * as fs from 'fs';
 import * as path from 'path';
 import { ConfigService } from '@nestjs/config';
-import { NestElkLoggerServiceBuilder, ElkLoggerConfig } from 'src/modules/elk-logger';
+import { NestElkLoggerServiceBuilder, ElkLoggerConfig, INestElkLoggerService } from 'src/modules/elk-logger';
+import {} from 'src/modules/elk-logger';
 import {
   ENV_FILES,
   ErrorFormattersFactoryBuilder,
@@ -13,9 +14,8 @@ import {
   IgnoreObjectsFactoryBuilder,
   ObjectFormattersFactoryBuilder,
 } from 'src/core/app';
-import { IBootstrapArgs } from './types';
 
-export function loadDefaultBootstrapArgs(): IBootstrapArgs {
+export function loadDefaultBootstrapArgs(): INestElkLoggerService {
   for (const file of [...ENV_FILES].reverse()) {
     const filePath = path.resolve(process.cwd(), file);
     if (fs.existsSync(filePath)) {
@@ -39,7 +39,5 @@ export function loadDefaultBootstrapArgs(): IBootstrapArgs {
 
   OpentelemetryBuilder.build(initConfigService, nestLogger);
 
-  return {
-    logger: nestLogger,
-  };
+  return nestLogger;
 }

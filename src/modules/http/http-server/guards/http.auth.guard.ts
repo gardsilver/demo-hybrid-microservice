@@ -26,6 +26,10 @@ export class HttpAuthGuard implements CanActivate {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
 
+    const serviceName = context.getClass().name;
+    const methodName = request.path;
+    const operationName = `http SERVER (HttpAuthGuard): ${serviceName}/${methodName}`;
+
     const headers = HttHeadersHelper.normalize(request.headers);
     const jwtToken = HttpAuthHelper.token(headers);
 
@@ -38,9 +42,13 @@ export class HttpAuthGuard implements CanActivate {
 
     HttpRequestHelper.setAsyncContext(asyncContext, request);
 
-    const auth = await GeneralAsyncContext.instance.runWithContextAsync(async () => {
-      return await this.authService.authenticate(jwtToken ?? null);
-    }, asyncContext);
+    const auth = await GeneralAsyncContext.instance.runWithContextAsync(
+      async () => {
+        return await this.authService.authenticate(jwtToken ?? null);
+      },
+      asyncContext,
+      operationName,
+    );
 
     HttpRequestHelper.setAuthInfo(auth, request);
 

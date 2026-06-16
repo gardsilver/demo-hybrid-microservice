@@ -6,6 +6,7 @@ import { DocumentBuilder, SwaggerCustomOptions, SwaggerModule } from '@nestjs/sw
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { MAIN_SERVICE_NAME } from 'protos/compiled/demo/service/MainService';
 import { ELK_NEST_LOGGER_SERVICE_DI, ELK_LOGGER_SERVICE_BUILDER_DI } from 'src/modules/elk-logger';
+import { INestElkLoggerService } from 'src/modules/elk-logger';
 import { PrometheusManager } from 'src/modules/prometheus';
 import { BEARER_NAME } from 'src/modules/http/http-common';
 import { HttpAuthGuard, HttpHeadersResponse, HttpLogging, HttpPrometheus } from 'src/modules/http/http-server';
@@ -32,16 +33,15 @@ import {
   AppRabbitMqConfig,
 } from 'src/core/app';
 import { BootstrapModule } from 'src/bootstrap/bootstrap.module';
-import { IBootstrapArgs } from './types';
 
-export async function bootstrap(args: IBootstrapArgs): Promise<void> {
+export async function bootstrap(globalLogger: INestElkLoggerService): Promise<void> {
   const app = await NestFactory.create<NestExpressApplication>(BootstrapModule, {
-    logger: args.logger,
+    logger: globalLogger,
     bufferLogs: true,
   });
 
-  app.useStaticAssets(join(__dirname, '../front/static'));
-  app.setBaseViewsDir(join(__dirname, '../front/views'));
+  app.useStaticAssets(join(__dirname, '../../front/static'));
+  app.setBaseViewsDir(join(__dirname, '../../front/views'));
   app.setViewEngine('ejs');
 
   const nestLogger = app.get(ELK_NEST_LOGGER_SERVICE_DI);

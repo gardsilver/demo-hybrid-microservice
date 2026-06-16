@@ -161,4 +161,18 @@ export abstract class RabbitMqMessageHelper {
 
     return result;
   }
+
+  public static searchHeaderAsString(headers: IRabbitMqHeaders, ...headerName: string[]): string | undefined {
+    const result = RabbitMqMessageHelper.searchValue(headers, ...headerName);
+
+    if (Array.isArray(result.value)) {
+      result.value = result.value.length ? result.value.join('-') : undefined;
+    }
+
+    if (result.value === undefined || result.value === '') {
+      return undefined;
+    }
+
+    return String(result.value);
+  }
 }

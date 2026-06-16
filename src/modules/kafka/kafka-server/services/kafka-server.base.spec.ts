@@ -11,8 +11,7 @@ import {
   INestElkLoggerService,
 } from 'src/modules/elk-logger';
 import { PrometheusManager, PrometheusModule } from 'src/modules/prometheus';
-import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { KafkaAsyncContextHeaderNames, KafkaHeadersToAsyncContextAdapter } from 'src/modules/kafka/kafka-common';
+import { KafkaHeadersToAsyncContextAdapter } from 'src/modules/kafka/kafka-common';
 import { MockKafka, MockConsumer } from 'tests/kafkajs';
 import { MockConfigService } from 'tests/nestjs';
 import { MockElkLoggerService, MockNestElkLoggerService } from 'tests/modules/elk-logger';
@@ -393,9 +392,6 @@ describe(KafkaServerBase, () => {
 
       expect(server['getMessageOptionsAndAdapters']('eachMessage', kafkaMessage, handle)).toEqual({
         messageOptions: {
-          correlationId: kafkaMessage.headers[HttpGeneralAsyncContextHeaderNames.CORRELATION_ID],
-          replyTopic: kafkaMessage.headers[KafkaAsyncContextHeaderNames.REPLY_TOPIC],
-          replyPartition: Number(kafkaMessage.headers[KafkaAsyncContextHeaderNames.REPLY_PARTITION]),
           serverName,
           topic: 'eachMessage',
           mode: ConsumerMode.EACH_MESSAGE,

@@ -1,4 +1,3 @@
-import { TraceSpanHelper } from 'src/modules/elk-logger';
 import {
   IRabbitMqHeaders,
   IRabbitMqPublishOptions,
@@ -34,7 +33,6 @@ export class RabbitMqPublishOptionsBuilder implements IRabbitMqPublishOptionsBui
         const headerValue = headers[useHeaderName];
         if (Array.isArray(headerValue)) {
           value = headerValue.join('-');
-          value = TraceSpanHelper.formatToGuid(value);
         } else {
           value = headerValue as unknown as string;
         }

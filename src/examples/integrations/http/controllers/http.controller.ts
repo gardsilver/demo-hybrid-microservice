@@ -18,10 +18,7 @@ import { HttpService } from '../services/http.service';
 @Controller('examples/http')
 @ApiTags('examples')
 @ApiBearerAuth()
-@ApiHeaders([
-  { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },
-  { name: HttpGeneralAsyncContextHeaderNames.SPAN_ID },
-])
+@ApiHeaders([{ name: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID }])
 export class HttpController {
   constructor(private readonly service: HttpService) {}
 
@@ -34,6 +31,7 @@ export class HttpController {
     return GeneralAsyncContext.instance.runWithContextAsync(
       async () => this.service.search(request, authInfo),
       context,
+      'http handler: /api/examples/http/find',
     );
   }
 }

@@ -14,15 +14,13 @@ import {
 import { SearchResponse } from 'src/examples/integrations/common';
 import { GrpcSearchRequest } from '../types/dto';
 import { GrpcService } from '../services/grpc.service';
+import { TraceSpanHelper } from 'src/modules/elk-logger';
 
 @SkipInterceptors(HttpAuthGuard, HttpLogging, HttpPrometheus)
 @Controller('examples/grpc')
 @ApiTags('examples')
 @ApiBearerAuth()
-@ApiHeaders([
-  { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },
-  { name: HttpGeneralAsyncContextHeaderNames.SPAN_ID },
-])
+@ApiHeaders([{ name: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID }])
 export class HttpController {
   constructor(private readonly service: GrpcService) {}
 
@@ -32,9 +30,15 @@ export class HttpController {
     @HttpGeneralAsyncContext() context: IGeneralAsyncContext,
     @HttpAuthInfo() authInfo: IAuthInfo,
   ): Promise<SearchResponse> {
+    const correlationId = context.correlationId ?? TraceSpanHelper.generateRandomValue();
+
     return GeneralAsyncContext.instance.runWithContextAsync(
       async () => this.service.search(request, authInfo),
-      context,
+      {
+        ...context,
+        correlationId,
+      },
+      'http handler: /api/examples/grpc/find',
     );
   }
 }

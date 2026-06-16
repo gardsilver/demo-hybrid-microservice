@@ -44,15 +44,23 @@ export class HttpPrometheus implements NestInterceptor {
       HttpRequestHelper.setAsyncContext(asyncContext, request);
     }
 
+    const serviceName = context.getClass().name;
+    const methodName = request.path;
+    const operationName = `http SERVER (prometheus): ${serviceName}/${methodName}`;
+
     const labels: PrometheusLabels = {
       method: request.method.toUpperCase(),
-      service: context.getClass().name,
-      pathname: request.path,
+      service: serviceName,
+      pathname: methodName,
     };
 
-    const end = GeneralAsyncContext.instance.runWithContext(() => {
-      return this.prometheusManager.histogram().startTimer(HTTP_INTERNAL_REQUEST_DURATIONS, { labels });
-    }, asyncContext);
+    const end = GeneralAsyncContext.instance.runWithContext(
+      () => {
+        return this.prometheusManager.histogram().startTimer(HTTP_INTERNAL_REQUEST_DURATIONS, { labels });
+      },
+      asyncContext,
+      operationName,
+    );
 
     return next.handle().pipe(
       catchError((error) => {
@@ -63,21 +71,29 @@ export class HttpPrometheus implements NestInterceptor {
           statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
-        GeneralAsyncContext.instance.runWithContext(() => {
-          return this.prometheusManager.counter().increment(HTTP_INTERNAL_REQUEST_FAILED, {
-            labels: {
-              ...labels,
-              statusCode: statusCode.toString(),
-            },
-          });
-        }, asyncContext);
+        GeneralAsyncContext.instance.runWithContext(
+          () => {
+            return this.prometheusManager.counter().increment(HTTP_INTERNAL_REQUEST_FAILED, {
+              labels: {
+                ...labels,
+                statusCode: statusCode.toString(),
+              },
+            });
+          },
+          asyncContext,
+          operationName,
+        );
 
         return throwError(() => error);
       }),
       finalize(() => {
-        GeneralAsyncContext.instance.runWithContext(() => {
-          return end();
-        }, asyncContext);
+        GeneralAsyncContext.instance.runWithContext(
+          () => {
+            return end();
+          },
+          asyncContext,
+          operationName,
+        );
       }),
     );
   }

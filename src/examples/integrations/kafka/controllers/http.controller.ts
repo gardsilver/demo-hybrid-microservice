@@ -25,10 +25,7 @@ import { KafkaService } from '../services/kafka.service';
 @Controller('examples/kafka')
 @ApiTags('examples')
 @ApiBearerAuth()
-@ApiHeaders([
-  { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },
-  { name: HttpGeneralAsyncContextHeaderNames.SPAN_ID },
-])
+@ApiHeaders([{ name: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID }])
 export class HttpController {
   private logger: IElkLoggerService;
   private readonly responses: BehaviorSubject<IKafkaMessage<MainResponse> | undefined>;
@@ -48,11 +45,15 @@ export class HttpController {
   ): Promise<SearchResponse> {
     const correlationId = context.correlationId ?? TraceSpanHelper.generateRandomValue();
 
-    const status = await KafkaAsyncContext.instance.runWithContextAsync(async () => this.service.search(request), {
-      ...context,
-      correlationId,
-      replyTopic: 'DemoResponse',
-    } as IKafkaAsyncContext);
+    const status = await KafkaAsyncContext.instance.runWithContextAsync(
+      async () => this.service.search(request),
+      {
+        ...context,
+        correlationId,
+        replyTopic: 'DemoResponse',
+      } as IKafkaAsyncContext,
+      'http handler: /api/examples/kafka/find',
+    );
 
     if (status) {
       const response = await this.searchResponse(correlationId);

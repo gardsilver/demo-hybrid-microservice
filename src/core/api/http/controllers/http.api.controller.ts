@@ -22,6 +22,10 @@ export class HttpApiController {
   async getHello(@HttpGeneralAsyncContext() asyncContext: IGeneralAsyncContext): Promise<string> {
     await delay(4_000);
 
-    return GeneralAsyncContext.instance.runWithContextAsync(async () => this.service.getHello(), asyncContext);
+    return GeneralAsyncContext.instance.runWithContextAsync(
+      async () => this.service.getHello(),
+      asyncContext,
+      'http handler: /api/app',
+    );
   }
 }

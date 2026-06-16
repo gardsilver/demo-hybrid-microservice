@@ -29,10 +29,7 @@ import { DemoResponseDeserializer } from '../adapters/demo.response.deserializer
 @Controller('examples/rabbit-mq')
 @ApiTags('examples')
 @ApiBearerAuth()
-@ApiHeaders([
-  { name: HttpGeneralAsyncContextHeaderNames.TRACE_ID },
-  { name: HttpGeneralAsyncContextHeaderNames.SPAN_ID },
-])
+@ApiHeaders([{ name: HttpGeneralAsyncContextHeaderNames.CORRELATION_ID }])
 export class HttpController {
   private logger: IElkLoggerService;
   private readonly responses: BehaviorSubject<IRabbitMqConsumeMessage<MainResponse> | undefined>;
@@ -51,12 +48,18 @@ export class HttpController {
     @HttpGeneralAsyncContext() context: IGeneralAsyncContext,
   ): Promise<SearchResponse> {
     const messageId = TraceSpanHelper.generateRandomValue();
+    const correlationId = context.correlationId ?? TraceSpanHelper.generateRandomValue();
 
-    const status = await RabbitMqAsyncContext.instance.runWithContextAsync(async () => this.service.search(request), {
-      ...context,
-      messageId,
-      replyTo: 'DemoResponse',
-    } as IRabbitMqAsyncContext);
+    const status = await RabbitMqAsyncContext.instance.runWithContextAsync(
+      async () => this.service.search(request),
+      {
+        ...context,
+        correlationId,
+        messageId,
+        replyTo: 'DemoResponse',
+      } as IRabbitMqAsyncContext,
+      'http handler: /api/examples/rabbit-mq/find',
+    );
 
     if (status) {
       const response = await this.searchResponse(messageId);

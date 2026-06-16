@@ -59,4 +59,18 @@ export abstract class BaseHeadersHelper {
       },
     );
   }
+
+  static searchHeaderAsString(headers: IHeaders, ...headerName: string[]): string | undefined {
+    const result = BaseHeadersHelper.searchValue(headers, ...headerName);
+
+    if (Array.isArray(result.value)) {
+      result.value = result.value.length ? result.value.join('-') : undefined;
+    }
+
+    if (result.value === undefined) {
+      return undefined;
+    }
+
+    return result.value;
+  }
 }

@@ -7,6 +7,7 @@ const MOCK_SYMBOL_TOKEN = Symbol('HTTP_SERVER_HEADERS_ADAPTER_DI');
 jest.mock('src/modules/elk-logger', () => {
   return {
     __esModule: true,
+    ...jest.requireActual('src/modules/elk-logger'),
     TraceSpanHelper: {
       generateTraceId: jest.fn().mockReturnValue('generated_trace_id_32_chars_long'),
       generateSpanId: jest.fn().mockReturnValue('generated_span_id'),

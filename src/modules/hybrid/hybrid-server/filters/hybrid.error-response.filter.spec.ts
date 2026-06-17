@@ -2,6 +2,7 @@
 /* eslint-disable  @typescript-eslint/no-require-imports */
 import { Test } from '@nestjs/testing';
 import { ExecutionContext } from '@nestjs/common';
+import { RpcArgumentsHost } from '@nestjs/common/interfaces';
 import { HybridErrorResponseFilter } from './hybrid.error-response.filter';
 
 class MockHttpFilter {
@@ -77,6 +78,7 @@ describe('HybridErrorResponseFilter', () => {
   let spyKafka: jest.SpyInstance;
   let spyRabbitMq: jest.SpyInstance;
   let spyWs: jest.SpyInstance;
+  let host: jest.Mocked<ExecutionContext>;
 
   let error: Error;
 
@@ -113,6 +115,13 @@ describe('HybridErrorResponseFilter', () => {
     spyRabbitMq = jest.spyOn(module.get(MockRabbitFilter), 'catch');
     spyWs = jest.spyOn(module.get(MockWsFilter), 'catch');
 
+    host = {
+      getType: jest.fn(),
+      switchToRpc: jest.fn().mockImplementation(() => ({
+        getContext: jest.fn(),
+      })),
+    } as unknown as jest.Mocked<ExecutionContext>;
+
     error = new Error('Test Error');
   });
 
@@ -121,8 +130,7 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('ignore', async () => {
-    const host = { getType: () => 'tcp' } as unknown as ExecutionContext;
-    await filter.catch(error, host);
+    host.getType.mockImplementation(() => 'tcp');
 
     expect(spyHttp).toHaveBeenCalledTimes(0);
     expect(spyGrpc).toHaveBeenCalledTimes(0);
@@ -132,7 +140,7 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('http', async () => {
-    const host = { getType: () => 'http' } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'http');
     await filter.catch(error, host);
 
     expect(spyHttp).toHaveBeenCalledTimes(1);
@@ -144,7 +152,8 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('grpc', async () => {
-    const host = { getType: () => 'rpc' } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'rpc');
+
     mockIsGrpc.mockReturnValueOnce(true); // Переключаем выполнение на ветку gRPC
 
     await filter.catch(error, host);
@@ -158,7 +167,8 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('kafka', async () => {
-    const host = { getType: () => 'rpc' } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'rpc');
+
     mockIsKafka.mockReturnValueOnce(true); // Переключаем выполнение на ветку Kafka
 
     await filter.catch(error, host);
@@ -172,7 +182,7 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('RabbitMq', async () => {
-    const host = { getType: () => 'rpc' } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'rpc');
     mockIsRabbitMq.mockReturnValueOnce(true); // Переключаем выполнение на ветку RabbitMQ
 
     await filter.catch(error, host);
@@ -186,7 +196,8 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('websocket', async () => {
-    const host = { getType: () => 'ws' } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'ws');
+
     mockIsWs.mockReturnValueOnce(true); // Переключаем выполнение на ветку WebSockets
 
     await filter.catch(error, host);
@@ -200,10 +211,8 @@ describe('HybridErrorResponseFilter', () => {
   });
 
   it('generic rpc falls back to BaseRpcExceptionFilter', async () => {
-    const host = {
-      getType: () => 'rpc',
-      switchToRpc: () => ({ getContext: () => ({}) }),
-    } as unknown as ExecutionContext;
+    host.getType.mockImplementation(() => 'rpc');
+    host.switchToRpc.mockImplementation(() => ({ getContext: () => ({}) }) as unknown as RpcArgumentsHost);
 
     const { BaseRpcExceptionFilter } = require('@nestjs/microservices');
     const spyRpcHandle = jest

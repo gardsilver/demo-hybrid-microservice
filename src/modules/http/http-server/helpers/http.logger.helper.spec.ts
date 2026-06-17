@@ -60,7 +60,6 @@ describe(HttpLoggerHelper.name, () => {
 
     expect(HttpLoggerHelper.requestAsLogFormat(request)).toEqual({
       method: 'get',
-      route: request.route,
       url: request.url,
       params: request.params,
       body: request.body,

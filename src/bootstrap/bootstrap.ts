@@ -37,9 +37,10 @@ import {
   AppRabbitMqConfig,
 } from 'src/core/app';
 import { BootstrapModule } from 'src/bootstrap/bootstrap.module';
+import { HttpOpentelemetryAdapter } from 'src/modules/opentelemetry';
 
 export async function bootstrap(globalLogger: INestElkLoggerService): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(BootstrapModule, {
+  const app = await NestFactory.create<NestExpressApplication>(BootstrapModule, new HttpOpentelemetryAdapter(), {
     logger: globalLogger,
     bufferLogs: true,
   });

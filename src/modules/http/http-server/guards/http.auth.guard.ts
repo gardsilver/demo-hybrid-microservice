@@ -26,9 +26,9 @@ export class HttpAuthGuard implements CanActivate {
     const ctx = context.switchToHttp();
     const request = ctx.getRequest<Request>();
 
-    const serviceName = context.getClass().name;
-    const methodName = request.path;
-    const operationName = `http SERVER (HttpAuthGuard): ${serviceName}/${methodName}`;
+    const methodName = request.method?.toUpperCase();
+    const url = request.url;
+    const operationName = `http SERVER (HttpAuthGuard): ${methodName} ${url}`;
 
     const headers = HttHeadersHelper.normalize(request.headers);
     const jwtToken = HttpAuthHelper.token(headers);

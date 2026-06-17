@@ -20,7 +20,7 @@ export function RabbitMqTelemetry(): MethodDecorator {
       if (!pattern || !messageRef || !messageRef.properties) {
         return originalMethod.apply(this, args);
       }
-      const operationName = `RabbitMQ CONSUMER: handleMessage [${pattern}]`;
+      const operationName = `RabbitMQ CONSUMER: ${methodName} [${pattern}]`;
 
       const normalizedHeaders = RabbitMqMessageHelper.normalize(messageRef.properties.headers || {});
       const traceId = RabbitMqMessageHelper.searchHeaderAsString(

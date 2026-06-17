@@ -99,7 +99,7 @@
 
 | Параметр | Описание | `.env` микросервиса | localhost |
 |---|---|---|---|
-| `OPENTELEMETRY_URL` | Коллектор телеметрии | `OPENTELEMETRY_URL=http://jaeger-ui:4318/v1/traces` | `localhost::4318/v1/traces` |
+| `TELEMETRY_COLLECTOR_URL` | Коллектор телеметрии | `TELEMETRY_COLLECTOR_URL=http://jaeger-ui:4318/v1/traces` | `localhost::4318/v1/traces` |
 
 - <http://localhost:16686> — **Jaeger UI**.
 

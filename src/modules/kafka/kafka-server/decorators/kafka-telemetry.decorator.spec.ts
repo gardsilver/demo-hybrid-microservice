@@ -106,7 +106,7 @@ describe('KafkaTelemetry Decorator', () => {
     expect(result).toBe('async-success');
 
     expect(trace.getTracer('kafka-server-transport').startSpan).toHaveBeenCalledWith(
-      'Kafka CONSUMER: eachMessage [DemoResponse]',
+      'Kafka CONSUMER: handleEachMessage [DemoResponse]',
       {
         attributes: {
           'code.function': 'handleEachMessage',
@@ -154,7 +154,7 @@ describe('KafkaTelemetry Decorator', () => {
     await instance.handleBatchMessages(mockPayload);
 
     expect(trace.getTracer('kafka-server-transport').startSpan).toHaveBeenCalledWith(
-      'Kafka CONSUMER: eachBatch [DemoBatchTopic]',
+      'Kafka CONSUMER: handleBatchMessages [DemoBatchTopic]',
       {
         attributes: {
           'code.function': 'handleBatchMessages',

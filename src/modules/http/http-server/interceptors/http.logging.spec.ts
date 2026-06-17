@@ -194,7 +194,6 @@ describe(HttpLogging.name, () => {
       payload: {
         request: {
           method: 'get',
-          route: request.route,
           url: request.url,
           params: {},
           body: requestData,
@@ -265,7 +264,6 @@ describe(HttpLogging.name, () => {
       payload: {
         request: {
           method: 'get',
-          route: request.route,
           url: request.url,
           params: {},
           body: requestData,

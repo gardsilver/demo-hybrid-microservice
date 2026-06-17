@@ -8,7 +8,7 @@
 
 - **OpenTelemetry (W3C Trace Context)** - полная синхронизация параметров трассировки с логами.
 - Настроено сквозное логирование в формате **ElasticSearch** с поддержкой пользовательского асинхронного контекста выполнения и возможностью добавления различных лог-форматеров.
-- Прозрачность и наблюдаемость за состоянием сервера: метрики **Prometheus** и **Health Check Monitor**.
+- Прозрачность и наблюдаемость за состоянием сервера: метрики **Prometheus**, **Health Check Monitor** и **OpenTelemetry (W3C Trace Context)**.
 - Корректное завершение приложения **Graceful Shutdown**.
 - Реализовано взаимодействие с базой данных **Postgres**: логирование, базовые метрики, авто-применение миграций.
 - Настроено кеширование с использованием **Redis** (не блокирует выполнение приложения в случае недоступности **Redis** и реализовано автоматическое восстановление соединения).
@@ -123,7 +123,7 @@ make test-cov           # unit-тесты с покрытием (порог 90% 
 
 ## Пример: bootstrap и вызов HTTP-эндпоинта
 
-Точка входа — [`src/main.ts`](./src/main.ts). Приложение создаётся через `NestFactory.create<NestExpressApplication>(MainModule, ...)`; затем последовательно регистрируются глобальные pipes/filters/guards/interceptors, поднимается HTTP-слой, после чего `GrpcMicroserviceBuilder`, `KafkaMicroserviceBuilder` и `RabbitMqMicroserviceBuilder` подключают остальные транспорты:
+Точка входа — [`src/main.ts`](./src/main.ts). Приложение создаётся через `NestFactory.create<NestExpressApplication>(MainModule, ...)`; затем последовательно регистрируются глобальные pipes/filters/guards/interceptors, поднимается HTTP-слой, после чего `GrpcMicroserviceBuilder`, `KafkaMicroserviceBuilder` и `RabbitMqMicroserviceBuilder` подключают остальные транспорты (здесь представлена общая схема, однако для корректной работы телеметрии следует смотреть более подробно схему запуска в [`src/main.ts`](./src/main.ts)):
 
 ```typescript
 const app = await NestFactory.create<NestExpressApplication>(MainModule, { logger: nestLogger, bufferLogs: true });
@@ -244,6 +244,8 @@ tests/                         # Моки и фабрики для тестов 
 - **Kafka**: [`src/modules/kafka`](./src/modules/kafka/README.md).
 - **RabbitMq**: [`src/modules/rabbit-mq`](./src/modules/rabbit-mq/README.md).
 - **Hybrid (агрегатор)**: [`src/modules/hybrid/hybrid-server`](./src/modules/hybrid/hybrid-server/README.md) — `HybridErrorResponseFilter`, общий error-filter, объединяющий все транспортные `*-server` модули.
+- **WebSocket**: [`src/modules/websocket`](./src/modules/websocket/README.md) — Компонент ядра платформы, обеспечивающий сквозную интеграцию протокола WebSockets (Socket.io) с системами распределенной трассировки (OpenTelemetry / Jaeger) и контекстного логирования (ELK / Kibana via AsyncLocalStorage).
+- **OpenTelemetry (W3C Trace Context)**: [`src/modules/opentelemetry`](./src/modules/opentelemetry/README.md) — Модуль интеграции **OpenTelemetry (W3C Trace Context)** в экосистему **NestJS**. Обеспечивает сквозную синхронизацию распределенной трассировки (Jaeger/OTel Collector) и асинхронного контекста логирования (ELK Stack).
 
 ## 7. Локальная среда разработки
 

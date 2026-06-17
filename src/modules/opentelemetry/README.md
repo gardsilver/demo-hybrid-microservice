@@ -15,6 +15,7 @@
 2. **`PropagatorBuilder`** — Создает инжектор/экстрактор заголовков. Нормализует входящие UUID/Zipkin форматы до стандартов W3C (32/16 hex) и защищает заголовки от перезаписи бизнес-логикой.
 3. **`OpentelemetryConfig`** — Модуль конфигурации. Считывает переменные окружения, интегрирован с Prometheus и механизмами Graceful Shutdown.
 4. **`OpentelemetryService`** — Связующий сервис NestJS. Перехватывает события жизненного цикла приложения и корректно закрывает сетевые соединения с коллектором.
+5. **`HttpOpentelemetryAdapter`** — Адаптер HTTP-сервера, необходимо указать при создании INestApplication. Отвечает за создание стабильного контекста телеметрии для входящих HTTP-запросов, подходящего для корректной фильтрации телеметрии.
 
 ---
 
@@ -24,7 +25,12 @@
 
 | Параметр окружения (**env**) | Обязательный | Значения | Описание |
 |---|---|---|---|
-| `OPENTELEMETRY_URL` | нет. По умолчанию: **http://localhost:4318/v1/traces** | string | Коллектор телеметрии |
+| `TELEMETRY_ENABLED` | нет. По умолчанию: **yes** | string ('yes', 'no') | Включение/отключение сбора телеметрических данных |
+| `TELEMETRY_COLLECTOR_URL` | нет. По умолчанию: **http://localhost:4318/v1/traces** | string | Коллектор телеметрии |
+| `TELEMETRY_BATCH_MAX_QUEUE_SIZE` | нет. По умолчанию: **2048** | Целое (количество спанов) | Максимальное кол-во завершенных спанов, которые будут храниться в буфере перед оправкой в коллектор. **ВНИМАНИЕ** При переполнении буфера, новые спаны будут отбрасываться и не попадут коллектор. |
+| `TELEMETRY_BATCH_SCHEDULED_DELAY` | нет. По умолчанию: **5000** | Целое в миллисекундах | Частота отправки телеметрии в коллектор |
+| `TELEMETRY_FORCED_DURATION_THRESHOLD` | нет. По умолчанию: **1500** | Целое в миллисекундах | Лимит SLA аномального времени выполнения процесса (в мс). Все что дольше — форсированно будет отправлено в коллектор |
+| `TELEMETRY_IGNORED_ENDPOINTS` | нет. По умолчанию: **""** | CSV-строка | Игнорируемые процессы и технические эндпоинты по которым телеметрия не будет собираться |
 
 ### 2. Инициализация в `main.ts` (Критически важно!)
 
@@ -52,10 +58,11 @@ function init() {
 ```typescript
 import { init } from './init'; // Это импорт всегда должен быть первым
 import { NestFactory } from '@nestjs/core';
-import { MainModule } from './main.module';
+import { HttpOpentelemetryAdapter } from 'src/modules/opentelemetry';
+import { MainModule  } from './main.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(MainModule, { bufferLogs: true });
+  const app = await NestFactory.create(MainModule, new HttpOpentelemetryAdapter(), { bufferLogs: true });
   await app.listen(3000);
 }
 

@@ -25,11 +25,11 @@ export function KafkaTelemetry(): MethodDecorator {
       if (payload.message) {
         topic = payload.topic;
         rawKafkaHeaders = payload.message.headers ?? {};
-        operationName = `Kafka CONSUMER: eachMessage [${topic}]`;
+        operationName += ` [${topic}]`;
       } else if (payload.batch && payload.batch.messages && payload.batch.messages.length > 0) {
         topic = payload.batch.topic;
         rawKafkaHeaders = payload.batch.messages[0].headers ?? {};
-        operationName = `Kafka CONSUMER: eachBatch [${topic}]`;
+        operationName += ` [${topic}]`;
       }
       const normalizedHeaders = KafkaHeadersHelper.normalize(rawKafkaHeaders);
 

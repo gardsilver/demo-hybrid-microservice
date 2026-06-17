@@ -145,7 +145,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -205,7 +204,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -236,7 +234,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -267,7 +264,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -295,7 +291,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -323,7 +318,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,
@@ -351,7 +345,6 @@ describe(HttpResponseHandler.name, () => {
         payload: {
           request: {
             method: request.method?.toLocaleLowerCase(),
-            route: request.route,
             url: request.url,
             params: request.params,
             body: request.body,

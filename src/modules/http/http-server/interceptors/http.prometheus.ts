@@ -45,13 +45,14 @@ export class HttpPrometheus implements NestInterceptor {
     }
 
     const serviceName = context.getClass().name;
-    const methodName = request.path;
-    const operationName = `http SERVER (prometheus): ${serviceName}/${methodName}`;
+    const methodName = request.method?.toUpperCase();
+    const url = request.url;
+    const operationName = `http SERVER (HttpPrometheus): ${methodName} ${url}`;
 
     const labels: PrometheusLabels = {
-      method: request.method.toUpperCase(),
+      method: methodName,
       service: serviceName,
-      pathname: methodName,
+      pathname: url,
     };
 
     const end = GeneralAsyncContext.instance.runWithContext(

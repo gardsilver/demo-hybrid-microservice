@@ -11,7 +11,7 @@ import {
 } from '@opentelemetry/api';
 import { TraceSpanHelper } from 'src/modules/elk-logger';
 import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
-import { PropagatorBuilder } from './propagator.builder';
+import { Propagator } from './propagator';
 
 jest.mock('@opentelemetry/api', () => {
   const original = jest.requireActual('@opentelemetry/api');
@@ -25,7 +25,7 @@ jest.mock('@opentelemetry/api', () => {
 });
 
 describe('Propagator', () => {
-  let propagator: any;
+  let propagator: Propagator;
   let mockContext: Context;
 
   let mockTraceId: string | undefined;
@@ -35,7 +35,7 @@ describe('Propagator', () => {
     mockTraceId = TraceSpanHelper.generateTraceId();
     mockSpanId = TraceSpanHelper.generateSpanId();
 
-    propagator = PropagatorBuilder.build();
+    propagator = new Propagator();
     mockContext = ROOT_CONTEXT;
     jest.clearAllMocks();
   });

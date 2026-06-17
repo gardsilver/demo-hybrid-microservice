@@ -176,7 +176,7 @@ describe(HttpPrometheus.name, () => {
       labels: {
         method: 'GET',
         service: 'TestHttpController',
-        pathname: 'api/test',
+        pathname: request.url,
       },
     });
     expect(spyIncrement).toHaveBeenCalledTimes(0);
@@ -218,14 +218,14 @@ describe(HttpPrometheus.name, () => {
       labels: {
         method: 'GET',
         service: 'TestHttpController',
-        pathname: 'api/test',
+        pathname: request.url,
       },
     });
     expect(spyIncrement).toHaveBeenCalledWith(HTTP_INTERNAL_REQUEST_FAILED, {
       labels: {
         method: 'GET',
         service: 'TestHttpController',
-        pathname: 'api/test',
+        pathname: request.url,
         statusCode: '500',
       },
     });
@@ -256,7 +256,7 @@ describe(HttpPrometheus.name, () => {
       labels: {
         method: 'GET',
         service: 'TestHttpController',
-        pathname: 'api/test',
+        pathname: request.url,
         statusCode: '400',
       },
     });

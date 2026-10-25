@@ -6,30 +6,39 @@ export abstract class HttpAuthHelper {
     let rawTokenStr: string | undefined;
 
     const { value: authToken } = BaseHeadersHelper.searchValue(headers, AUTHORIZATION_HEADER_NAME);
-    if (authToken && typeof authToken === 'string' && authToken !== '') {
+
+    if (typeof authToken === 'string' && authToken.trim() !== '') {
       rawTokenStr = authToken.trim();
     }
 
     if (!rawTokenStr) {
       const { value: cookieHeader } = BaseHeadersHelper.searchValue(headers, 'cookie');
 
-      if (cookieHeader && typeof cookieHeader === 'string' && cookieHeader !== '') {
-        const regex = new RegExp(`(?:^|; )${AUTHORIZATION_HEADER_NAME}=([^;]*)`);
+      if (typeof cookieHeader === 'string' && cookieHeader !== '') {
+        const regex = new RegExp(`(?:^|;\\s*)${AUTHORIZATION_HEADER_NAME}=([^;]*)`);
         const match = cookieHeader.match(regex);
 
-        if (match && match[1]) {
-          rawTokenStr = decodeURIComponent(match[1]).trim();
+        if (match?.[1]) {
+          try {
+            rawTokenStr = decodeURIComponent(match[1]).trim();
+          } catch {
+            // Некорректное cookie-значение считаем отсутствующим токеном.
+            return undefined;
+          }
         }
       }
     }
 
-    if (rawTokenStr) {
-      if (rawTokenStr.startsWith(`${BEARER_NAME} `)) {
-        return rawTokenStr.replace(`${BEARER_NAME} `, '').trim();
-      }
-      return rawTokenStr;
+    if (!rawTokenStr) {
+      return undefined;
     }
 
-    return undefined;
+    const bearerPrefix = `${BEARER_NAME} `;
+
+    if (rawTokenStr.startsWith(bearerPrefix)) {
+      rawTokenStr = rawTokenStr.slice(bearerPrefix.length).trim();
+    }
+
+    return rawTokenStr || undefined;
   }
 }

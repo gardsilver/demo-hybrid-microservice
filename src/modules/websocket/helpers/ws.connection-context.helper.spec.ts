@@ -1,153 +1,195 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/unbound-method */
-import { trace, TraceFlags, SpanStatusCode } from '@opentelemetry/api';
-import { HttpGeneralAsyncContextHeaderNames } from 'src/modules/http/http-common';
+
+import { context as otelContext } from '@opentelemetry/api';
 import { GeneralAsyncContext } from 'src/modules/common/context';
 import { WsConnectionContextHelper } from './ws.connection-context.helper';
-
-const mockSpan: any = {
-  spanContext: jest.fn().mockReturnValue({
-    traceId: 'mocked-otel-trace-id-32-chars-long',
-    spanId: 'mocked-otel-span',
-  }),
-  setStatus: jest.fn(),
-  recordException: jest.fn(),
-  end: jest.fn(),
-};
+import { Socket } from 'socket.io';
+import { AuthStatus, IAuthInfo } from 'src/modules/auth';
+import { IWsConnectionData, IWsContextTelemetry } from '../types/types';
 
 jest.mock('@opentelemetry/api', () => {
-  const original = jest.requireActual('@opentelemetry/api');
+  const actual = jest.requireActual('@opentelemetry/api');
+
   return {
-    ...original,
-    trace: {
-      getTracer: jest.fn().mockReturnValue({
-        startSpan: jest.fn().mockImplementation(() => mockSpan),
-      }),
-      getSpanContext: jest.fn(),
-      setSpan: jest.fn().mockReturnValue({}),
-      setSpanContext: jest.fn((ctx, spanCtx) => ({ ...ctx, __spanContext: spanCtx })),
-    },
+    ...actual,
     context: {
-      active: jest.fn().mockReturnValue({}),
-      with: jest.fn((ctx, cb) => cb()),
+      ...actual.context,
+      with: jest.fn((_context: unknown, callback: () => unknown) => callback()),
     },
   };
 });
 
-jest.mock('src/modules/elk-logger', () => {
-  return {
-    __esModule: true,
-    TraceSpanHelper: {
-      generateTraceId: jest.fn().mockReturnValue('generated_trace_id_32_chars_long'),
-      generateSpanId: jest.fn().mockReturnValue('generated_span_id'),
+jest.mock('src/modules/common/context', () => ({
+  GeneralAsyncContext: {
+    define: jest.fn(() => (_target: any, _key: string, descriptor: PropertyDescriptor) => descriptor),
+    instance: {
+      runWithContext: jest.fn((callback: () => unknown) => callback()),
+      runWithContextAsync: jest.fn((callback: () => Promise<unknown>) => callback()),
     },
-  };
-});
+  },
+}));
 
 describe('WsConnectionContextHelper', () => {
-  let mockHeadersAdapter: any;
-  let mockClient: any;
+  let mockClient: Socket;
+  let mockTelemetry: IWsContextTelemetry;
+  let mockAuthInfo: IAuthInfo;
+
+  const mockOtelContext = { contextId: 'otel-context-1' };
+  const mockAsyncContext = {
+    traceId: 'a'.repeat(32),
+    spanId: 'b'.repeat(16),
+    parentSpanId: 'c'.repeat(16),
+    initialSpanId: 'c'.repeat(16),
+    requestId: 'custom-req-id',
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockSpan.setStatus.mockClear();
-    mockSpan.recordException.mockClear();
-    mockSpan.end.mockClear();
-
-    mockHeadersAdapter = {
-      adapt: jest.fn().mockReturnValue({
-        requestId: 'custom-req-id',
-        correlationId: 'custom-corr-id',
-      }),
+    mockTelemetry = {
+      context: mockOtelContext as any,
+      span: {} as any,
+      asyncContext: mockAsyncContext as any,
     };
+
+    mockAuthInfo = {
+      status: AuthStatus.SUCCESS,
+    } as IAuthInfo;
 
     mockClient = {
       id: 'ws-test-socket-id-123',
-      handshake: {
-        headers: {},
-      },
-    };
+      data: {},
+    } as Socket;
   });
 
-  it('Сценарий 1: Установка соединения с переданными заголовками трассировки (isRemote: true)', () => {
-    const valid32CharTraceId = 'producer_trace_id_32_chars_long_';
-    const valid16CharSpanId = 'producer_span_id';
+  describe('setContextTelemetry / getContextTelemetry', () => {
+    it('должен сохранять и возвращать telemetry-контекст подключения', () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
 
-    mockClient.handshake.headers = {
-      [HttpGeneralAsyncContextHeaderNames.TRACE_ID.toLowerCase()]: valid32CharTraceId,
-      [HttpGeneralAsyncContextHeaderNames.SPAN_ID.toLowerCase()]: valid16CharSpanId,
-    };
+      expect(WsConnectionContextHelper.getContextTelemetry(mockClient)).toBe(mockTelemetry);
 
-    const mockBusinessBlock = jest.fn().mockImplementation(() => {
-      expect(GeneralAsyncContext.instance.get('traceId')).toBe('mocked-otel-trace-id-32-chars-long');
-      expect(GeneralAsyncContext.instance.get('requestId')).toBe('custom-req-id');
-      return 'handshake-success';
+      expect((mockClient.data as IWsConnectionData).telemetry).toBe(mockTelemetry);
     });
 
-    const result = WsConnectionContextHelper.run(mockClient, mockHeadersAdapter, mockBusinessBlock);
-
-    expect(result).toBe('handshake-success');
-    expect(mockBusinessBlock).toHaveBeenCalledTimes(1);
-
-    expect(trace.getTracer('websocket-platform-transport').startSpan).toHaveBeenCalledWith(
-      'WS CONNECT: Handshake [ws-test-socket-id-123]',
-      {},
-      expect.any(Object),
-    );
-
-    expect(trace.setSpanContext).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        traceId: valid32CharTraceId,
-        spanId: valid16CharSpanId,
-        traceFlags: TraceFlags.SAMPLED,
-        isRemote: true,
-      }),
-    );
-
-    expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SpanStatusCode.OK });
-    expect(mockSpan.end).toHaveBeenCalled();
+    it('должен возвращать undefined, если telemetry-контекст не установлен', () => {
+      expect(WsConnectionContextHelper.getContextTelemetry(mockClient)).toBeUndefined();
+    });
   });
 
-  it('Сценарий 2: Коннект БЕЗ заголовков трассировки — разрыв связи и генерация уникального контекста (isRemote: false)', () => {
-    mockClient.handshake.headers = {};
+  describe('setAuthInfo / getAuthInfo', () => {
+    it('должен сохранять и возвращать информацию об аутентификации', () => {
+      WsConnectionContextHelper.setAuthInfo(mockClient, mockAuthInfo);
 
-    const mockBusinessBlock = jest.fn().mockReturnValue('flat-success');
+      expect(WsConnectionContextHelper.getAuthInfo(mockClient)).toBe(mockAuthInfo);
 
-    const result = WsConnectionContextHelper.run(mockClient, mockHeadersAdapter, mockBusinessBlock);
+      expect((mockClient.data as IWsConnectionData).authInfo).toBe(mockAuthInfo);
+    });
 
-    expect(result).toBe('flat-success');
-
-    expect(trace.setSpanContext).toHaveBeenCalledWith(
-      expect.any(Object),
-      expect.objectContaining({
-        traceId: 'generated_trace_id_32_chars_long',
-        spanId: 'generated_span_id',
-        isRemote: false,
-      }),
-    );
-
-    expect(mockSpan.setStatus).toHaveBeenCalledWith({ code: SpanStatusCode.OK });
-    expect(mockSpan.end).toHaveBeenCalled();
+    it('должен возвращать undefined, если информация об аутентификации не установлена', () => {
+      expect(WsConnectionContextHelper.getAuthInfo(mockClient)).toBeUndefined();
+    });
   });
 
-  it('Сценарий 3: Перехват исключений — должен логировать ошибку в спан и пробрасывать её наверх', () => {
-    const mockRuntimeError = new Error('Handshake Rejected: Token Blacklisted');
+  describe('getRequiredContext', () => {
+    it('должен возвращать установленный telemetry-контекст', () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
 
-    const mockBusinessBlock = jest.fn().mockImplementation(() => {
-      throw mockRuntimeError;
+      expect(WsConnectionContextHelper.getRequiredContext(mockClient)).toBe(mockTelemetry);
     });
 
-    expect(() => {
-      WsConnectionContextHelper.run(mockClient, mockHeadersAdapter, mockBusinessBlock);
-    }).toThrow('Handshake Rejected: Token Blacklisted');
-
-    expect(mockSpan.recordException).toHaveBeenCalledWith(mockRuntimeError);
-    expect(mockSpan.setStatus).toHaveBeenCalledWith({
-      code: SpanStatusCode.ERROR,
-      message: 'Handshake Rejected: Token Blacklisted',
+    it('должен выбрасывать ошибку, если telemetry-контекст не инициализирован', () => {
+      expect(() => WsConnectionContextHelper.getRequiredContext(mockClient)).toThrow(
+        'WebSocket telemetry context is not initialized for socket ws-test-socket-id-123',
+      );
     });
-    expect(mockSpan.end).toHaveBeenCalled();
+  });
+
+  describe('runWithContext', () => {
+    it('должен выполнять синхронную операцию внутри контекста подключения', () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
+
+      const executionBlock = jest.fn().mockReturnValue('operation-success');
+
+      const result = WsConnectionContextHelper.runWithContext(mockClient, executionBlock);
+
+      expect(result).toBe('operation-success');
+
+      expect(otelContext.with).toHaveBeenCalledWith(mockOtelContext, expect.any(Function));
+
+      expect(GeneralAsyncContext.instance.runWithContext).toHaveBeenCalledWith(
+        executionBlock,
+        mockAsyncContext,
+        'WS CONNECTION: [ws-test-socket-id-123]',
+      );
+
+      expect(executionBlock).toHaveBeenCalledTimes(1);
+    });
+
+    it('должен пробрасывать исключение синхронной операции', () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
+
+      const runtimeError = new Error('Operation failed');
+
+      const executionBlock = jest.fn(() => {
+        throw runtimeError;
+      });
+
+      expect(() => WsConnectionContextHelper.runWithContext(mockClient, executionBlock)).toThrow(runtimeError);
+    });
+
+    it('должен выбрасывать ошибку, если контекст не инициализирован', () => {
+      const executionBlock = jest.fn();
+
+      expect(() => WsConnectionContextHelper.runWithContext(mockClient, executionBlock)).toThrow(
+        'WebSocket telemetry context is not initialized for socket ws-test-socket-id-123',
+      );
+
+      expect(executionBlock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('runWithContextAsync', () => {
+    it('должен выполнять асинхронную операцию внутри контекста подключения', async () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
+
+      const executionBlock = jest.fn().mockResolvedValue('async-operation-success');
+
+      const result = await WsConnectionContextHelper.runWithContextAsync(mockClient, executionBlock);
+
+      expect(result).toBe('async-operation-success');
+
+      expect(otelContext.with).toHaveBeenCalledWith(mockOtelContext, expect.any(Function));
+
+      expect(GeneralAsyncContext.instance.runWithContextAsync).toHaveBeenCalledWith(
+        executionBlock,
+        mockAsyncContext,
+        'WS CONNECTION: [ws-test-socket-id-123]',
+      );
+
+      expect(executionBlock).toHaveBeenCalledTimes(1);
+    });
+
+    it('должен пробрасывать ошибку асинхронной операции', async () => {
+      WsConnectionContextHelper.setContextTelemetry(mockClient, mockTelemetry);
+
+      const runtimeError = new Error('Async operation failed');
+
+      const executionBlock = jest.fn().mockRejectedValue(runtimeError);
+
+      await expect(WsConnectionContextHelper.runWithContextAsync(mockClient, executionBlock)).rejects.toThrow(
+        'Async operation failed',
+      );
+    });
+
+    it('должен отклонять выполнение, если контекст не инициализирован', async () => {
+      const executionBlock = jest.fn().mockResolvedValue('unexpected');
+
+      expect(() => WsConnectionContextHelper.runWithContextAsync(mockClient, executionBlock)).toThrow(
+        'WebSocket telemetry context is not initialized for socket ws-test-socket-id-123',
+      );
+
+      expect(executionBlock).not.toHaveBeenCalled();
+    });
   });
 });

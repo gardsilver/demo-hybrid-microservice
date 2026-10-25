@@ -6,8 +6,8 @@ import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HTTP_SERVER_HEADERS_ADAPTER_DI } from 'src/modules/http/http-server';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
-import { LoggerMarkers } from 'src/modules/common';
-import { WsConnectionContextHelper, WsEvent } from 'src/modules/websocket';
+import { LoggerMarkers, SkipInterceptors } from 'src/modules/common';
+import { WsAuthGuard, WsConnectionContextHelper, WsEvent } from 'src/modules/websocket';
 
 interface IUserSocketData {
   socket: Socket;
@@ -44,7 +44,18 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
   }
 
   async handleConnection(client: Socket): Promise<void> {
-    return WsConnectionContextHelper.run(client, this.headersAdapter, async () => {
+    return WsConnectionContextHelper.runWithContextAsync(client, async () => {
+      /**
+       * Упрощенная схема.
+       *
+       * Сейчас jwt-токен не содержит информации об пользователе (логин, id и т.п).
+       *
+       * Как следствие эти данные отсутствуют и в authInfo
+       *  const authInfo = WsConnectionContextHelper.getAuthInfo(client);
+       *
+       * Поэтому "Логин" (по факту соответствует UserModel.name) берем из заголовка
+       *
+       */
       const headers = HttHeadersHelper.normalize(client.handshake.headers);
 
       let userEmail =
@@ -86,6 +97,7 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
     });
   }
 
+  @SkipInterceptors(WsAuthGuard)
   @WsEvent('askMessage')
   handleMessage(client: Socket, payload: { email: string; text: string }) {
     const senderEmail = this.clientMap.get(client.id);

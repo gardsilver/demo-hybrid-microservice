@@ -219,15 +219,17 @@ describe('HybridErrorResponseFilter', () => {
       .spyOn(BaseRpcExceptionFilter.prototype as unknown as { handleUnknownError: () => void }, 'handleUnknownError')
       .mockImplementation(() => undefined);
 
-    filter.catch(error, host);
+    try {
+      filter.catch(error, host);
 
-    expect(spyHttp).toHaveBeenCalledTimes(0);
-    expect(spyGrpc).toHaveBeenCalledTimes(0);
-    expect(spyKafka).toHaveBeenCalledTimes(0);
-    expect(spyRabbitMq).toHaveBeenCalledTimes(0);
-    expect(spyWs).toHaveBeenCalledTimes(0);
-    expect(spyRpcHandle).toHaveBeenCalledTimes(1);
-
-    spyRpcHandle.mockRestore();
+      expect(spyHttp).toHaveBeenCalledTimes(0);
+      expect(spyGrpc).toHaveBeenCalledTimes(0);
+      expect(spyKafka).toHaveBeenCalledTimes(0);
+      expect(spyRabbitMq).toHaveBeenCalledTimes(0);
+      expect(spyWs).toHaveBeenCalledTimes(0);
+      expect(spyRpcHandle).toHaveBeenCalledTimes(1);
+    } finally {
+      spyRpcHandle.mockRestore();
+    }
   });
 });

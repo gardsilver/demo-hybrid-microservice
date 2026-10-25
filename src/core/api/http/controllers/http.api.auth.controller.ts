@@ -57,7 +57,7 @@ export class HttpApiAuthController {
     };
 
     const accessToken = this.authService.getJwtToken(accessTokenData);
-    const cookieValue = encodeURIComponent(`${BEARER_NAME} ${accessToken}`);
+    const cookieValue = `${BEARER_NAME} ${accessToken}`;
 
     response.cookie(AUTHORIZATION_HEADER_NAME, cookieValue, {
       httpOnly: true,

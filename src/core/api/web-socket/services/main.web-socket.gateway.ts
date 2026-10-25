@@ -6,8 +6,8 @@ import { IGeneralAsyncContext } from 'src/modules/common/context';
 import { HttHeadersHelper, IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { HTTP_SERVER_HEADERS_ADAPTER_DI } from 'src/modules/http/http-server';
 import { ELK_LOGGER_SERVICE_BUILDER_DI, IElkLoggerService, IElkLoggerServiceBuilder } from 'src/modules/elk-logger';
-import { LoggerMarkers, SkipInterceptors } from 'src/modules/common';
-import { WsAuthGuard, WsConnectionContextHelper, WsEvent } from 'src/modules/websocket';
+import { LoggerMarkers } from 'src/modules/common';
+import { WsConnectionContextHelper, WsEvent } from 'src/modules/websocket';
 
 interface IUserSocketData {
   socket: Socket;
@@ -97,7 +97,6 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
     });
   }
 
-  @SkipInterceptors(WsAuthGuard)
   @WsEvent('askMessage')
   handleMessage(client: Socket, payload: { email: string; text: string }) {
     const senderEmail = this.clientMap.get(client.id);

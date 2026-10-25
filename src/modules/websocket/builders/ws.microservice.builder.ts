@@ -4,13 +4,19 @@ import { HTTP_SERVER_HEADERS_ADAPTER_DI } from 'src/modules/http/http-server';
 import { IHttpHeadersToAsyncContextAdapter } from 'src/modules/http/http-common';
 import { IWsMicroserviceBuilderOptions } from '../types/types';
 import { TelemetryIoAdapter } from '../adapters/telemetry-io.adapter';
+import { AUTH_SERVICE_DI, IAuthService } from 'src/modules/auth';
 
 export abstract class WsMicroserviceBuilder {
   public static setup(app: INestApplication, options?: IWsMicroserviceBuilderOptions): void {
-    const configOptions = options?.serverOptions ?? ({} as unknown as Partial<ServerOptions>);
+    const configOptions = {
+      ...(options?.serverOptions ?? ({} as unknown as Partial<ServerOptions>)),
+      checkAuthConnect: options?.checkAuthConnect,
+    };
 
     const headersAdapter =
       options?.headersAdapter ?? app.get<IHttpHeadersToAsyncContextAdapter>(HTTP_SERVER_HEADERS_ADAPTER_DI);
+
+    const authService = app.get<IAuthService>(AUTH_SERVICE_DI);
 
     if (!headersAdapter) {
       throw new Error(
@@ -18,7 +24,13 @@ export abstract class WsMicroserviceBuilder {
       );
     }
 
-    const telemetryIoAdapter = new TelemetryIoAdapter(app, configOptions, headersAdapter);
+    if (!headersAdapter) {
+      throw new Error(
+        'Не удалось инициализировать WebSocket телеметрию. Сервис проверки авторизации отсутствует в DI-контейнере.',
+      );
+    }
+
+    const telemetryIoAdapter = new TelemetryIoAdapter(app, configOptions, headersAdapter, authService);
     app.useWebSocketAdapter(telemetryIoAdapter);
   }
 }

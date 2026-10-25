@@ -12,10 +12,11 @@ describe(HttpAuthHelper.name, () => {
 
   beforeEach(async () => {
     token = faker.string.alpha(20);
+
     headers = httpHeadersFactory.build(
       {
         programsIds: ['1', '30'],
-        [AUTHORIZATION_HEADER_NAME.toString().toUpperCase()]: BEARER_NAME + ' ' + token,
+        [AUTHORIZATION_HEADER_NAME.toString().toUpperCase()]: `${BEARER_NAME} ${token}`,
       },
       {
         transient: {
@@ -39,11 +40,11 @@ describe(HttpAuthHelper.name, () => {
     ).toBeUndefined();
   });
 
-  it('C нормализацией заголовков', async () => {
+  it('С нормализацией заголовков', async () => {
     expect(HttpAuthHelper.token(HttHeadersHelper.normalize(headers))).toEqual(token);
   });
 
-  it('должен успешно извлекать токен из Cookies с префиксом Bearer и URL-декодированием', async () => {
+  it('должен успешно извлекать токен из Cookie с префиксом Bearer и URL-декодированием', () => {
     const rawCookieValue = encodeURIComponent(`${BEARER_NAME} ${token}`);
 
     const wsHeaders: IHeaders = HttHeadersHelper.normalize({
@@ -55,16 +56,15 @@ describe(HttpAuthHelper.name, () => {
     expect(result).toEqual(token);
   });
 
-  it('должен корректно извлекать токен из Cookies, если он записан без префикса Bearer', async () => {
+  it('должен корректно извлекать токен из Cookie без префикса Bearer', async () => {
     const wsHeaders: IHeaders = HttHeadersHelper.normalize({
       cookie: `some_cookie=val; ${AUTHORIZATION_HEADER_NAME}=${token}`,
     } as any);
 
-    const result = HttpAuthHelper.token(wsHeaders);
-    expect(result).toEqual(token);
+    expect(HttpAuthHelper.token(wsHeaders)).toEqual(token);
   });
 
-  it('должен вернуть undefined, если заголовок cookie присутствует, но целевая кука authorization не найдена или пуста', async () => {
+  it('должен вернуть undefined, если целевая Cookie отсутствует или пуста', async () => {
     const wsHeadersWithOtherCookie: IHeaders = HttHeadersHelper.normalize({
       cookie: 'theme=dark; lang=ru',
     } as any);
@@ -75,5 +75,21 @@ describe(HttpAuthHelper.name, () => {
 
     expect(HttpAuthHelper.token(wsHeadersWithOtherCookie)).toBeUndefined();
     expect(HttpAuthHelper.token(wsHeadersWithEmptyCookie)).toBeUndefined();
+  });
+
+  it('должен корректно обрабатывать Cookie с несколькими соседними значениями', async () => {
+    const wsHeaders: IHeaders = HttHeadersHelper.normalize({
+      cookie: `first=1; ${AUTHORIZATION_HEADER_NAME}=${encodeURIComponent(`${BEARER_NAME} ${token}`)}; last=2`,
+    } as any);
+
+    expect(HttpAuthHelper.token(wsHeaders)).toEqual(token);
+  });
+
+  it('должен вернуть undefined при некорректном URL-кодировании Cookie', () => {
+    const wsHeaders: IHeaders = HttHeadersHelper.normalize({
+      cookie: `${AUTHORIZATION_HEADER_NAME}=%E0%A4%A`,
+    } as any);
+
+    expect(HttpAuthHelper.token(wsHeaders)).toBeUndefined();
   });
 });

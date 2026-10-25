@@ -8,8 +8,11 @@ import { AuthModule } from 'src/modules/auth';
 import { GracefulShutdownModule } from 'src/modules/graceful-shutdown';
 import { PrometheusModule } from 'src/modules/prometheus';
 import { MockConfigService } from 'tests/nestjs';
+import { CommonApiService } from 'src/core/api/common';
 import { HttpApiModule } from '../http-api.module';
 import { HttpApiController } from './http.api.controller';
+
+jest.mock('sequelize-typescript', () => jest.requireActual('tests/sequelize-typescript').SEQUELIZE_TYPESCRIPT_MOCK);
 
 jest.mock('src/modules/date-timestamp', () => {
   const actualDateTimestamp = jest.requireActual('src/modules/date-timestamp');
@@ -42,6 +45,14 @@ describe(HttpApiController.name + ' (e2e)', () => {
           GRACEFUL_SHUTDOWN_ENABLED: 'no',
         }),
       )
+      .overrideProvider(CommonApiService)
+      .useValue({
+        getUser: jest.fn().mockImplementation(() => {
+          return {
+            id: 1,
+          };
+        }),
+      })
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -52,7 +63,7 @@ describe(HttpApiController.name + ' (e2e)', () => {
     await app.close();
   });
 
-  it('/ (GET)', async () => {
+  it('GET /app', async () => {
     const response = request(app.getHttpServer()).get('/app').send({});
     const result = await response;
 

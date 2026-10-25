@@ -7,11 +7,14 @@
    1. Zero Deadlocks (Безопасность Event Loop): Модуль полностью автономен. Отказ от глобального авто-инструментирования сокетов на этапе bootstrap() исключает зависание HTTP/2 портов Express/NestJS при старте приложения в изолированных контурах Kubernetes (Air-gapped K8s).
    2. Тотальный мониторинг пайплайна (Pre-Guards Context): Трассировка и контекст памяти разворачиваются на уровне нативного Middleware брокера событий. Любые WS Guards (Гварды авторизации), WS Pipes (Валидация данных) и WS Exception Filters выполняются внутри изолированной области видимости AsyncLocalStorage.
    3. Изоляция от Бизнес-Логики: Инфраструктурный слой вынесен на уровень кастомного сетевого адаптера NestJS. Прикладные разработчики пишут стандартные гейтвеи, не заботясь о пробросе traceId.
+   4. При установке WebSocket-соединения проверятся доступ (`IAuthService` @see `src/modules/auth`). Если в `WsMicroserviceBuilder.setup` явно не предать опцию `checkAuthConnect: false`, то создание анонимных WebSocket-соединений запрещено.
+   5. WsAuthGuard проверяет доступ (на основе заголовков переданных в момент установки WebSocket-соединения) к конкретному WebSocket-событию при его обработке.Автоматически подключается декоратором WsEvent.
 
 ------------------------------
 
 ## Структура модуля
 
+```
 src/modules/websocket/
 ├── adapters/
 │   └── telemetry-io.adapter.ts          # Кастомный адаптер сокетов с Middleware телеметрии
@@ -23,10 +26,11 @@ src/modules/websocket/
 │   └── ws.exceptions.filter.ts          # Фильтер Websocket ошибок
 │   └── ws.response.handler.ts           # Обработчик Websocket ошибок, логирует приводит к единому виду.
 └── helpers/
-│   ├── ws.connection-context.helper.ts  # Хелпер трассировки фазы Handshake (handleConnection)
+│   ├── ws.connection-context.helper.ts  # Хелпер для получения данных контекста и выполнения пользовательских функций в рамках контекста Websocket
 │   └── ws.helper.ts                     # Реализует проверку контескта на соотвествие Websocket.
 │   └── ws.packet.helper.ts              # Безопасный парсер пакетов Socket.io
 └── ws.module.ts                         # Модуль `WsModule`, предоставляет доступ к `WsErrorResponseFilter` и к `WsAuthGuard`, подключается глобально.
+```
 
 ------------------------------
 
@@ -65,7 +69,7 @@ export async function bootstrap(logger: INestElkLoggerService): Promise<void> {
 Благодаря Middleware-архитектуре, контекст выполнения событий `SubscribeMessage` удерживается асинхронно силами метода `runWithContextAsync(..., 'ws_pipeline_execute')`.
 
 * Для чтения параметров трассировки в любом месте гейтвея или сервиса достаточно вызвать `GeneralAsyncContext.instance.get()`.
-* Для безопасного логирования этапа авторизации внутри handleConnection (так как он выполняется вне рамок Middleware) используется утилитарный хелпер `WsConnectionContextHelper`.run.
+* Для безопасного логирования этапа авторизации внутри handleConnection (так как он выполняется вне рамок Middleware) используется утилитарный хелпер `WsConnectionContextHelper`.runWithContext/runWithContextAsync.
 
 ```ts
 import { WebSocketGateway, SubscribeMessage, OnGatewayConnection } from '@nestjs/websockets';
@@ -87,15 +91,8 @@ export class ChatGateway implements OnGatewayConnection {
    * Фаза 1: Оборачиваем handshake и проверку логина в контекст
    */
   async handleConnection(client: Socket) {
-    return WsConnectionContextHelper.run(client, this.headersAdapter, () => {
-      const token = client.handshake.headers['authorization'];
-      
-      if (!token) {
-        // Лог гарантированно напечатается с traceId текущего хэндшейка сокета!
-        this.logger.warn('WebSocket connection rejected: Missing token');
-        client.disconnect(true);
-        return;
-      }
+    return WsConnectionContextHelper.runWithContextAsync(client, async () => {
+      ....
       
       this.logger.info(`User successfully connected to socket: ${client.id}`);
     });

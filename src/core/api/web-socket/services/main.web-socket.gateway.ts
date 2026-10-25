@@ -44,7 +44,18 @@ export class MainWebSocketGateway implements OnGatewayInit, OnGatewayConnection,
   }
 
   async handleConnection(client: Socket): Promise<void> {
-    return WsConnectionContextHelper.run(client, this.headersAdapter, async () => {
+    return WsConnectionContextHelper.runWithContextAsync(client, async () => {
+      /**
+       * Упрощенная схема.
+       *
+       * Сейчас jwt-токен не содержит информации об пользователе (логин, id и т.п).
+       *
+       * Как следствие эти данные отсутствуют и в authInfo
+       *  const authInfo = WsConnectionContextHelper.getAuthInfo(client);
+       *
+       * Поэтому "Логин" (по факту соответствует UserModel.name) берем из заголовка
+       *
+       */
       const headers = HttHeadersHelper.normalize(client.handshake.headers);
 
       let userEmail =

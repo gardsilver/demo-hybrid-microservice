@@ -1,64 +1,73 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Socket } from 'socket.io';
-import { trace, context as otelContext, TraceFlags, SpanStatusCode } from '@opentelemetry/api';
-import { HttpGeneralAsyncContextHeaderNames, HttHeadersHelper } from 'src/modules/http/http-common';
-import { BaseHeadersHelper } from 'src/modules/common/helpers/base.headers.helper';
-import { TraceSpanHelper } from 'src/modules/elk-logger';
-import { GeneralAsyncContext, IGeneralAsyncContext } from 'src/modules/common/context';
+import { context as otelContext } from '@opentelemetry/api';
+
+import { GeneralAsyncContext } from 'src/modules/common/context';
+import { IAuthInfo } from 'src/modules/auth';
+import { IWsConnectionData, IWsContextTelemetry } from '../types/types';
 
 export abstract class WsConnectionContextHelper {
-  public static run<R>(client: Socket, headersAdapter: any, executionBlock: () => R): R {
-    const headers = HttHeadersHelper.normalize(client.handshake.headers);
+  public static setContextTelemetry(client: Socket, telemetry: IWsContextTelemetry): void {
+    const data = client.data as IWsConnectionData;
+    data.telemetry = telemetry;
+  }
 
-    const traceId = BaseHeadersHelper.searchHeaderAsString(headers, HttpGeneralAsyncContextHeaderNames.TRACE_ID);
-    const parentSpanId = BaseHeadersHelper.searchHeaderAsString(headers, HttpGeneralAsyncContextHeaderNames.SPAN_ID);
+  public static getContextTelemetry(client: Socket): IWsContextTelemetry | undefined {
+    return (client.data as IWsConnectionData).telemetry;
+  }
 
-    const tracer = trace.getTracer('websocket-platform-transport');
-    const operationName = `WS CONNECT: Handshake [${client.id}]`;
+  public static setAuthInfo(client: Socket, authInfo: IAuthInfo): void {
+    const data = client.data as IWsConnectionData;
+    data.authInfo = authInfo;
+  }
 
-    let parentOtelContext = otelContext.active();
+  public static getAuthInfo(client: Socket): IAuthInfo | undefined {
+    return (client.data as IWsConnectionData).authInfo;
+  }
 
-    if (traceId && parentSpanId) {
-      parentOtelContext = trace.setSpanContext(otelContext.active(), {
-        traceId: traceId.padStart(32, '0'),
-        spanId: parentSpanId.padStart(16, '0'),
-        traceFlags: TraceFlags.SAMPLED,
-        isRemote: true,
-      });
-    } else {
-      parentOtelContext = trace.setSpanContext(otelContext.active(), {
-        traceId: TraceSpanHelper.generateTraceId(),
-        spanId: TraceSpanHelper.generateSpanId(),
-        traceFlags: TraceFlags.SAMPLED,
-        isRemote: false,
-      });
+  /**
+   * Возвращает telemetry-контекст или выбрасывает ошибку,
+   * если контекст ещё не был инициализирован.
+   */
+  public static getRequiredContext(client: Socket): IWsContextTelemetry {
+    const telemetry = this.getContextTelemetry(client);
+
+    if (!telemetry) {
+      throw new Error(`WebSocket telemetry context is not initialized for socket ${client.id}`);
     }
 
-    const span = tracer.startSpan(operationName, {}, parentOtelContext);
-    const otelActiveContext = trace.setSpan(parentOtelContext, span);
+    return telemetry;
+  }
 
-    const asyncContext: IGeneralAsyncContext = {
-      ...headersAdapter.adapt(headers),
-      traceId: span.spanContext().traceId,
-      spanId: span.spanContext().spanId,
-      parentSpanId: parentSpanId || '',
-      initialSpanId: parentSpanId || '',
-    };
+  /**
+   * Выполняет синхронную или возвращающую произвольный результат операцию
+   * в контексте WebSocket-подключения.
+   */
+  public static runWithContext<R>(client: Socket, executionBlock: () => R): R {
+    const telemetry = this.getRequiredContext(client);
 
-    return otelContext.with(otelActiveContext, () => {
-      return GeneralAsyncContext.instance.runWithContext(() => {
-        try {
-          const result = executionBlock();
-          span.setStatus({ code: SpanStatusCode.OK });
-          span.end();
-          return result;
-        } catch (error: any) {
-          span.recordException(error);
-          span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
-          span.end();
-          throw error;
-        }
-      }, asyncContext);
-    });
+    return otelContext.with(telemetry.context, () =>
+      GeneralAsyncContext.instance.runWithContext(
+        executionBlock,
+        telemetry.asyncContext,
+        `WS CONNECTION: [${client.id}]`,
+      ),
+    );
+  }
+
+  /**
+   * Выполняет асинхронную операцию в контексте WebSocket-подключения.
+   *
+   * Контекст сохраняется на протяжении выполнения Promise.
+   */
+  public static runWithContextAsync<R>(client: Socket, executionBlock: () => Promise<R>): Promise<R> {
+    const telemetry = this.getRequiredContext(client);
+
+    return otelContext.with(telemetry.context, () =>
+      GeneralAsyncContext.instance.runWithContextAsync(
+        executionBlock,
+        telemetry.asyncContext,
+        `WS CONNECTION: [${client.id}]`,
+      ),
+    );
   }
 }
